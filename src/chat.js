@@ -10,16 +10,20 @@
         FormData,
         Request,
         Dexie,
+        JSDOM,
         DOMPurify;
 
     function Chat(params) {
         if (typeof (require) !== 'undefined' && typeof (exports) !== 'undefined') {
-            Async = require('podasync'),
-                ChatUtility = require('./utility/utility.js'),
-                FormData = require('form-data'),
-                Request = require('request'),
-                Dexie = require('dexie').default || require('dexie'),
+            Async = require('podasync');
+                ChatUtility = require('./utility/utility.js');
+                FormData = require('form-data');
+                Request = require('request');
+                Dexie = require('dexie').default || require('dexie');
                 DOMPurify = require('dompurify');
+                JSDOM = require('jsdom').JSDOM;
+                DOMPurify = DOMPurify(new JSDOM('').window);
+
 
             var QueryString = require('querystring'),
                 FS = require('fs'),
