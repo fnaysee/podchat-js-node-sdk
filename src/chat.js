@@ -9,7 +9,8 @@
         ChatUtility,
         FormData,
         Request,
-        Dexie;
+        Dexie,
+        DOMPurify;
 
     function Chat(params) {
         if (typeof (require) !== 'undefined' && typeof (exports) !== 'undefined') {
@@ -17,7 +18,8 @@
                 ChatUtility = require('./utility/utility.js'),
                 FormData = require('form-data'),
                 Request = require('request'),
-                Dexie = require('dexie').default || require('dexie');
+                Dexie = require('dexie').default || require('dexie'),
+                DOMPurify = require('dompurify');
 
             var QueryString = require('querystring'),
                 FS = require('fs'),
@@ -44,7 +46,8 @@
             Async = window.POD.Async,
                 ChatUtility = window.POD.ChatUtility,
                 FormData = window.FormData,
-                Dexie = window.Dexie;
+                Dexie = window.Dexie,
+                DOMPurify = window.DOMPurify;
         }
 
         /*******************************************************
@@ -1468,6 +1471,9 @@
                         messageVO.content = JSON.stringify(params.content);
                     } else {
                         messageVO.content = params.content;
+                        if(DOMPurify.isSupported) {
+                            messageVO.content = DOMPurify.sanitize(messageVO.content, {ALLOWED_TAGS: []});
+                        }
                     }
                 }
 
