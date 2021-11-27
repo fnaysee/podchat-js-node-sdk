@@ -11,6 +11,8 @@
     <script type="text/javascript" src="../node_modules/podasync/src/network/async.js"></script>
     <script type="text/javascript" src="../node_modules/crypto-js/crypto-js.js"></script>
     <script type="text/javascript" src="../node_modules/dexie/dist/dexie.min.js"></script>
+    <script type="text/javascript" src="../node_modules/dompurify/dist/purify.min.js"></script>
+
     <script type="text/javascript" src="../src/chat.js"></script>
 
     <!-- Production Mode -->
@@ -43,22 +45,22 @@
             /**
              * Main Server
              */
-            socketAddress: 'wss://msg.pod.ir/ws', // {**REQUIRED**} Socket Address
-            ssoHost: 'https://accounts.pod.ir', // {**REQUIRED**} Socket Address
-            platformHost: 'https://api.pod.ir/srv/core', // {**REQUIRED**} Platform Core Address
-            fileServer: 'https://core.pod.ir', // {**REQUIRED**} File Server Address
-            podSpaceFileServer: 'https://podspace.pod.ir', // {**REQUIRED**} File Server Address
-            serverName: 'chat-server', // {**REQUIRED**} Server to to register on
+            // socketAddress: 'wss://msg.pod.ir/ws', // {**REQUIRED**} Socket Address
+            // ssoHost: 'https://accounts.pod.ir', // {**REQUIRED**} Socket Address
+            // platformHost: 'https://api.pod.ir/srv/core', // {**REQUIRED**} Platform Core Address
+            // fileServer: 'https://core.pod.ir', // {**REQUIRED**} File Server Address
+            // podSpaceFileServer: 'https://podspace.pod.ir', // {**REQUIRED**} File Server Address
+            // serverName: 'chat-server', // {**REQUIRED**} Server to to register on
 
             /**
              * Sand Box
              */
-            // socketAddress: "wss://chat-sandbox.pod.ir/ws",
-            // ssoHost: "https://accounts.pod.ir",
-            // platformHost: "https://sandbox.pod.ir:8043/srv/basic-platform",
-            // fileServer: 'https://core.pod.ir',
-            // podSpaceFileServer: 'https://podspace.pod.ir',
-            // serverName: "chat-server",
+            socketAddress: "wss://chat-sandbox.pod.ir/ws",
+            ssoHost: "https://accounts.pod.ir",
+            platformHost: "https://sandbox.pod.ir:8043/srv/basic-platform",
+            fileServer: 'https://core.pod.ir',
+            podSpaceFileServer: 'https://podspace.pod.ir',
+            serverName: "chat-server",
 
             /**
              * PodSpace test
@@ -85,7 +87,7 @@
             fullResponseObject: false,
             mapApiKey: '8b77db18704aa646ee5aaea13e7370f4f88b9e8c',
             // typeCode: "talk",
-            token: "30733ad2fff542daa40ded3c39d1a9cc",
+            token: "0bea561f71af4cc9829afce8ac472f2f",
             // token: "f19933ae1b1e424db9965a243bf3bcd3", // {**REQUIRED**} SSO Token ZiZi
             // token: "81025b3fbc1a4f7184c3600a2f874673", //  {**REQUIRED**} SSO Token JiJi
             // token: "3c4d62b6068043aa898cf7426d5cae68", // {**REQUIRED**} SSO Token FiFi
@@ -798,6 +800,18 @@
                 default:
                     break;
             }
+        });
+        /**
+         * Listen to Call Events
+         */
+        chatAgent.on("callEvents", function (event) {
+            var type = event.type;
+            console.log(event);
+/*
+            switch (type) {
+                default:
+                    break;
+            }*/
         });
 
         /**

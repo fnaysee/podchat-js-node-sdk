@@ -96,7 +96,8 @@
                 systemEvents: {},
                 chatReady: {},
                 error: {},
-                chatState: {}
+                chatState: {},
+                callEvents: {}
             },
             messagesCallbacks = {},
             sendMessageCallbacks = {},
@@ -163,6 +164,14 @@
                 THREAD_ALL_BOTS: 69,
                 CONTACT_SYNCED: 90,
                 LOGOUT: 100,
+
+                RECORD_CALL: 121,
+                END_RECORD_CALL: 122,
+                DESTINATED_RECORD_CALL: 126,
+                ASSISTANT_CALL_STARTED: 127,
+                ASSISTANT_CALL_ENDED: 128,
+                EXPORT_CHAT: 152,
+
                 ERROR: 999
             },
             inviteeVOidTypes = {
@@ -3120,6 +3129,85 @@
                         });
                         break;
 
+                    /**
+                     * Type 121    Record Call Request
+                     */
+                    case chatMessageVOTypes.RECORD_CALL:
+                        if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }
+
+                        fireEvent('callEvents', {
+                            type: 'START_RECORDING_CALL',
+                            result: messageContent
+                        });
+
+                        break;
+
+                    /**
+                     * Type 122   End Record Call Request
+                     */
+                    case chatMessageVOTypes.END_RECORD_CALL:
+                        if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }
+
+                        fireEvent('callEvents', {
+                            type: 'STOP_RECORDING_CALL',
+                            result: messageContent
+                        });
+
+                        break;
+
+                    /**
+                     * Type 126   Destined Record Call Request
+                     */
+                    case chatMessageVOTypes.DESTINATED_RECORD_CALL:
+                        if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }
+
+                        fireEvent('callEvents', {
+                            type: 'START_RECORDING_CALL',
+                            result: messageContent
+                        });
+
+                        break;
+
+                     /**
+                     * Type 127   Assistant call started
+                     *
+                     * Tells the assistant that a call started
+                     */
+                    case chatMessageVOTypes.ASSISTANT_CALL_STARTED:
+                        /*if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }*/
+
+                        fireEvent('callEvents', {
+                            type: 'ASSISTANT_CALL_STARTED',
+                            result: {
+                                callId: threadId
+                            }
+                        });
+
+                        break;
+
+                     /**
+                     * Type 128   Assistant call ended
+                     *
+                     * Tells the assistant that a call ended
+                     */
+                    case chatMessageVOTypes.ASSISTANT_CALL_ENDED:
+                       /* if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }*/
+
+                        fireEvent('callEvents', {
+                            type: 'ASSISTANT_CALL_ENDED'
+                        });
+
+                        break;
 
                     /**
                      * Type 999   All unknown errors
@@ -11719,6 +11807,81 @@
         };
 
         this.generateUUID = Utility.generateUUID;
+
+        this.startRecordingCall = function (params, callback) {
+            var recordCallData = {
+                chatMessageVOType: chatMessageVOTypes.RECORD_CALL,
+                typeCode: params.typeCode,
+                pushMsgType: 3,
+                token: token,
+                content: {}
+            };
+
+            if (params) {
+                if (typeof +params.callId === 'number' && params.callId > 0) {
+                    recordCallData.subjectId = +params.callId;
+                } else {
+                    fireEvent('error', {
+                        code: 999,
+                        message: 'Invalid Call id!'
+                    });
+                    return;
+                }
+
+                if(params.destinated === true) {
+                    recordCallData.chatMessageVOType = chatMessageVOTypes.DESTINATED_RECORD_CALL;
+                    recordCallData.content.recordType = typeof +params.recordType === 'number' ? params.recordType : 1;
+                    recordCallData.content.tags = Array.isArray(params.tags) ? params.tags : null;
+                    recordCallData.content.threadId = typeof +params.threadId === 'number' ? params.threadId : null;
+                }
+            } else {
+                fireEvent('error', {
+                    code: 999,
+                    message: 'No params have been sent to Record call!'
+                });
+                return;
+            }
+
+            return sendMessage(recordCallData, {
+                onResult: function (result) {
+                    callback && callback(result);
+                }
+            });
+        };
+
+        this.stopRecordingCall = function (params, callback) {
+            var stopRecordingCallData = {
+                chatMessageVOType: chatMessageVOTypes.END_RECORD_CALL,
+                typeCode: params.typeCode,
+                pushMsgType: 3,
+                token: token
+            };
+
+            if (params) {
+                if (typeof +params.callId === 'number' && params.callId > 0) {
+                    stopRecordingCallData.subjectId = +params.callId;
+                } else {
+                    fireEvent('error', {
+                        code: 999,
+                        message: 'Invalid Call id!'
+                    });
+                    return;
+                }
+            } else {
+                fireEvent('error', {
+                    code: 999,
+                    message: 'No params have been sent to Stop Recording the call!'
+                });
+                return;
+            }
+
+            return sendMessage(stopRecordingCallData, {
+                onResult: function (result) {
+                    callback && callback(result);
+                }
+            });
+        };
+
 
         this.logout = function () {
             clearChatServerCaches();
