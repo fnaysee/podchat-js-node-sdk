@@ -9,6 +9,19 @@ to see complete list of changelog please visit [ChangeLog](https://github.com/ma
 -   Search in threads metadata
 
 
+## [11.3.0] - 27-11-2021
+### Added
+
+- method: startRecordingCall
+- method: stopRecordingCall
+- event: callEvents.ASSISTANT_CALL_STARTED
+- event: callEvents.ASSISTANT_CALL_ENDED
+- event: callEvents.START_RECORDING_CALL
+- event: callEvents.STOP_RECORDING_CALL
+
+### Changed
+- Downgrade dexie to 2.0.4
+
 ## [4.10.0] - 2019-06-24
 
 ### Added
