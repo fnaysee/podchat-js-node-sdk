@@ -4,9 +4,39 @@ All notable changes to this project will be documented here.
 to see complete list of changelog please visit [ChangeLog](https://github.com/masoudmanson/pod-chat/blob/master/changelog.md)
 
 
-## [Unreleased]
 
--   Search in threads metadata
+## [11.4.0] - 11-12-2021
+### Added
+
+- method: startCall
+- method: startGroupCall
+- method: endCall
+- method: terminateCall
+- method: rejectCall
+- method: muteCallParticipants
+- method: unMuteCallParticipants
+- method: turnOnVideoCall
+- method: turnOffVideoCall
+- method: getCallParticipants
+- method: addCallParticipants
+- method: removeCallParticipants
+- method: getCallsList
+- event: callEvents.CALL_STARTED_ELSEWHERE
+- event: callEvents.RECEIVE_CALL
+- event: callEvents.CALL_SESSION_CREATED
+- event: callEvents.ACCEPT_CALL
+- event: callEvents.REJECT_CALL
+- event: callEvents.PARTNER_RECEIVED_YOUR_CALL
+- event: callEvents.CALL_SESSION_CREATED
+- event: callEvents.CALL_STARTED
+- event: callEvents.CALL_ENDED
+- event: callEvents.CALL_PARTICIPANT_JOINED
+- event: callEvents.CALL_PARTICIPANT_LEFT
+- event: callEvents.CALL_PARTICIPANT_MUTE
+- event: callEvents.CALL_PARTICIPANT_UNMUTE
+- event: callEvents.TURN_ON_VIDEO_CALL
+- event: callEvents.TURN_OFF_VIDEO_CALL
+- event: callEvents.CALL_ERROR
 
 
 ## [11.3.0] - 27-11-2021
