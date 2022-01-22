@@ -9141,7 +9141,7 @@
                     callRequestController.callRequestReceived = false;
                     currentCallParams = {};
                     currentCallId = null;
-                },
+            },
 
             /**
              * Reformat Call Participants
@@ -12429,7 +12429,15 @@
                     content.threadId = +params.threadId;
                 } else {
                     if (Array.isArray(params.invitees)) {
-                        content.invitees = params.invitees;
+                        content.invitees = [];//params.invitees;
+                        for (var i = 0; i < params.invitees.length; i++) {
+                            var tempInvitee = params.invitees[i];
+
+                            if (tempInvitee && typeof tempInvitee.idType === "string") {
+                                tempInvitee.idType = inviteeVOidTypes[tempInvitee.idType];
+                                content.invitees.push(tempInvitee);
+                            }
+                        }
                     } else {
                         fireEvent('error', {
                             code: 999,
@@ -12489,8 +12497,15 @@
                     content.threadId = +params.threadId;
                 } else {
                     if (Array.isArray(params.invitees)) {
-                        content.invitees = params.invitees;
+                        content.invitees = [];//params.invitees;
+                        for (var i = 0; i < params.invitees.length; i++) {
+                            var tempInvitee = params.invitees[i];
 
+                            if (tempInvitee && typeof tempInvitee.idType === "string") {
+                                tempInvitee.idType = inviteeVOidTypes[tempInvitee.idType];
+                                content.invitees.push(tempInvitee);
+                            }
+                        }
                     } else {
                         fireEvent('error', {
                             code: 999,
