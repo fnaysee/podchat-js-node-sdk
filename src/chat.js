@@ -2727,45 +2727,17 @@
                      * Type 31    Thread Last Seen Updated
                      */
                     case chatMessageVOTypes.LAST_SEEN_UPDATED:
-                        if (fullResponseObject) {
-                            getThreads({
-                                threadIds: [messageContent.id]
-                            }, function (threadsResult) {
-                                var threads = threadsResult.result.threads;
+                        var threadObject = messageContent;
+                        threadObject.unreadCount = (messageContent.unreadCount) ? messageContent.unreadCount : 0;
 
-                                if (!threadsResult.cache) {
-                                    fireEvent('threadEvents', {
-                                        type: 'THREAD_UNREAD_COUNT_UPDATED',
-                                        result: {
-                                            thread: threads[0],
-                                            unreadCount: messageContent.unreadCount
-                                        }
-                                    });
+                        fireEvent('threadEvents', {
+                            type: 'THREAD_UNREAD_COUNT_UPDATED',
+                            result: {
+                                thread: (fullResponseObject ? threadObject : messageContent.id),
+                                unreadCount: (messageContent.unreadCount) ? messageContent.unreadCount : 0
+                            }
+                        });
 
-                                    fireEvent('threadEvents', {
-                                        type: 'THREAD_LAST_ACTIVITY_TIME',
-                                        result: {
-                                            thread: threads[0]
-                                        }
-                                    });
-                                }
-                            });
-                        } else {
-                            fireEvent('threadEvents', {
-                                type: 'THREAD_UNREAD_COUNT_UPDATED',
-                                result: {
-                                    thread: threadId,
-                                    unreadCount: messageContent.unreadCount
-                                }
-                            });
-
-                            fireEvent('threadEvents', {
-                                type: 'THREAD_LAST_ACTIVITY_TIME',
-                                result: {
-                                    thread: threadId
-                                }
-                            });
-                        }
 
                         break;
 
