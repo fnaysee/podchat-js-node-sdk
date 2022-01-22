@@ -3796,43 +3796,30 @@
                     }
                 });
 
-                if (fullResponseObject) {
-                    getThreads({
-                        threadIds: [threadId]
-                    }, function (threadsResult) {
-                        var threads = threadsResult.result.threads;
+                var threadObject = message.conversation;
+                var lastMessageVoCopy = Object.assign({}, message);
+                lastMessageVoCopy.conversation && delete lastMessageVoCopy.conversation;
 
-                        fireEvent('threadEvents', {
-                            type: 'THREAD_UNREAD_COUNT_UPDATED',
-                            result: {
-                                thread: threads[0],
-                                unreadCount: threads[0].unreadCount
-                            }
-                        });
+                threadObject.lastParticipantImage = (!!message.participant && message.participant.hasOwnProperty('image')) ? message.participant.image : '';
+                threadObject.lastMessageVO = lastMessageVoCopy;
+                threadObject.lastParticipantName = (!!message.participant && message.participant.hasOwnProperty('name')) ? message.participant.name : '';
+                threadObject.lastMessage = (message.hasOwnProperty('message')) ? message.message : '';
 
-                        fireEvent('threadEvents', {
-                            type: 'THREAD_LAST_ACTIVITY_TIME',
-                            result: {
-                                thread: threads[0]
-                            }
-                        });
-                    });
-                } else {
-                    fireEvent('threadEvents', {
-                        type: 'THREAD_LAST_ACTIVITY_TIME',
-                        result: {
-                            thread: threadId
-                        }
-                    });
 
-                    fireEvent('threadEvents', {
-                        type: 'THREAD_UNREAD_COUNT_UPDATED',
-                        result: {
-                            thread: messageContent.id,
-                            unreadCount: messageContent.conversation.unreadCount
-                        }
-                    });
-                }
+                fireEvent('threadEvents', {
+                    type: 'THREAD_UNREAD_COUNT_UPDATED',
+                    result: {
+                        thread: (fullResponseObject ? threadObject : messageContent.id),
+                        unreadCount: (threadObject.unreadCount) ? threadObject.unreadCount : 0
+                    }
+                });
+
+                fireEvent('threadEvents', {
+                    type: 'THREAD_LAST_ACTIVITY_TIME',
+                    result: {
+                        thread: (fullResponseObject ? threadObject : messageContent.id),
+                    }
+                });
 
                 /**
                  * Update waitQ and remove sent messages from it
