@@ -3546,10 +3546,6 @@
                      * Tells the assistant that a call started
                      */
                     case chatMessageVOTypes.ASSISTANT_CALL_STARTED:
-                        /*if (messagesCallbacks[uniqueId]) {
-                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
-                        }*/
-
                         fireEvent('callEvents', {
                             type: 'ASSISTANT_CALL_STARTED',
                             result: {
@@ -3565,10 +3561,6 @@
                      * Tells the assistant that a call ended
                      */
                     case chatMessageVOTypes.ASSISTANT_CALL_ENDED:
-                       /* if (messagesCallbacks[uniqueId]) {
-                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
-                        }*/
-
                         fireEvent('callEvents', {
                             type: 'ASSISTANT_CALL_ENDED',
                             callId: threadId
