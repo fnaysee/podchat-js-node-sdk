@@ -3285,7 +3285,7 @@
 
                        fireEvent('callEvents', {
                             type: 'CALL_ENDED',
-                            result: messageContent
+                            callId: threadId
                         });
 
                         callStop();
@@ -3570,7 +3570,8 @@
                         }*/
 
                         fireEvent('callEvents', {
-                            type: 'ASSISTANT_CALL_ENDED'
+                            type: 'ASSISTANT_CALL_ENDED',
+                            callId: threadId
                         });
 
                         break;
