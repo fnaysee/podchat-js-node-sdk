@@ -5,6 +5,16 @@ to see complete list of changelog please visit [ChangeLog](https://github.com/ma
 
 
 
+## [12.2.0] - 23-1-2022
+### Added
+- callId in END CALL events
+
+### Changed
+- idType as string in invitees list for startCall and startGroupCall
+
+### Fixed
+- fixed errors on newMessageHandler
+
 ## [11.4.0] - 11-12-2021
 ### Added
 
