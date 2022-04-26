@@ -3,7 +3,9 @@
 All notable changes to this project will be documented here.
 to see complete list of changelog please visit [ChangeLog](https://github.com/masoudmanson/pod-chat/blob/master/changelog.md)
 
-
+## [12.3.0] - 26-4-2022
+### Added
+- callNoAnswerTimeout to SDK configs
 
 ## [12.2.0] - 23-1-2022
 ### Added
