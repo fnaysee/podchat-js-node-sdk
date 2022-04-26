@@ -61,6 +61,7 @@
         var Utility = new ChatUtility();
 
         var asyncClient,
+            currentModuleInstance = this,
             peerId,
             oldPeerId,
             userInfo,
@@ -374,6 +375,7 @@
             },
             currentCallParams = {},
             currentCallId = null,
+            newCallId = null,
             callClientType = {
                 WEB: 1,
                 ANDROID: 2,
@@ -390,7 +392,8 @@
             callStopQueue = {
                 callStarted: false,
             },
-            callRequestTimeout = (typeof params.callRequestTimeout === 'number' && params.callRequestTimeout >= 0) ? params.callRequestTimeout : 10000;
+            callRequestTimeout = (typeof params.callRequestTimeout === 'number' && params.callRequestTimeout >= 0) ? params.callRequestTimeout : 10000,
+            callNoAnswerTimeout = params.callOptions && params.callOptions.callNoAnswerTimeout ? params.callOptions.callNoAnswerTimeout : 0;
 
 
         /*******************************************************
@@ -3166,6 +3169,19 @@
                             result: messageContent
                         });
 
+                        if (messageContent.callId > 0) {
+                            if(!currentCallId ) {
+                                currentCallId = messageContent.callId;
+                            }
+                            else
+                                newCallId = messageContent.callId;
+                        } else {
+                            fireEvent('callEvents', {
+                                type: 'PARTNER_RECEIVED_YOUR_CALL',
+                                result: messageContent
+                            });
+                        }
+
                         currentCallId = messageContent.callId;
 
                         break;
@@ -3213,6 +3229,11 @@
                                 type: 'RECEIVE_CALL',
                                 result: messageContent
                             });
+                            if(!currentCallId ) {
+                                currentCallId = messageContent.callId;
+                            }
+                            else
+                                newCallId = messageContent.callId;
                         } else {
                             fireEvent('callEvents', {
                                 type: 'PARTNER_RECEIVED_YOUR_CALL',
@@ -3220,7 +3241,7 @@
                             });
                         }
 
-                        currentCallId = messageContent.callId;
+                        // currentCallId = messageContent.callId;
 
                         break;
 
@@ -3326,12 +3347,19 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
+                        if (messageContent.callId > 0) {
+                            if(!currentCallId )
+                                currentCallId = messageContent.callId;
+                            else
+                                newCallId = messageContent.callId;
+                        }
+
                         fireEvent('callEvents', {
                             type: 'RECEIVE_CALL',
                             result: messageContent
                         });
 
-                        currentCallId = messageContent.callId;
+                        // currentCallId = messageContent.callId;
 
                         break;
 
@@ -3460,8 +3488,12 @@
                             type: 'CALL_SESSION_CREATED',
                             result: messageContent
                         });
+                        if(!currentCallId)
+                            currentCallId = messageContent.callId;
+                        else
+                            newCallId = messageContent.callId;
 
-                        currentCallId = messageContent.callId;
+                        // currentCallId = messageContent.callId;
 
                         break;
 
@@ -12450,6 +12482,23 @@
 
             callRequestController.callRequestReceived = true;
             callRequestController.callEstablishedInMySide = true;
+
+            if(callNoAnswerTimeout) {
+                //TODO: Remove timeout when call ends fast
+                setTimeout( function(metaData) {
+                    //Reject the call if participant didn't answer
+                    if(!callStopQueue.callStarted ) {
+                        fireEvent("callEvents", {
+                            type: "CALL_NO_ANSWER_TIMEOUT",
+                            message: "Call request timed out, Participant(s) didn't answer",
+                        });
+
+                        metaData.callInstance.rejectCall({
+                            callId: currentCallId
+                        });
+                    }
+                }, callNoAnswerTimeout, {callInstance: currentModuleInstance});
+            }
 
             return sendMessage(startCallData, {
                 onResult: function (result) {
