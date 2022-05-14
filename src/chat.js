@@ -196,6 +196,7 @@
                 DESTINATED_RECORD_CALL: 126,
                 ASSISTANT_CALL_STARTED: 127,
                 ASSISTANT_CALL_ENDED: 128,
+                GET_CALLS_TO_JOIN: 129,
                 EXPORT_CHAT: 152,
 
                 ERROR: 999
@@ -12769,6 +12770,62 @@
                 fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to End the call!'
+                });
+                return;
+            }
+
+            return sendMessage(getCallListData, {
+                onResult: function (result) {
+                    callback && callback(result);
+                }
+            });
+        };
+
+        this.getCallsToJoin = function (params, callback) {
+            var getCallListData = {
+                chatMessageVOType: chatMessageVOTypes.GET_CALLS_TO_JOIN,
+                pushMsgType: 3,
+                token: token
+            }, content = {};
+
+            if (params) {
+                if (typeof params.count === 'number' && params.count >= 0) {
+                    content.count = +params.count;
+                } else {
+                    content.count = 50;
+                }
+
+                if (typeof params.offset === 'number' && params.offset >= 0) {
+                    content.offset = +params.offset;
+                } else {
+                    content.offset = 0;
+                }
+
+                if (typeof params.creatorSsoId === 'number' && params.creatorSsoId > 0) {
+                    content.creatorSsoId = +params.creatorSsoId;
+                }
+
+                if (typeof params.name === 'string') {
+                    content.name = params.name;
+                }
+
+                if (typeof params.type === 'string' && callTypes.hasOwnProperty(params.type.toUpperCase())) {
+                    content.type = callTypes[params.type.toUpperCase()];
+                }
+
+                if (Array.isArray(params.threadIds)) {
+                    content.threadIds = params.threadIds;
+                }
+
+                if (typeof params.uniqueId === 'string') {
+                    content.uniqueId = params.uniqueId;
+                }
+
+                getCallListData.content = JSON.stringify(content);
+            } else {
+                fireEvent('error', {
+                    code: 999,
+                    message: 'Invalid params'
                 });
                 return;
             }
