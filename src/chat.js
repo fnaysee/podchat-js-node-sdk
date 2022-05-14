@@ -12757,6 +12757,10 @@
                     content.callIds = params.callIds;
                 }
 
+                if (typeof params.threadId === 'number' && +params.threadId > 0) {
+                    content.threadId = +params.threadId;
+                }
+
                 if (typeof params.contactType === 'string') {
                     content.contactType = params.contactType;
                 }
