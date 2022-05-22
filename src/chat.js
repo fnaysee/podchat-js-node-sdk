@@ -8214,7 +8214,8 @@
                     }
                 }
                 for (var id in eventCallbacks[eventName]) {
-                    eventCallbacks[eventName][id](param);
+                    if(eventCallbacks[eventName] && eventCallbacks[eventName][id])
+                        eventCallbacks[eventName][id](param);
                 }
             },
 
