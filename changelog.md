@@ -3,6 +3,17 @@
 All notable changes to this project will be documented here.
 to see complete list of changelog please visit [ChangeLog](https://github.com/masoudmanson/pod-chat/blob/master/changelog.md)
 
+## [12.4.0] - 24-5-2022
+### Added
+- Parameter: threadInfo in startCall and startGroupCall
+- Parameter: joinCall to acceptCall
+- Parameter: threadId to getCallsList
+- Method: getCallsToJoin
+
+### Fixed
+- error on eventType that has no callback
+
+
 ## [12.3.0] - 26-4-2022
 ### Added
 - callNoAnswerTimeout to SDK configs
