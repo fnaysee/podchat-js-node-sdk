@@ -67,6 +67,7 @@
             userInfo,
             token = params.token,
             generalTypeCode = params.typeCode || 'default',
+            typeCodeOwnerId = params.typeCodeOwnerId || null,
             mapApiKey = params.mapApiKey || '8b77db18704aa646ee5aaea13e7370f4f88b9e8c',
             deviceId,
             isNode = Utility.isNode(),
@@ -395,7 +396,6 @@
             },
             callRequestTimeout = (typeof params.callRequestTimeout === 'number' && params.callRequestTimeout >= 0) ? params.callRequestTimeout : 10000,
             callNoAnswerTimeout = params.callOptions && params.callOptions.callNoAnswerTimeout ? params.callOptions.callNoAnswerTimeout : 0;
-
 
         /*******************************************************
          *            P R I V A T E   M E T H O D S            *
@@ -1523,10 +1523,14 @@
                     tokenIssuer: 1
                 };
 
-                if (params.typeCode) {
-                    messageVO.typeCode = params.typeCode;
-                } else if (generalTypeCode) {
+                if (params.typeCode || generalTypeCode) {
+                    messageVO.typeCode = generalTypeCode;//params.typeCode;
+                }/* else if (generalTypeCode) {
                     messageVO.typeCode = generalTypeCode;
+                }*/
+
+                if(typeCodeOwnerId) {
+                    messageVO.ownerId = typeCodeOwnerId;
                 }
 
                 if (params.messageType) {
@@ -1826,6 +1830,10 @@
              * @return {undefined}
              */
             chatMessageHandler = function (chatMessage) {
+                if(chatMessage.typeCode && chatMessage.typeCode !== generalTypeCode) {
+                    return;
+                }
+
                 var threadId = chatMessage.subjectId,
                     type = chatMessage.type,
                     // TODO Check this again
