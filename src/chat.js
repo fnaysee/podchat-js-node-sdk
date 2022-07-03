@@ -200,6 +200,9 @@
                 GET_CALLS_TO_JOIN: 129,
                 EXPORT_CHAT: 152,
 
+                SWITCH_TO_GROUP_CALL_REQUEST: 221,
+                RECORD_CALL_STARTED: 222,
+
                 ERROR: 999
             },
             inviteeVOidTypes = {
@@ -3608,6 +3611,42 @@
                         });
 
                         break;
+
+                    /**
+                     * Type 129   Get Calls To Join
+                     */
+                    case chatMessageVOTypes.GET_CALLS_TO_JOIN:
+                        if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }
+                        break;
+
+                    /**
+                     * Type 221  Event to tell us p2p call converted to a group call
+                     */
+                    case chatMessageVOTypes.SWITCH_TO_GROUP_CALL_REQUEST:
+                        fireEvent('callEvents', {
+                            type: 'SWITCH_TO_GROUP_CALL',
+                            result: messageContent //contains: isGroup, callId, threadId
+                        });
+
+                        break;
+
+                    /**
+                     * Type 222    Call Recording Started
+                     */
+                    case chatMessageVOTypes.RECORD_CALL_STARTED:
+                        if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
+                        }
+
+                        fireEvent('callEvents', {
+                            type: 'CALL_RECORDING_STARTED',
+                            result: messageContent
+                        });
+
+                        break;
+
 
                     /**
                      * Type 999   All unknown errors
