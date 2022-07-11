@@ -3274,6 +3274,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
+                        messageContent.callId = threadId;
                         fireEvent('callEvents', {
                             type: 'CALL_STARTED',
                             result: messageContent
