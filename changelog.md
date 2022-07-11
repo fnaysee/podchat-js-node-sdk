@@ -3,6 +3,14 @@
 All notable changes to this project will be documented here.
 to see complete list of changelog please visit [ChangeLog](https://github.com/masoudmanson/pod-chat/blob/master/changelog.md)
 
+## [12.5.0] - 11-7-2022
+### Added
+- Added global typeCode and typeCodeOwnerId
+- Added SWITCH_TO_GROUP_CALL_REQUEST , RECORD_CALL_STARTED , fixed GET_CALLS_TO_JOIN
+- Added callId to event type: CALL_STARTED
+- Removed contentCount from hasNext calculation in getThreads and getHistory
+
+
 ## [12.4.0] - 24-5-2022
 ### Added
 - Parameter: threadInfo in startCall and startGroupCall
@@ -17,6 +25,7 @@ to see complete list of changelog please visit [ChangeLog](https://github.com/ma
 ## [12.3.0] - 26-4-2022
 ### Added
 - callNoAnswerTimeout to SDK configs
+
 
 ## [12.2.0] - 23-1-2022
 ### Added
