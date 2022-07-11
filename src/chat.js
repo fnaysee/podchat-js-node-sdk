@@ -5013,7 +5013,7 @@
                                 resultData = {
                                     threads: [],
                                     contentCount: result.contentCount,
-                                    hasNext: (offset + count < result.contentCount && messageLength > 0),
+                                    hasNext: messageContent && !(messageLength < count),//(offset + count < result.contentCount && messageLength > 0),
                                     nextOffset: offset + messageLength
                                 },
                                 threadData;
@@ -6297,8 +6297,7 @@
                                     var resultData = {
                                         history: history,
                                         contentCount: result.contentCount,
-                                        hasNext: (sendMessageParams.content.offset + sendMessageParams.content.count < result.contentCount &&
-                                            messageLength > 0),
+                                        hasNext: result.result && !(result.result.length < sendMessageParams.content.count),//(sendMessageParams.content.offset + sendMessageParams.content.count < result.contentCount &&messageLength > 0),
                                         nextOffset: sendMessageParams.content.offset + messageLength
                                     };
 
