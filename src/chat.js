@@ -3623,6 +3623,17 @@
                         break;
 
                     /**
+                     * Type 152    Gives us a json to export for user
+                     */
+                    case chatMessageVOTypes.EXPORT_CHAT:
+                        if (messagesCallbacks[uniqueId]) {
+                            messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount, uniqueId));
+                        }
+
+                        break;
+
+
+                    /**
                      * Type 221  Event to tell us p2p call converted to a group call
                      */
                     case chatMessageVOTypes.SWITCH_TO_GROUP_CALL_REQUEST:
@@ -3647,7 +3658,6 @@
                         });
 
                         break;
-
 
                     /**
                      * Type 999   All unknown errors
@@ -10320,6 +10330,193 @@
                 }
             });
         };
+
+        function requestExportChat(stackArr, wantedCount, stepCount, offset, sendData) {
+            sendData.content.offset = offset;
+            sendData.content.count = stepCount;
+            return new Promise(function(resolve, reject){
+                return sendMessage(sendData, {
+                    onResult: function (result) {
+
+                        var returnData = {
+                            hasError: result.hasError,
+                            cache: false,
+                            errorMessage: result.errorMessage,
+                            errorCode: result.errorCode
+                        };
+
+                        if (!returnData.hasError) {
+                            for(var i in result.result) {
+                                stackArr.push(result.result[i]);
+                            }
+
+                            consoleLogging && console.log("[SDK][exportChat] a step passed...");
+                            wantedCount = wantedCount > result.contentCount ? result.contentCount : wantedCount;
+                            setTimeout(function () {
+                                fireEvent('threadEvents', {
+                                    type: 'EXPORT_CHAT',
+                                    subType: 'IN_PROGRESS',
+                                    threadId: sendData.subjectId,
+                                    percent: Math.floor((stackArr.length / wantedCount) * 100)
+                                });
+
+                                if(stackArr.length < wantedCount) {
+                                    stepCount = wantedCount - stackArr.length < stepCount ? wantedCount - stackArr.length : stepCount;
+                                    //setTimeout(function () {
+                                    resolve(requestExportChat(stackArr, wantedCount, stepCount, stackArr.length, sendData));
+                                    //}, 1000)
+                                } else {
+                                    resolve(stackArr);
+                                }
+                            });
+                        } else {
+                            if(result.errorCode !== 21) {
+                                consoleLogging && console.log("[SDK][exportChat] Problem in one step... . Rerunning the request.", wantedCount, stepCount, stackArr.length, sendData, result);
+                                setTimeout(function () {
+                                    resolve(requestExportChat(stackArr, wantedCount, stepCount, stackArr.length, sendData))
+                                }, 2000)
+                            } else {
+                                reject(result)
+                            }
+                        }
+                    }
+                });
+            })
+        }
+
+        this.exportChat = function (params, callback) {
+            var stackArr = [], wantedCount = 10000, stepCount = 500, offset = 0;
+            var sendData = {
+                chatMessageVOType: chatMessageVOTypes.EXPORT_CHAT,
+                typeCode: generalTypeCode,//params.typeCode,
+                content: {
+                    offset: +params.offset > 0 ? +params.offset : offset,
+                    count: +params.count > 0 ? +params.count : wantedCount,//config.getHistoryCount,
+                },
+                subjectId: params.threadId
+            };
+
+            if (+params.fromTime > 0 && +params.fromTime < 9999999999999) {
+                sendData.content.fromTime = +params.fromTime;
+            }
+
+            if (+params.toTime > 0 && +params.toTime < 9999999999999) {
+                sendData.content.toTime = +params.toTime;
+            }
+
+            if(+params.wantedCount > 0) {
+                wantedCount = params.wantedCount;
+            }
+
+            if(+params.stepCount > 0) {
+                stepCount = params.stepCount;
+            }
+
+            if(+params.offset > 0) {
+                offset = params.offset;
+            }
+
+            // if (params.messageType && typeof params.messageType.toUpperCase() !== 'undefined' && chatMessageTypes[params.messageType.toUpperCase()] > 0) {
+            //     sendData.content.messageType = chatMessageTypes[params.messageType.toUpperCase()];
+            // }
+            sendData.content.messageType = 1;
+
+            if(wantedCount < stepCount)
+                stepCount = wantedCount;
+
+            consoleLogging && console.log("[SDK][exportChat] Starting...");
+            requestExportChat(stackArr, wantedCount, stepCount, offset, sendData).then(function (resultArray) {
+                consoleLogging && console.log("[SDK][exportChat] Export done..., Now converting...");
+
+                if(!params.exportPath) {
+                    callback && callback({
+                        hasError: false,
+                        result: resultArray
+                    });
+                    fireEvent('threadEvents', {
+                        type: 'EXPORT_CHAT',
+                        subType: 'DONE',
+                        threadId: sendData.subjectId,
+                        result: resultArray
+                    });
+
+                    return;
+                }
+
+                var str = ''
+                    , universalBOM = "\uFEFF";
+
+                str += "\u{62A}\u{627}\u{631}\u{6CC}\u{62E} " + ','; //tarikh
+                str += " \u{633}\u{627}\u{639}\u{62A} " + ','; //saat
+                str += "\u{646}\u{627}\u{645} \u{641}\u{631}\u{633}\u{62A}\u{646}\u{62F}\u{647}" + ',';//name ferestande
+                str += "\u{646}\u{627}\u{645} \u{6A9}\u{627}\u{631}\u{628}\u{631}\u{6CC} \u{641}\u{631}\u{633}\u{62A}\u{646}\u{62F}\u{647}" + ','; //name karbariye ferestande
+                str += "\u{645}\u{62A}\u{646} \u{67E}\u{6CC}\u{627}\u{645}" + ',';//matne payam
+                str += '\r\n';
+                var line = '', radif = 1;
+                for (var i = 0; i < resultArray.length; i++) {
+                    line = '';
+
+                    if(resultArray[i].messageType !== 1) {
+                        continue;
+                    }
+
+                    var sender = '';
+                    if(resultArray[i].participant.contactName) {
+                        sender = resultArray[i].participant.contactName + ',';
+                    } else {
+                        if(resultArray[i].participant.firstName) {
+                            sender = resultArray[i].participant.firstName + ' ';
+                        }
+                        if(resultArray[i].participant.lastName) {
+                            sender += resultArray[i].participant.lastName;
+                        }
+                        sender += ','
+                    }
+
+                    line += new Date(resultArray[i].time).toLocaleDateString('fa-IR') + ',';
+                    line += new Date(resultArray[i].time).toLocaleTimeString('fa-IR') + ',';
+                    line += sender;
+                    line += resultArray[i].participant.username + ',';
+                    line += '"' + resultArray[i].message.replaceAll(",", "،").replaceAll('"', '”') + '",';
+                    // line += result[i].message.replaceAll(",", ".").replace(/(\r\n|\n|\r)/gm, " ") + ',';
+                    str += line + '\r\n';
+                    radif++;
+                }
+
+
+                FS.writeFile(params.exportPath, universalBOM + str, {encoding: 'utf8'}, function (err) {
+                    if (err){
+                        fireEvent('ERROR', {
+                            code: null,
+                            message: err
+                        });
+                        callback && callback({
+                            hasError: true,
+                            code: null,
+                            message: err
+                        });
+                    }
+
+                    callback && callback({
+                        hasError: false,
+                        result: resultArray,
+                        exportPath: params.exportPath
+                    });
+
+                    fireEvent('threadEvents', {
+                        type: 'EXPORT_CHAT',
+                        subType: 'EXPORTED_TO_DIRECTORY',
+                        threadId: sendData.subjectId,
+                        exportPath: params.exportPath,
+                        result: resultArray
+                    });
+
+
+                });
+
+                callback = undefined;
+            })
+        }
 
         this.getImage = getImage;
 
