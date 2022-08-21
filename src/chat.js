@@ -10477,7 +10477,7 @@
                     line += new Date(resultArray[i].time).toLocaleTimeString('fa-IR') + ',';
                     line += sender;
                     line += resultArray[i].participant.username + ',';
-                    line += '"' + resultArray[i].message.replaceAll(",", "،").replaceAll('"', '”') + '",';
+                    line += '"' + resultArray[i].message.replace(/,/g, "،").replace(/"/g, '”') + '",';
                     // line += result[i].message.replaceAll(",", ".").replace(/(\r\n|\n|\r)/gm, " ") + ',';
                     str += line + '\r\n';
                     radif++;
