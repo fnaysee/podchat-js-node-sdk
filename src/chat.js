@@ -290,6 +290,10 @@
                 // POD Drive Services
                 PODSPACE_UPLOAD_FILE_TO_USERGROUP: '/userGroup/uploadFile',
                 PODSPACE_UPLOAD_IMAGE_TO_USERGROUP: '/userGroup/uploadImage',
+
+                PODSPACE_UPLOAD_FILE_TO_USERGROUP_NEW: '/api/usergroups/{userGroupHash}/files',
+                PODSPACE_UPLOAD_IMAGE_TO_USERGROUP_NEW: '/api/usergroups/{userGroupHash}/images',
+
                 PODSPACE_UPLOAD_FILE: '/nzh/drive/uploadFile',
                 PODSPACE_UPLOAD_FILE_FROM_URL: '/nzh/drive/uploadFileFromUrl',
                 PODSPACE_UPLOAD_IMAGE: '/nzh/drive/uploadImage',
@@ -8167,6 +8171,251 @@
                     reader.readAsDataURL(params.image);
                 }
             },
+
+            uploadImageToPodspaceUserGroupNew = function (params, callback) {
+                var fileName,
+                    fileType,
+                    fileSize,
+                    fileWidth = 0,
+                    fileHeight = 0,
+                    fileExtension,
+                    uploadUniqueId,
+                    uploadThreadId;
+                var continueImageUpload = function (params) {
+                    if (imageMimeTypes.indexOf(fileType) >= 0 || imageExtentions.indexOf(fileExtension) >= 0) {
+                        var uploadImageData = {};
+                        if (params) {
+                            if (typeof params.image !== 'undefined') {
+                                uploadImageData.file = params.image;
+                            } else {
+                                callback({
+                                    hasError: true,
+                                    errorCode: 999,
+                                    errorMessage: 'You need to send a image file!'
+                                });
+                                return;
+                            }
+                            if (typeof params.userGroupHash == 'string') {
+                                uploadImageData.userGroupHash = params.userGroupHash;
+                            } else {
+                                callback({
+                                    hasError: true,
+                                    errorCode: 999,
+                                    errorMessage: 'You need to enter a userGroupHash to be able to upload on PodSpace!'
+                                });
+                                return;
+                            }
+                            if (params.randomFileName) {
+                                uploadImageData.fileName = Utility.generateUUID() + '.' + fileExtension;
+                            } else {
+                                uploadImageData.filename = fileName;
+                            }
+                            uploadImageData.fileSize = fileSize;
+                            if (parseInt(params.threadId) > 0) {
+                                uploadThreadId = params.threadId;
+                                uploadImageData.threadId = params.threadId;
+                            } else {
+                                uploadThreadId = 0;
+                                uploadImageData.threadId = 0;
+                            }
+                            if (typeof params.uniqueId == 'string') {
+                                uploadUniqueId = params.uniqueId;
+                                uploadImageData.uniqueId = params.uniqueId;
+                            } else {
+                                uploadUniqueId = Utility.generateUUID();
+                                uploadImageData.uniqueId = uploadUniqueId;
+                            }
+                            if (typeof params.originalFileName == 'string') {
+                                uploadImageData.originalFileName = params.originalFileName;
+                            } else {
+                                uploadImageData.originalFileName = fileName;
+                            }
+                            uploadImageData.x = parseInt(params.xC) || 0;
+                            uploadImageData.y = parseInt(params.yC) || 0;
+                            uploadImageData.height = parseInt(params.hC) || fileHeight;
+                            uploadImageData.weight = parseInt(params.wC) || fileWidth;
+                        }
+                        httpRequest({
+                            url: SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS + SERVICES_PATH.PODSPACE_UPLOAD_IMAGE_TO_USERGROUP_NEW.replace('{userGroupHash}', uploadImageData.userGroupHash),
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                            },
+                            data: uploadImageData,
+                            uniqueId: uploadUniqueId
+                        }, function (result) {
+                            if (!result.hasError) {
+                                try {
+                                    var response = (typeof result.result.responseText == 'string')
+                                        ? JSON.parse(result.result.responseText)
+                                        : result.result.responseText;
+                                    if (response.status < 400) {
+                                        response.result.actualHeight = fileHeight;
+                                        response.result.actualWidth = fileWidth;
+                                        callback({
+                                            hasError: response.hasError,
+                                            result: response.result
+                                        });
+                                    } else {
+                                        callback({
+                                            hasError: true,
+                                            errorCode: response.errorCode,
+                                            errorMessage: response.message
+                                        });
+                                    }
+                                } catch (e) {
+                                    consoleLogging && console.log(e)
+                                    callback({
+                                        hasError: true,
+                                        errorCode: 6300,
+                                        errorMessage: CHAT_ERRORS[6300]
+                                    });
+                                }
+                            } else {
+                                callback({
+                                    hasError: true,
+                                    errorCode: result.errorCode,
+                                    errorMessage: result.errorMessage
+                                });
+                            }
+                        });
+                        return {
+                            uniqueId: uploadUniqueId,
+                            threadId: uploadThreadId,
+                            participant: userInfo,
+                            content: {
+                                caption: params.content,
+                                file: {
+                                    uniqueId: uploadUniqueId,
+                                    fileName: fileName,
+                                    fileSize: fileSize,
+                                    fileObject: params.file
+                                }
+                            }
+                        };
+                    } else {
+                        callback({
+                            hasError: true,
+                            errorCode: 6301,
+                            errorMessage: CHAT_ERRORS[6301]
+                        });
+                    }
+                }
+
+                fileName = params.image.name;
+                fileType = params.image.type;
+                fileSize = params.image.size;
+                fileExtension = params.image.name.split('.')
+                    .pop();
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var image = new Image();
+                    image.onload = function () {
+                        fileWidth = this.width;
+                        fileHeight = this.height;
+                        continueImageUpload(params);
+                    };
+                    image.src = e.target.result;
+                };
+                reader.readAsDataURL(params.image);
+            },
+
+            uploadFileToPodspaceUserGroupNew = function (params, callback) {
+                var fileName,
+                    //fileType,
+                    fileSize,
+                    //fileExtension,
+                    uploadUniqueId,
+                    uploadThreadId;
+
+                fileName = params.file.name;
+                //fileType = params.file.type;
+                fileSize = params.file.size;
+                //fileExtension = params.file.name.split('.').pop();
+
+                var uploadFileData = {};
+                if (params) {
+                    if (typeof params.file !== 'undefined') {
+                        uploadFileData.file = params.file;
+                    }
+                    if (parseInt(params.threadId) > 0) {
+                        uploadThreadId = params.threadId;
+                        uploadFileData.threadId = params.threadId;
+                    } else {
+                        uploadThreadId = 0;
+                        uploadFileData.threadId = 0;
+                    }
+                    if (typeof params.uniqueId == 'string') {
+                        uploadUniqueId = params.uniqueId;
+                        uploadFileData.uniqueId = params.uniqueId;
+                    } else {
+                        uploadUniqueId = Utility.generateUUID();
+                        uploadFileData.uniqueId = uploadUniqueId;
+                    }
+                    if (typeof params.userGroupHash == 'string') {
+                        uploadFileData.userGroupHash = params.userGroupHash;
+                    } else {
+                        callback({
+                            hasError: true,
+                            errorCode: 999,
+                            errorMessage: 'You need to enter a userGroupHash to be able to upload on PodSpace!'
+                        });
+                        return;
+                    }
+                    if (typeof params.originalFileName == 'string') {
+                        uploadFileData.originalFileName = params.originalFileName;
+                    } else {
+                        uploadFileData.originalFileName = fileName;
+                    }
+                }
+                httpRequest({
+                    url: SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS + SERVICES_PATH.PODSPACE_UPLOAD_FILE_TO_USERGROUP_NEW.replace('{userGroupHash}', uploadFileData.userGroupHash),
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                    },
+                    data: uploadFileData,
+                    uniqueId: uploadUniqueId
+                }, function (result) {
+                    if (!result.hasError) {
+                        try {
+                            var response = (typeof result.result.responseText == 'string')
+                                ? JSON.parse(result.result.responseText)
+                                : result.result.responseText;
+                            callback({
+                                hasError: response.hasError,
+                                result: response.result
+                            });
+                        } catch (e) {
+                            callback({
+                                hasError: true,
+                                errorCode: 999,
+                                errorMessage: 'Problem in Parsing result'
+                            });
+                        }
+                    } else {
+                        callback({
+                            hasError: true,
+                            errorCode: result.errorCode,
+                            errorMessage: result.errorMessage
+                        });
+                    }
+                });
+                return {
+                    uniqueId: uploadUniqueId,
+                    threadId: uploadThreadId,
+                    participant: userInfo,
+                    content: {
+                        caption: params.content,
+                        file: {
+                            uniqueId: uploadUniqueId,
+                            fileName: fileName,
+                            fileSize: fileSize,
+                            fileObject: params.file
+                        }
+                    }
+                };
+            }
 
             sendFileMessage = function (params, callbacks) {
                 var metadata = {file: {}},
