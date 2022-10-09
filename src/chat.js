@@ -294,6 +294,9 @@
                 PODSPACE_UPLOAD_FILE_TO_USERGROUP_NEW: '/api/usergroups/{userGroupHash}/files',
                 PODSPACE_UPLOAD_IMAGE_TO_USERGROUP_NEW: '/api/usergroups/{userGroupHash}/images',
 
+                PODSPACE_DOWNLOAD_FILE_NEW: '/api/files/{fileHash}',
+                PODSPACE_DOWNLOAD_IMAGE_NEW: '/api/images/{fileHash}',
+
                 PODSPACE_UPLOAD_FILE: '/nzh/drive/uploadFile',
                 PODSPACE_UPLOAD_FILE_FROM_URL: '/nzh/drive/uploadFileFromUrl',
                 PODSPACE_UPLOAD_IMAGE: '/nzh/drive/uploadImage',
@@ -7192,6 +7195,184 @@
                 }
             },
 
+            getFileFromPodspaceNew = function (params, callback) {
+                var downloadUniqueId = Utility.generateUUID(),
+                    getFileData = {};
+                if (params) {
+                    if (params.hashCode && typeof params.hashCode == 'string') {
+                        getFileData.hash = params.hashCode;
+                    } else {
+                        callback({
+                            hasError: true,
+                            error: 'Enter a file hash to get'
+                        });
+                        return;
+                    }
+
+                    if(params.checkUserGroupAccess) {
+                        getFileData.checkUserGroupAccess = true;
+                    }
+                }
+
+                if (params.responseType === 'link') {
+                    var returnLink = SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS + SERVICES_PATH.PODSPACE_DOWNLOAD_FILE_NEW.replace('{fileHash}', params.hashCode) + `?checkUserGroupAccess=true`;
+                    callback({
+                        hasError: false,
+                        type: 'link',
+                        result: returnLink
+                    });
+                } else {
+                    httpRequest({
+                        url: SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS + SERVICES_PATH.PODSPACE_DOWNLOAD_FILE_NEW.replace('{fileHash}', params.hashCode) + `?checkUserGroupAccess=true`,
+                        method: 'GET',
+                        responseType: 'blob',
+                        uniqueId: downloadUniqueId,
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        },
+                        enableDownloadProgressEvents: params.enableDownloadProgressEvents,
+                        hashCode: params.hashCode
+                        //data: getFileData
+                    }, function (result) {
+                        if (!result.hasError) {
+                            callback({
+                                hasError: result.hasError,
+                                result: result,
+                                type: 'blob'
+                            });
+                        } else {
+                            callback({
+                                hasError: true
+                            });
+                        }
+                    });
+
+                    return {
+                        uniqueId: downloadUniqueId,
+                        cancel: function () {
+                            cancelFileDownload({
+                                uniqueId: downloadUniqueId
+                            }, function () {
+                                consoleLogging && console.log(`"${downloadUniqueId}" - File download has been canceled!`);
+                            });
+                        }
+                    };
+                }
+            },
+
+            getImageFromPodspaceNew = function (params, callback) {
+                var downloadUniqueId = Utility.generateUUID(),
+                    getImageData = {
+                        size: params.size,
+                        quality: params.quality,
+                        crop: params.crop
+                    };
+                if (params) {
+                    if (params.hashCode && typeof params.hashCode == 'string') {
+                        getImageData.hash = params.hashCode;
+                    } else {
+                        callback({
+                            hasError: true,
+                            error: 'Enter a file hash to get'
+                        });
+                        return;
+                    }
+
+                    if (params.responseType === 'link') {
+                        var returnLink = SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS
+                            + SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE_NEW.replace('{fileHash}', params.hashCode) + `?checkUserGroupAccess=true&size=${params.size}&quality=${params.quality}&crop=${params.crop}`;
+                        //+ SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE + `?hash=${params.hashCode}&_token_=${token}&_token_issuer_=1&size=${params.size}&quality=${params.quality}&crop=${params.crop}`;
+
+                        callback({
+                            hasError: false,
+                            type: 'link',
+                            result: returnLink
+                        });
+                    } else if (params.responseType === 'base64') {
+                        httpRequest({
+                            url: SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS
+                                + SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE_NEW.replace('{fileHash}', params.hashCode) + `?checkUserGroupAccess=true&size=${params.size}&quality=${params.quality}&crop=${params.crop}`,
+                            method: 'GET',
+                            uniqueId: downloadUniqueId,
+                            responseType: 'blob',
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            enableDownloadProgressEvents: params.enableDownloadProgressEvents,
+                            hashCode: params.hashCode
+                            //data: getImageData
+                        }, function (result) {
+                            if (!result.hasError) {
+                                var fr = new FileReader();
+
+                                fr.onloadend = function () {
+                                    callback({
+                                        hasError: result.hasError,
+                                        type: 'base64',
+                                        result: fr.result
+                                    });
+                                }
+
+                                fr.readAsDataURL(result);
+                            } else {
+                                callback({
+                                    hasError: true
+                                });
+                            }
+                        });
+
+                        return {
+                            uniqueId: downloadUniqueId,
+                            cancel: function () {
+                                cancelFileDownload({
+                                    uniqueId: downloadUniqueId
+                                }, function () {
+                                    consoleLogging && console.log(`"${downloadUniqueId}" - Image download has been canceled!`);
+                                });
+                            }
+                        };
+                    } else {
+                        httpRequest({
+                            url: SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS
+                                + SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE_NEW.replace('{fileHash}', params.hashCode) + `?checkUserGroupAccess=true&size=${params.size}&quality=${params.quality}&crop=${params.crop}`,
+                            method: 'GET',
+                            responseType: 'blob',
+                            uniqueId: downloadUniqueId,
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            enableDownloadProgressEvents: params.enableDownloadProgressEvents,
+                            hashCode: params.hashCode
+                            //data: getImageData
+                        }, function (result) {
+                            if (!result.hasError) {
+                                callback({
+                                    hasError: result.hasError,
+                                    type: 'blob',
+                                    result: result
+                                });
+                            } else {
+                                callback({
+                                    hasError: true
+                                });
+                            }
+                        });
+
+                        return {
+                            uniqueId: downloadUniqueId,
+                            cancel: function () {
+                                cancelFileDownload({
+                                    uniqueId: downloadUniqueId
+                                }, function () {
+                                    consoleLogging && console.log(`"${downloadUniqueId}" - Image download has been canceled!`);
+                                });
+                            }
+                        };
+                    }
+                }
+            },
+
+
             /**
              * Get Image Download Link From PodSpace
              *
@@ -8302,22 +8483,39 @@
                     }
                 }
 
-                fileName = params.image.name;
-                fileType = params.image.type;
-                fileSize = params.image.size;
-                fileExtension = params.image.name.split('.')
-                    .pop();
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    var image = new Image();
-                    image.onload = function () {
-                        fileWidth = this.width;
-                        fileHeight = this.height;
-                        continueImageUpload(params);
+                if (isNode) {
+                    fileName = params.image.split('/')
+                        .pop();
+                    fileType = Mime.getType(params.image);
+                    fileSize = FS.statSync(params.image).size;
+                    fileExtension = params.image.split('.')
+                        .pop();
+
+                    var dimensions = SizeOf(params.image);
+                    fileWidth = dimensions.width;
+                    fileHeight = dimensions.height;
+
+                    continueImageUpload(params);
+                } else {
+                    fileName = params.image.name;
+                    fileType = params.image.type;
+                    fileSize = params.image.size;
+                    fileExtension = params.image.name.split('.')
+                        .pop();
+
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var image = new Image();
+                        image.onload = function () {
+                            fileWidth = this.width;
+                            fileHeight = this.height;
+                            continueImageUpload(params);
+                        };
+                        image.src = e.target.result;
                     };
-                    image.src = e.target.result;
-                };
-                reader.readAsDataURL(params.image);
+                    reader.readAsDataURL(params.image);
+                }
+
             },
 
             uploadFileToPodspaceUserGroupNew = function (params, callback) {
@@ -8328,9 +8526,25 @@
                     uploadUniqueId,
                     uploadThreadId;
 
-                fileName = params.file.name;
+                console.log(params)
+
+                if (isNode) {
+                    fileName = params.file.split('/')
+                        .pop();
+                    fileType = Mime.getType(params.file);
+                    fileSize = FS.statSync(params.file).size;
+                    fileExtension = params.file.split('.')
+                        .pop();
+                } else {
+                    fileName = params.file.name;
+                    fileType = params.file.type;
+                    fileSize = params.file.size;
+                    fileExtension = params.file.name.split('.')
+                        .pop();
+                }
+                // fileName = params.file.name;
                 //fileType = params.file.type;
-                fileSize = params.file.size;
+                // fileSize = params.file.size;
                 //fileExtension = params.file.name.split('.').pop();
 
                 var uploadFileData = {};
@@ -8432,6 +8646,8 @@
                         fileUploadParams.userGroupHash = params.userGroupHash;
                     }
 
+                    let msgType = (params.messageType && typeof params.messageType.toUpperCase() !== 'undefined' && chatMessageTypes[params.messageType.toUpperCase()] > 0) ? chatMessageTypes[params.messageType.toUpperCase()] : 1;
+
                     return chatUploadHandler({
                         threadId: params.threadId,
                         file: params.file,
@@ -8443,7 +8659,7 @@
                             message: {
                                 chatMessageVOType: chatMessageVOTypes.MESSAGE,
                                 typeCode: params.typeCode,
-                                messageType: (params.messageType && params.messageType.toUpperCase() !== undefined && chatMessageTypes[params.messageType.toUpperCase()] > 0) ? chatMessageTypes[params.messageType.toUpperCase()] : 1,
+                                messageType: msgType,
                                 subjectId: params.threadId,
                                 repliedTo: params.repliedTo,
                                 content: params.content,
@@ -8454,19 +8670,31 @@
                             },
                             callbacks: callbacks
                         }, function () {
-                            if (imageMimeTypes.indexOf(fileType) >= 0 || imageExtentions.indexOf(fileExtension) >= 0) {
-
-                                uploadImageToPodspaceUserGroup(fileUploadParams, function (result) {
+                            if ((imageMimeTypes.indexOf(fileType) >= 0 || imageExtentions.indexOf(fileExtension) >= 0)) {
+                                uploadImageToPodspaceUserGroupNew(fileUploadParams, function (result) {
                                     if (!result.hasError) {
+                                        // Send onFileUpload callback result
+                                        if (typeof callbacks === 'object' && callbacks.hasOwnProperty('onFileUpload')) {
+                                            callbacks.onFileUpload && callbacks.onFileUpload({
+                                                name: result.result.name,
+                                                hashCode: result.result.hash,
+                                                parentHash: result.result.parentHash,
+                                                size: result.result.size,
+                                                actualHeight: result.result.actualHeight,
+                                                actualWidth: result.result.actualWidth,
+                                                link: `${SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS}/api/images/${result.result.hash}?checkUserGroupAccess=true`
+                                            });
+                                        }
                                         metadata['name'] = result.result.name;
-                                        metadata['fileHash'] = result.result.hashCode;
+                                        metadata['fileHash'] = result.result.hash;
                                         metadata['file']['name'] = result.result.name;
-                                        metadata['file']['fileHash'] = result.result.hashCode;
-                                        metadata['file']['hashCode'] = result.result.hashCode;
+                                        metadata['file']['fileHash'] = result.result.hash;
+                                        metadata['file']['hashCode'] = result.result.hash;
                                         metadata['file']['parentHash'] = result.result.parentHash;
                                         metadata['file']['size'] = result.result.size;
                                         metadata['file']['actualHeight'] = result.result.actualHeight;
                                         metadata['file']['actualWidth'] = result.result.actualWidth;
+
                                         metadata['file']['link'] = `https://podspace.pod.ir/nzh/drive/downloadImage?hash=${result.result.hashCode}`;
                                         transferFromUploadQToSendQ(parseInt(params.threadId), fileUniqueId, JSON.stringify(metadata), function () {
                                             chatSendQueueHandler();
@@ -8476,13 +8704,14 @@
                                     }
                                 });
                             } else {
-                                uploadFileToPodspace(fileUploadParams, function (result) {
+                                uploadFileToPodspaceUserGroupNew(fileUploadParams, function (result) {
+                                    console.log('result.result.hashCode ::', result.result.hash)
                                     if (!result.hasError) {
-                                        metadata['fileHash'] = result.result.hashCode;
+                                        metadata['fileHash'] = result.result.hash;
                                         metadata['name'] = result.result.name;
                                         metadata['file']['name'] = result.result.name;
-                                        metadata['file']['fileHash'] = result.result.hashCode;
-                                        metadata['file']['hashCode'] = result.result.hashCode;
+                                        metadata['file']['fileHash'] = result.result.hash;
+                                        metadata['file']['hashCode'] = result.result.hash;
                                         metadata['file']['parentHash'] = result.result.parentHash;
                                         metadata['file']['size'] = result.result.size;
 
@@ -10771,9 +11000,9 @@
 
         this.getFile = getFile;
 
-        this.getFileFromPodspace = getFileFromPodspace;
+        this.getFileFromPodspace = getFileFromPodspaceNew;//getFileFromPodspace;
 
-        this.getImageFromPodspace = getImageFromPodspace;
+        this.getImageFromPodspace = getImageFromPodspaceNew;
 
         this.uploadFile = uploadFile;
 
