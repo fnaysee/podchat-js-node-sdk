@@ -218,7 +218,8 @@
                 PUBLIC_GROUP: 2,
                 CHANNEL_GROUP: 4,
                 CHANNEL: 8,
-                NOTIFICATION_CHANNEL: 16
+                NOTIFICATION_CHANNEL: 16,
+                SELF: 0x80
             },
             chatMessageTypes = {
                 TEXT: '1',
@@ -12944,6 +12945,96 @@
                         message: result.errorMessage,
                         error: result
                     });
+                }
+            });
+        };
+
+        this.createSelfThread = function (params, callback) {
+            var content = {
+                type: createThreadTypes['SELF']
+            };
+
+            if (params) {
+                if (typeof params.description === 'string') {
+                    content.description = params.description;
+                }
+
+                if (typeof params.metadata === 'string') {
+                    content.metadata = params.metadata;
+                } else if (typeof params.metadata === 'object') {
+                    try {
+                        content.metadata = JSON.stringify(params.metadata);
+                    } catch (e) {
+                        consoleLogging && console.log(e);
+                    }
+                }
+
+                if (typeof params.message == 'object') {
+                    content.message = {};
+
+                    if (typeof params.message.text === 'string') {
+                        content.message.text = params.message.text;
+                    }
+
+                    if (typeof params.message.uniqueId === 'string') {
+                        content.message.uniqueId = params.message.uniqueId;
+                    }
+
+                    if (params.message.type > 0) {
+                        content.message.messageType = params.message.type;
+                    }
+
+                    if (params.message.repliedTo > 0) {
+                        content.message.repliedTo = params.message.repliedTo;
+                    }
+
+                    if (typeof params.message.metadata === 'string') {
+                        content.message.metadata = params.message.metadata;
+                    } else if (typeof params.message.metadata === 'object') {
+                        content.message.metadata = JSON.stringify(params.message.metadata);
+                    }
+
+                    if (typeof params.message.systemMetadata === 'string') {
+                        content.message.systemMetadata = params.message.systemMetadata;
+                    } else if (typeof params.message.systemMetadata === 'object') {
+                        content.message.systemMetadata = JSON.stringify(params.message.systemMetadata);
+                    }
+
+                    if (Array.isArray(params.message.forwardedMessageIds)) {
+                        content.message.forwardedMessageIds = params.message.forwardedMessageIds;
+                        content.message.forwardedUniqueIds = [];
+                        for (var i = 0; i < params.message.forwardedMessageIds.length; i++) {
+                            content.message.forwardedUniqueIds.push(Utility.generateUUID());
+                        }
+                    }
+
+                }
+            }
+
+            var sendMessageParams = {
+                chatMessageVOType: chatMessageVOTypes.CREATE_THREAD,
+                typeCode: generalTypeCode,//params.typeCode,
+                content: content
+            };
+
+            return sendMessage(sendMessageParams, {
+                onResult: function (result) {
+                    var returnData = {
+                        hasError: result.hasError,
+                        cache: false,
+                        errorMessage: result.errorMessage,
+                        errorCode: result.errorCode
+                    };
+
+                    if (!returnData.hasError) {
+                        var messageContent = result.result;
+
+                        returnData.result = {
+                            thread: createThread(messageContent)
+                        };
+                    }
+
+                    callback && callback(returnData);
                 }
             });
         };
