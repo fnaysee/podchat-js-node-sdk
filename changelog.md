@@ -3,6 +3,18 @@
 All notable changes to this project will be documented here.
 to see complete list of changelog please visit [ChangeLog](https://github.com/masoudmanson/pod-chat/blob/master/changelog.md)
 
+## [12.5.3] - 14-11-2022
+### Added
+- Method: createSelfThread
+
+## [12.5.2] - 5-11-2022
+### Changed
+- Modified podspace methods
+
+## [12.5.1] - 21-8-2022
+### Added
+- ExportChat
+
 ## [12.5.0] - 11-7-2022
 ### Added
 - Global typeCode and typeCodeOwnerId
