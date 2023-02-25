@@ -7,6 +7,7 @@
     <!-- Development Mode -->
     <script type="text/javascript" src="../src/utility/utility.js"></script>
     <script type="text/javascript" src="../node_modules/podasync/src/utility/utility.js"></script>
+    <script type="text/javascript" src="../node_modules/podasync/src/utility/logger.js"></script>
     <script type="text/javascript" src="../node_modules/podasync/src/network/socket.js"></script>
     <script type="text/javascript" src="../node_modules/podasync/src/network/async.js"></script>
     <script type="text/javascript" src="../node_modules/crypto-js/crypto-js.js"></script>
@@ -45,22 +46,22 @@
             /**
              * Main Server
              */
-            // socketAddress: 'wss://msg.pod.ir/ws', // {**REQUIRED**} Socket Address
-            // ssoHost: 'https://accounts.pod.ir', // {**REQUIRED**} Socket Address
-            // platformHost: 'https://api.pod.ir/srv/core', // {**REQUIRED**} Platform Core Address
-            // fileServer: 'https://core.pod.ir', // {**REQUIRED**} File Server Address
-            // podSpaceFileServer: 'https://podspace.pod.ir', // {**REQUIRED**} File Server Address
-            // serverName: 'chat-server', // {**REQUIRED**} Server to to register on
+            socketAddress: 'wss://msg.pod.ir/ws', // {**REQUIRED**} Socket Address
+            ssoHost: 'https://accounts.pod.ir', // {**REQUIRED**} Socket Address
+            platformHost: 'https://api.pod.ir/srv/core', // {**REQUIRED**} Platform Core Address
+            fileServer: 'https://core.pod.ir', // {**REQUIRED**} File Server Address
+            podSpaceFileServer: 'https://podspace.pod.ir', // {**REQUIRED**} File Server Address
+            serverName: 'chat-server', // {**REQUIRED**} Server to to register on
 
             /**
              * Sand Box
              */
-            socketAddress: "wss://chat-sandbox.pod.ir/ws",
-            ssoHost: "https://accounts.pod.ir",
-            platformHost: "https://sandbox.pod.ir:8043/srv/basic-platform",
-            fileServer: 'https://core.pod.ir',
-            podSpaceFileServer: 'https://podspace.pod.ir',
-            serverName: "chat-server",
+            // socketAddress: "wss://chat-sandbox.pod.ir/ws",
+            // ssoHost: "https://accounts.pod.ir",
+            // platformHost: "https://sandbox.pod.ir:8043/srv/basic-platform",
+            // fileServer: 'https://core.pod.ir',
+            // podSpaceFileServer: 'https://podspace.pod.ir',
+            // serverName: "chat-server",
 
             /**
              * PodSpace test
@@ -83,7 +84,7 @@
             // serverName: "chatlocal",
 
             grantDeviceIdFromSSO: false,
-            enableCache: false, // Enable Client side caching
+            enableCache: true, // Enable Client side caching
             fullResponseObject: false,
             mapApiKey: '8b77db18704aa646ee5aaea13e7370f4f88b9e8c',
             // typeCode: "talk",
@@ -684,7 +685,8 @@
         /**
          * Listen to Chat State Changes
          */
-        chatAgent.on("chatState", function (chatState) {
+        chatAgent.on("chatState", function (event) {
+            console.log("chatState", event);
         });
 
         /**
