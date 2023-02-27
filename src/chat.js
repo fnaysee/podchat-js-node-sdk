@@ -4899,6 +4899,13 @@
                         content.partnerCoreContactId = whereClause.partnerCoreContactId = params.partnerCoreContactId;
                     }
 
+                    if (typeof params.isGroup === 'boolean') {
+                        content.isGroup = params.isGroup;
+                    }
+                    if (typeof params.type === 'number') {
+                        content.type = params.type;
+                    }
+
                     var functionLevelCache = (typeof params.cache == 'boolean') ? params.cache : true;
                 }
 
