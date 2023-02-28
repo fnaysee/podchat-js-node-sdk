@@ -349,7 +349,9 @@
                 6601: 'Database is not defined! (missing db)',
                 6602: 'Database Error',
                 // Map Errors
-                6700: 'You should Enter a Center Location like {lat: " ", lng: " "}'
+                6700: 'You should Enter a Center Location like {lat: " ", lng: " "}',
+
+                12003: 'Async socket connection failed'
             },
             getUserInfoRetry = 5,
             getUserInfoRetryCount = 0,
@@ -614,11 +616,19 @@
                 });
 
                 asyncClient.on('error', function (error) {
-                    fireEvent('error', {
-                        code: error.errorCode,
-                        message: error.errorMessage,
-                        error: error.errorEvent
-                    });
+                    if(error.errorCode) {
+                        fireEvent('error', {
+                            code: error.errorCode,
+                            message: error.errorMessage,
+                            error: error.errorEvent
+                        });
+                    } else {
+                        fireEvent('error', {
+                            code: 12003,
+                            message: CHAT_ERRORS[12003],
+                            error: error.errorEvent
+                        });
+                    }
                 });
             },
 
