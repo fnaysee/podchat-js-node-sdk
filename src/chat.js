@@ -9678,10 +9678,11 @@ import Mime from 'mime';
                     if (typeof +params.callId === 'number' && params.callId > 0) {
                         receiveCallData.subjectId = +params.callId;
                     } else {
-                        chatEvents.fireEvent('error', {
-                            code: 999,
-                            message: 'Invalid call id!'
-                        });
+                        raiseError(errorList.INVALID_CALLID, callback, true, {});
+                        // chatEvents.fireEvent('error', {
+                        //     code: 999,
+                        //     message: 'Invalid call id!'
+                        // });
                         return;
                     }
                 } else {
@@ -9717,10 +9718,11 @@ import Mime from 'mime';
                     if (typeof +params.callId === 'number' && params.callId > 0) {
                         endCallData.subjectId = +params.callId;
                     } else {
-                        chatEvents.fireEvent('error', {
-                            code: 999,
-                            message: 'Invalid call id!'
-                        });
+                        raiseError(errorList.INVALID_CALLID, callback, true, {});
+                        // chatEvents.fireEvent('error', {
+                        //     code: 999,
+                        //     message: 'Invalid call id!'
+                        // });
                         return;
                     }
                 } else {
@@ -13225,10 +13227,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     recordCallData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid Call id!'
-                    });
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid Call id!'
+                    // });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
                     return;
                 }
 
@@ -13265,10 +13268,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     stopRecordingCallData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid Call id!'
-                    });
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid Call id!'
+                    // });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
                     return;
                 }
             } else {
@@ -13331,10 +13335,11 @@ import Mime from 'mime';
                             }
                         }
                     } else {
-                        chatEvents.fireEvent('error', {
-                            code: 999,
-                            message: 'Invitees list is empty! Send an array of invitees to start a call with, Or send a Thread Id to start a call with current participants'
-                        });
+                        raiseError(errorList.INVITEES_LIST_REQUIRED, callback, true, {});
+                        // chatEvents.fireEvent('error', {
+                        //     code: 999,
+                        //     message: 'Invitees list is empty! Send an array of invitees to start a call with, Or send a Thread Id to start a call with current participants'
+                        // });
                         return;
                     }
                 }
@@ -13423,10 +13428,12 @@ import Mime from 'mime';
                             }
                         }
                     } else {
-                        chatEvents.fireEvent('error', {
-                            code: 999,
-                            message: 'Invitees list is empty! Send an array of invitees to start a call with, Or send a Thread Id to start a call with current participants'
-                        });
+
+                        raiseError(errorList.INVITEES_LIST_REQUIRED, callback, true, {});
+                        // chatEvents.fireEvent('error', {
+                        //     code: 999,
+                        //     message: 'Invitees list is empty! Send an array of invitees to start a call with, Or send a Thread Id to start a call with current participants'
+                        // });
                         return;
                     }
                 }
@@ -13473,10 +13480,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     terminateCallData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid call id!'
-                    });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid call id!'
+                    // });
                     return;
                 }
 
@@ -13508,10 +13516,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     acceptCallData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid call id!'
-                    });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid call id!'
+                    // });
                     return;
                 }
 
@@ -13560,10 +13569,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     rejectCallData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid call id!'
-                    });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid call id!'
+                    // });
                     return;
                 }
             } else {
@@ -13717,10 +13727,11 @@ import Mime from 'mime';
 
             if (params) {
                 if (isNaN(params.callId)) {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Call Id should be a valid number!'
-                    });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Call Id should be a valid number!'
+                    // });
                     return;
                 } else {
                     var callId = +params.callId;
@@ -13982,10 +13993,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     turnOnVideoData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid call id!'
-                    });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid call id!'
+                    // });
                     return;
                 }
             } else {
@@ -14015,10 +14027,11 @@ import Mime from 'mime';
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     turnOffVideoData.subjectId = +params.callId;
                 } else {
-                    chatEvents.fireEvent('error', {
-                        code: 999,
-                        message: 'Invalid call id!'
-                    });
+                    raiseError(errorList.INVALID_CALLID, callback, true, {});
+                    // chatEvents.fireEvent('error', {
+                    //     code: 999,
+                    //     message: 'Invalid call id!'
+                    // });
                     return;
                 }
             } else {
