@@ -1,35 +1,47 @@
 'use strict';
 
+import {initEventHandler, chatEvents} from "./events.module";
+import {errorList, raiseError} from './lib/errorHandler';
+
+import Async from 'podasync';
+import Utility from './utility/utility.js';
+import FormData from 'form-data';
+import Request from 'request';
+import DMPRFY from 'dompurify';
+import {JSDOM} from 'jsdom';
+import QueryString from 'querystring';
+import FS from 'fs';
+import SizeOf from 'image-size';
+import Mime from 'mime';
     /*
      * Pod Chat Module
      * @module chat
      *
      * @param {Object} params
      */
-    var Async,
-        ChatUtility,
-        FormData,
-        Request,
+
+
+//var
+        //ChatUtility,
+        //FormData,
+        //Request,
         // Dexie,
-        JSDOM,
-        DOMPurify;
+        //JSDOM,
+        //DOMPurify;
 
     function Chat(params) {
-        if (typeof (require) !== 'undefined' && typeof (exports) !== 'undefined') {
-            Async = require('podasync');
-                ChatUtility = require('./utility/utility.js');
-                FormData = require('form-data');
-                Request = require('request');
+                //FormData = require('form-data');
+                //Request = require('request');
                 // Dexie = require('dexie').default || require('dexie');
-                DOMPurify = require('dompurify');
-                JSDOM = require('jsdom').JSDOM;
-                DOMPurify = DOMPurify(new JSDOM('').window);
+                //DOMPurify = require('dompurify');
+                // JSDOM = require('jsdom').JSDOM;
+                let DOMPurify = DMPRFY(new JSDOM('').window);
 
 
-            var QueryString = require('querystring'),
-                FS = require('fs'),
-                SizeOf = require('image-size'),
-                Mime = require('mime');
+            //var QueryString = require('querystring'),
+                //FS = require('fs'),
+                //SizeOf = require('image-size'),
+                //Mime = require('mime');
 
             /**
              * Defining global variables for Dexie to work in Node ENV
@@ -47,19 +59,13 @@
                 // Dexie.dependencies.indexedDB = indexedDB;
                 // Dexie.dependencies.IDBKeyRange = IDBKeyRange;
             // }
-        } else {
-            Async = window.POD.Async,
-                ChatUtility = window.POD.ChatUtility,
-                FormData = window.FormData,
-                // Dexie = window.Dexie,
-                DOMPurify = window.DOMPurify;
-        }
+
 
         /*******************************************************
          *          P R I V A T E   V A R I A B L E S          *
          *******************************************************/
 
-        var Utility = new ChatUtility();
+        //var Utility = new ChatUtility();
 
         var asyncClient,
             currentModuleInstance = this,
@@ -411,6 +417,10 @@
             callRequestTimeout = (typeof params.callRequestTimeout === 'number' && params.callRequestTimeout >= 0) ? params.callRequestTimeout : 10000,
             callNoAnswerTimeout = params.callOptions && params.callOptions.callNoAnswerTimeout ? params.callOptions.callNoAnswerTimeout : 0;
 
+        initEventHandler(Object.assign(params, {
+            consoleLogging,
+        }));
+
         /*******************************************************
          *            P R I V A T E   M E T H O D S            *
          *******************************************************/
@@ -565,19 +575,19 @@
                                 // }
 
                                     chatState = true;
-                                    fireEvent('chatReady');
+                                    chatEvents.fireEvent('chatReady');
                                     chatSendQueueHandler();
                             }
                         });
                     } else if (userInfo.id > 0) {
                         chatState = true;
-                        fireEvent('chatReady');
+                        chatEvents.fireEvent('chatReady');
                         chatSendQueueHandler();
                     }
                 });
 
                 asyncClient.on('stateChange', function (state) {
-                    fireEvent('chatState', state);
+                    chatEvents.fireEvent('chatState', state);
                     chatFullStateObject = state;
 
                     switch (state.socketState) {
@@ -601,19 +611,19 @@
                 asyncClient.on('connect', function (newPeerId) {
                     asyncGetReadyTime = new Date().getTime();
                     peerId = newPeerId;
-                    fireEvent('connect');
+                    chatEvents.fireEvent('connect');
                     ping();
                 });
 
                 asyncClient.on('disconnect', function (event) {
                     oldPeerId = peerId;
                     peerId = undefined;
-                    fireEvent('disconnect', event);
+                    chatEvents.fireEvent('disconnect', event);
                 });
 
                 asyncClient.on('reconnect', function (newPeerId) {
                     peerId = newPeerId;
-                    fireEvent('reconnect');
+                    chatEvents.fireEvent('reconnect');
                 });
 
                 asyncClient.on('message', function (params, ack) {
@@ -623,13 +633,13 @@
 
                 asyncClient.on('error', function (error) {
                     if(error.errorCode) {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: error.errorCode,
                             message: error.errorMessage,
                             error: error.errorEvent
                         });
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 12003,
                             message: CHAT_ERRORS[12003],
                             error: error.errorEvent
@@ -673,7 +683,7 @@
                             }
 
                             if (!deviceId) {
-                                fireEvent('error', {
+                                chatEvents.fireEvent('error', {
                                     code: 6000,
                                     message: CHAT_ERRORS[6000],
                                     error: null
@@ -682,14 +692,14 @@
                                 callback(deviceId);
                             }
                         } else {
-                            fireEvent('error', {
+                            chatEvents.fireEvent('error', {
                                 code: 6001,
                                 message: CHAT_ERRORS[6001],
                                 error: null
                             });
                         }
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: result.errorCode,
                             message: result.errorMessage,
                             error: result
@@ -780,7 +790,7 @@
                         //     }
                         // }
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: result.error,
                             message: result.error_description,
                             error: result
@@ -836,7 +846,7 @@
                                     message: result.errorMessage
                                 });
 
-                                fireEvent('error', {
+                                chatEvents.fireEvent('error', {
                                     code: result.errorCode,
                                     message: result.errorMessage,
                                     error: result
@@ -917,7 +927,7 @@
                                         var body = JSON.parse(body);
                                         if (typeof body.hasError !== 'undefined' && body.hasError) {
                                             hasError = true;
-                                            fireEvent('fileUploadEvents', {
+                                            chatEvents.fireEvent('fileUploadEvents', {
                                                 threadId: threadId,
                                                 uniqueId: fileUniqueId,
                                                 state: 'UPLOAD_ERROR',
@@ -940,7 +950,7 @@
                                             });
                                         } else {
                                             hasError = false;
-                                            fireEvent('fileUploadEvents', {
+                                            chatEvents.fireEvent('fileUploadEvents', {
                                                 threadId: threadId,
                                                 uniqueId: fileUniqueId,
                                                 state: 'UPLOADED',
@@ -962,7 +972,7 @@
                                         }
                                     } else {
                                         hasError = true;
-                                        fireEvent('fileUploadEvents', {
+                                        chatEvents.fireEvent('fileUploadEvents', {
                                             threadId: threadId,
                                             uniqueId: fileUniqueId,
                                             state: 'UPLOAD_ERROR',
@@ -984,7 +994,7 @@
                                     }
                                 } else {
                                     hasError = true;
-                                    fireEvent('fileUploadEvents', {
+                                    chatEvents.fireEvent('fileUploadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'UPLOAD_ERROR',
@@ -1009,7 +1019,7 @@
                             })
                                 .on('abort', function () {
                                     hasError = true;
-                                    fireEvent('fileUploadEvents', {
+                                    chatEvents.fireEvent('fileUploadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'UPLOAD_CANCELED',
@@ -1038,7 +1048,7 @@
 
                                     if (percent < 100 && !hasError) {
                                         oldPercent = percent;
-                                        fireEvent('fileUploadEvents', {
+                                        chatEvents.fireEvent('fileUploadEvents', {
                                             threadId: threadId,
                                             uniqueId: fileUniqueId,
                                             state: 'UPLOADING',
@@ -1149,7 +1159,7 @@
                             if (callback) {
                                 if (hasFile) {
                                     hasError = true;
-                                    fireEvent('fileUploadEvents', {
+                                    chatEvents.fireEvent('fileUploadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'UPLOAD_ERROR',
@@ -1176,7 +1186,7 @@
                             if (callback) {
                                 if (hasFile) {
                                     hasError = true;
-                                    fireEvent('fileUploadEvents', {
+                                    chatEvents.fireEvent('fileUploadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'UPLOAD_CANCELED',
@@ -1230,7 +1240,7 @@
                                 if (event.lengthComputable && !hasError) {
                                     // console.log('total bytes', event.total);
                                     // console.log('loaded bytes', event.loaded);
-                                    fireEvent('fileDownloadEvents', {
+                                    chatEvents.fireEvent('fileDownloadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'DOWNLOADING',
@@ -1277,7 +1287,7 @@
                                         if (event.lengthComputable && !hasError) {
                                             // console.log('total bytes', event.total);
                                             // console.log('loaded bytes', event.loaded);
-                                            fireEvent('fileUploadEvents', {
+                                            chatEvents.fireEvent('fileUploadEvents', {
                                                 threadId: threadId,
                                                 uniqueId: fileUniqueId,
                                                 state: 'UPLOADING',
@@ -1331,7 +1341,7 @@
                             if (httpRequestObject[eval('fileUploadUniqueId')].status == 200) {
                                 if (hasFile) {
                                     hasError = false;
-                                    fireEvent('fileUploadEvents', {
+                                    chatEvents.fireEvent('fileUploadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'UPLOADED',
@@ -1356,7 +1366,7 @@
                             } else {
                                 if (hasFile) {
                                     hasError = true;
-                                    fireEvent('fileUploadEvents', {
+                                    chatEvents.fireEvent('fileUploadEvents', {
                                         threadId: threadId,
                                         uniqueId: fileUniqueId,
                                         state: 'UPLOAD_ERROR',
@@ -1405,7 +1415,7 @@
 
                     getUserInfoRetryCount = 0;
 
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 6101,
                         message: CHAT_ERRORS[6101],
                         error: null
@@ -1920,7 +1930,7 @@
                                 cache: false
                             }, function (result) {
                                 if (!result.hasError) {
-                                    fireEvent('messageEvents', {
+                                    chatEvents.fireEvent('messageEvents', {
                                         type: 'MESSAGE_DELIVERY',
                                         result: {
                                             message: result.result.history[0],
@@ -1931,7 +1941,7 @@
                                 }
                             });
                         } else {
-                            fireEvent('messageEvents', {
+                            chatEvents.fireEvent('messageEvents', {
                                 type: 'MESSAGE_DELIVERY',
                                 result: {
                                     message: messageContent.messageId,
@@ -1956,7 +1966,7 @@
                                 cache: false
                             }, function (result) {
                                 if (!result.hasError) {
-                                    fireEvent('messageEvents', {
+                                    chatEvents.fireEvent('messageEvents', {
                                         type: 'MESSAGE_SEEN',
                                         result: {
                                             message: result.result.history[0],
@@ -1967,7 +1977,7 @@
                                 }
                             });
                         } else {
-                            fireEvent('messageEvents', {
+                            chatEvents.fireEvent('messageEvents', {
                                 type: 'MESSAGE_SEEN',
                                 result: {
                                     message: messageContent.messageId,
@@ -2091,7 +2101,7 @@
                                 if (!threadsResult.cache) {
                                     var threads = threadsResult.result.threads;
                                     if (threads.length > 0) {
-                                        fireEvent('threadEvents', {
+                                        chatEvents.fireEvent('threadEvents', {
                                             type: 'THREAD_LEAVE_PARTICIPANT',
                                             result: {
                                                 thread: threads[0],
@@ -2099,14 +2109,14 @@
                                             }
                                         });
 
-                                        fireEvent('threadEvents', {
+                                        chatEvents.fireEvent('threadEvents', {
                                             type: 'THREAD_LAST_ACTIVITY_TIME',
                                             result: {
                                                 thread: threads[0]
                                             }
                                         });
                                     } else {
-                                        fireEvent('threadEvents', {
+                                        chatEvents.fireEvent('threadEvents', {
                                             type: 'THREAD_LEAVE_PARTICIPANT',
                                             result: {
                                                 threadId: threadId,
@@ -2117,7 +2127,7 @@
                                 }
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_LEAVE_PARTICIPANT',
                                 result: {
                                     thread: threadId,
@@ -2125,7 +2135,7 @@
                                 }
                             });
 
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_LAST_ACTIVITY_TIME',
                                 result: {
                                     thread: threadId
@@ -2201,14 +2211,14 @@
                                 var threads = threadsResult.result.threads;
 
                                 if (!threadsResult.cache) {
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_ADD_PARTICIPANTS',
                                         result: {
                                             thread: threads[0]
                                         }
                                     });
 
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_LAST_ACTIVITY_TIME',
                                         result: {
                                             thread: threads[0]
@@ -2217,14 +2227,14 @@
                                 }
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_ADD_PARTICIPANTS',
                                 result: {
                                     thread: messageContent
                                 }
                             });
 
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_LAST_ACTIVITY_TIME',
                                 result: {
                                     thread: messageContent
@@ -2265,7 +2275,7 @@
                      */
                     case chatMessageVOTypes.REMOVED_FROM_THREAD:
 
-                        fireEvent('threadEvents', {
+                        chatEvents.fireEvent('threadEvents', {
                             type: 'THREAD_REMOVED_FROM',
                             result: {
                                 thread: threadId
@@ -2384,14 +2394,14 @@
                                 var threads = threadsResult.result.threads;
 
                                 if (!threadsResult.cache) {
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_REMOVE_PARTICIPANTS',
                                         result: {
                                             thread: threads[0]
                                         }
                                     });
 
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_LAST_ACTIVITY_TIME',
                                         result: {
                                             thread: threads[0]
@@ -2400,14 +2410,14 @@
                                 }
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_REMOVE_PARTICIPANTS',
                                 result: {
                                     thread: threadId
                                 }
                             });
 
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_LAST_ACTIVITY_TIME',
                                 result: {
                                     thread: threadId
@@ -2431,7 +2441,7 @@
                                 var thread = threadsResult.result.threads[0];
                                 thread.mute = true;
 
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_MUTE',
                                     result: {
                                         thread: thread
@@ -2439,7 +2449,7 @@
                                 });
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_MUTE',
                                 result: {
                                     thread: threadId
@@ -2464,7 +2474,7 @@
                                 var thread = threadsResult.result.threads[0];
                                 thread.mute = false;
 
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_UNMUTE',
                                     result: {
                                         thread: thread
@@ -2472,7 +2482,7 @@
                                 });
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_UNMUTE',
                                 result: {
                                     thread: threadId
@@ -2537,7 +2547,7 @@
                                 //     }
                                 // }
 
-                                fireEvent('threadEvents', {
+                                chatEvents.chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_INFO_UPDATED',
                                     result: {
                                         thread: thread
@@ -2545,7 +2555,7 @@
                                 });
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_INFO_UPDATED',
                                 result: {
                                     thread: messageContent
@@ -2569,7 +2579,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent));
                         }
 
-                        fireEvent('systemEvents', {
+                        chatEvents.fireEvent('systemEvents', {
                             type: 'SERVER_TIME',
                             result: {
                                 time: time
@@ -2654,7 +2664,7 @@
                                 var threads = threadsResult.result.threads;
 
                                 if (!threadsResult.cache) {
-                                    fireEvent('messageEvents', {
+                                    chatEvents.fireEvent('messageEvents', {
                                         type: 'MESSAGE_DELETE',
                                         result: {
                                             message: {
@@ -2666,7 +2676,7 @@
                                     });
 
                                     if (messageContent.pinned) {
-                                        fireEvent('threadEvents', {
+                                        chatEvents.fireEvent('threadEvents', {
                                             type: 'THREAD_LAST_ACTIVITY_TIME',
                                             result: {
                                                 thread: threads[0]
@@ -2676,7 +2686,7 @@
                                 }
                             });
                         } else {
-                            fireEvent('messageEvents', {
+                            chatEvents.fireEvent('messageEvents', {
                                 type: 'MESSAGE_DELETE',
                                 result: {
                                     message: {
@@ -2688,7 +2698,7 @@
                             });
 
                             if (messageContent.pinned) {
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_LAST_ACTIVITY_TIME',
                                     result: {
                                         thread: threadId
@@ -2755,7 +2765,7 @@
                         //     }
                         // }
 
-                        fireEvent('threadEvents', {
+                        chatEvents.fireEvent('threadEvents', {
                             type: 'THREAD_INFO_UPDATED',
                             result: {
                                 thread: thread
@@ -2770,7 +2780,7 @@
                         var threadObject = messageContent;
                         threadObject.unreadCount = (messageContent.unreadCount) ? messageContent.unreadCount : 0;
 
-                        fireEvent('threadEvents', {
+                        chatEvents.fireEvent('threadEvents', {
                             type: 'THREAD_UNREAD_COUNT_UPDATED',
                             result: {
                                 thread: (fullResponseObject ? threadObject : messageContent.id),
@@ -2821,7 +2831,7 @@
                      * Type 40    Bot Messages
                      */
                     case chatMessageVOTypes.BOT_MESSAGE:
-                        fireEvent('botEvents', {
+                        chatEvents.fireEvent('botEvents', {
                             type: 'BOT_MESSAGE',
                             result: {
                                 bot: messageContent
@@ -2853,7 +2863,7 @@
                                 var threads = threadsResult.result.threads;
 
                                 if (!threadsResult.cache) {
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_ADD_ADMIN',
                                         result: {
                                             thread: threads[0],
@@ -2861,7 +2871,7 @@
                                         }
                                     });
 
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_LAST_ACTIVITY_TIME',
                                         result: {
                                             thread: threads[0],
@@ -2871,7 +2881,7 @@
                                 }
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_ADD_ADMIN',
                                 result: {
                                     thread: threadId,
@@ -2879,7 +2889,7 @@
                                 }
                             });
 
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_LAST_ACTIVITY_TIME',
                                 result: {
                                     thread: threadId,
@@ -2905,7 +2915,7 @@
                                 var threads = threadsResult.result.threads;
 
                                 if (!threadsResult.cache) {
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_REMOVE_ADMIN',
                                         result: {
                                             thread: threads[0],
@@ -2913,7 +2923,7 @@
                                         }
                                     });
 
-                                    fireEvent('threadEvents', {
+                                    chatEvents.fireEvent('threadEvents', {
                                         type: 'THREAD_LAST_ACTIVITY_TIME',
                                         result: {
                                             thread: threads[0],
@@ -2923,7 +2933,7 @@
                                 }
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_REMOVE_ADMIN',
                                 result: {
                                     thread: threadId,
@@ -2931,7 +2941,7 @@
                                 }
                             });
 
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_LAST_ACTIVITY_TIME',
                                 result: {
                                     thread: threadId,
@@ -2955,7 +2965,7 @@
                      * Type 46    System Messages
                      */
                     case chatMessageVOTypes.SYSTEM_MESSAGE:
-                        fireEvent('systemEvents', {
+                        chatEvents.fireEvent('systemEvents', {
                             type: 'IS_TYPING',
                             result: {
                                 thread: threadId,
@@ -2987,7 +2997,7 @@
                             }, function (threadsResult) {
                                 var thread = threadsResult.result.threads[0];
 
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_PIN',
                                     result: {
                                         thread: thread
@@ -2995,7 +3005,7 @@
                                 });
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_PIN',
                                 result: {
                                     thread: threadId
@@ -3019,7 +3029,7 @@
                             }, function (threadsResult) {
                                 var thread = threadsResult.result.threads[0];
 
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_UNPIN',
                                     result: {
                                         thread: thread
@@ -3027,7 +3037,7 @@
                                 });
                             });
                         } else {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREAD_UNPIN',
                                 result: {
                                     thread: threadId
@@ -3045,7 +3055,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent));
                         }
 
-                        fireEvent('threadEvents', {
+                        chatEvents.fireEvent('threadEvents', {
                             type: 'MESSAGE_PIN',
                             result: {
                                 thread: threadId,
@@ -3063,7 +3073,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent));
                         }
 
-                        fireEvent('threadEvents', {
+                        chatEvents.fireEvent('threadEvents', {
                             type: 'MESSAGE_UNPIN',
                             result: {
                                 thread: threadId,
@@ -3081,7 +3091,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent));
                         }
 
-                        fireEvent('userEvents', {
+                        chatEvents.fireEvent('userEvents', {
                             type: 'CHAT_PROFILE_UPDATED',
                             result: {
                                 user: messageContent
@@ -3098,7 +3108,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent));
                         }
 
-                        fireEvent('userEvents', {
+                        chatEvents.fireEvent('userEvents', {
                             type: 'GET_PARTICIPANT_ROLES',
                             result: {
                                 roles: messageContent
@@ -3111,7 +3121,7 @@
                      * Type 60    Get Contact Not Seen Duration
                      */
                     case chatMessageVOTypes.GET_CONTACT_NOT_SEEN_DURATION:
-                        fireEvent('contactEvents', {
+                        chatEvents.fireEvent('contactEvents', {
                             type: 'CONTACTS_LAST_SEEN',
                             result: messageContent
                         });
@@ -3125,7 +3135,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent));
                         }
 
-                        fireEvent('systemEvents', {
+                        chatEvents.fireEvent('systemEvents', {
                             type: 'ALL_UNREAD_MESSAGES_COUNT',
                             result: messageContent
                         });
@@ -3201,7 +3211,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'RECEIVE_CALL',
                             result: messageContent
                         });
@@ -3213,7 +3223,7 @@
                             else
                                 newCallId = messageContent.callId;
                         } else {
-                            fireEvent('callEvents', {
+                            chatEvents.fireEvent('callEvents', {
                                 type: 'PARTNER_RECEIVED_YOUR_CALL',
                                 result: messageContent
                             });
@@ -3231,7 +3241,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'ACCEPT_CALL',
                             result: messageContent
                         });
@@ -3246,7 +3256,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'REJECT_CALL',
                             result: messageContent
                         });
@@ -3262,7 +3272,7 @@
                         }
 
                         if (messageContent.callId > 0) {
-                            fireEvent('callEvents', {
+                            chatEvents.fireEvent('callEvents', {
                                 type: 'RECEIVE_CALL',
                                 result: messageContent
                             });
@@ -3272,7 +3282,7 @@
                             else
                                 newCallId = messageContent.callId;
                         } else {
-                            fireEvent('callEvents', {
+                            chatEvents.fireEvent('callEvents', {
                                 type: 'PARTNER_RECEIVED_YOUR_CALL',
                                 result: messageContent
                             });
@@ -3288,7 +3298,7 @@
                     case chatMessageVOTypes.START_CALL:
                         if(!callRequestController.iCanAcceptTheCall()) {
                             //Do not handle the call if it is already started elsewhere for the same user
-                            fireEvent('callEvents', {
+                            chatEvents.fireEvent('callEvents', {
                                 type: 'CALL_STARTED_ELSEWHERE',
                                 message: 'Call already started somewhere else..., aborting...'
                             });
@@ -3300,7 +3310,7 @@
                         }
 
                         messageContent.callId = threadId;
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_STARTED',
                             result: messageContent
                         });
@@ -3309,7 +3319,7 @@
                             && messageContent.hasOwnProperty('chatDataDto')
                             && !!messageContent.chatDataDto.kurentoAddress) {
                         } else {
-                            fireEvent('callEvents', {
+                            chatEvents.fireEvent('callEvents', {
                                 type: 'CALL_ERROR',
                                 message: 'Chat Data DTO is not present!'
                             });
@@ -3325,7 +3335,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'END_CALL',
                             result: messageContent
                         });
@@ -3342,7 +3352,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                       fireEvent('callEvents', {
+                       chatEvents.fireEvent('callEvents', {
                             type: 'CALL_ENDED',
                             callId: threadId
                         });
@@ -3366,7 +3376,7 @@
                      * Type 90    Contacts Synced
                      */
                     case chatMessageVOTypes.CONTACT_SYNCED:
-                        fireEvent('contactEvents', {
+                        chatEvents.fireEvent('contactEvents', {
                             type: 'CONTACTS_SYNCED',
                             result: messageContent
                         });
@@ -3392,7 +3402,7 @@
                                 newCallId = messageContent.callId;
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'RECEIVE_CALL',
                             result: messageContent
                         });
@@ -3409,7 +3419,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_PARTICIPANT_LEFT',
                             result: messageContent
                         });
@@ -3434,7 +3444,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_PARTICIPANT_JOINED',
                             result: messageContent
                         });
@@ -3449,7 +3459,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_PARTICIPANT_REMOVED',
                             result: messageContent
                         });
@@ -3464,7 +3474,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'TERMINATE_CALL',
                             result: messageContent
                         });
@@ -3482,7 +3492,7 @@
                         }
 
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_PARTICIPANT_MUTE',
                             result: messageContent
                         });
@@ -3498,7 +3508,7 @@
                         } else {
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_PARTICIPANT_UNMUTE',
                             result: messageContent
                         });
@@ -3522,7 +3532,7 @@
                         if(!callRequestController.callEstablishedInMySide)
                             return;
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_SESSION_CREATED',
                             result: messageContent
                         });
@@ -3543,7 +3553,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'TURN_ON_VIDEO_CALL',
                             result: messageContent
                         });
@@ -3558,7 +3568,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'TURN_OFF_VIDEO_CALL',
                             result: messageContent
                         });
@@ -3573,7 +3583,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'START_RECORDING_CALL',
                             result: messageContent
                         });
@@ -3588,7 +3598,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'STOP_RECORDING_CALL',
                             result: messageContent
                         });
@@ -3603,7 +3613,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'START_RECORDING_CALL',
                             result: messageContent
                         });
@@ -3616,7 +3626,7 @@
                      * Tells the assistant that a call started
                      */
                     case chatMessageVOTypes.ASSISTANT_CALL_STARTED:
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'ASSISTANT_CALL_STARTED',
                             result: {
                                 callId: threadId
@@ -3631,7 +3641,7 @@
                      * Tells the assistant that a call ended
                      */
                     case chatMessageVOTypes.ASSISTANT_CALL_ENDED:
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'ASSISTANT_CALL_ENDED',
                             callId: threadId
                         });
@@ -3662,7 +3672,7 @@
                      * Type 221  Event to tell us p2p call converted to a group call
                      */
                     case chatMessageVOTypes.SWITCH_TO_GROUP_CALL_REQUEST:
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'SWITCH_TO_GROUP_CALL',
                             result: messageContent //contains: isGroup, callId, threadId
                         });
@@ -3677,7 +3687,7 @@
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
 
-                        fireEvent('callEvents', {
+                        chatEvents.fireEvent('callEvents', {
                             type: 'CALL_RECORDING_STARTED',
                             result: messageContent
                         });
@@ -3703,7 +3713,7 @@
                             // clearChatServerCaches();
                         }
 
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: messageContent.code,
                             message: messageContent.message,
                             error: messageContent
@@ -3869,7 +3879,7 @@
                 //     }
                 // }
 
-                fireEvent('messageEvents', {
+                chatEvents.fireEvent('messageEvents', {
                     type: 'MESSAGE_NEW',
                     cache: false,
                     result: {
@@ -3887,7 +3897,7 @@
                 threadObject.lastMessage = (message.hasOwnProperty('message')) ? message.message : '';
 
 
-                fireEvent('threadEvents', {
+                chatEvents.fireEvent('threadEvents', {
                     type: 'THREAD_UNREAD_COUNT_UPDATED',
                     result: {
                         thread: (fullResponseObject ? threadObject : messageContent.id),
@@ -3895,7 +3905,7 @@
                     }
                 });
 
-                fireEvent('threadEvents', {
+                chatEvents.fireEvent('threadEvents', {
                     type: 'THREAD_LAST_ACTIVITY_TIME',
                     result: {
                         thread: (fullResponseObject ? threadObject : messageContent.id),
@@ -3994,7 +4004,7 @@
                         var threads = threadsResult.result.threads;
 
                         if (!threadsResult.cache) {
-                            fireEvent('messageEvents', {
+                            chatEvents.fireEvent('messageEvents', {
                                 type: 'MESSAGE_EDIT',
                                 result: {
                                     message: message
@@ -4002,7 +4012,7 @@
                             });
 
                             if (message.pinned) {
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'THREAD_LAST_ACTIVITY_TIME',
                                     result: {
                                         thread: threads[0]
@@ -4012,7 +4022,7 @@
                         }
                     });
                 } else {
-                    fireEvent('messageEvents', {
+                    chatEvents.fireEvent('messageEvents', {
                         type: 'MESSAGE_EDIT',
                         result: {
                             message: message
@@ -4020,7 +4030,7 @@
                     });
 
                     if (message.pinned) {
-                        fireEvent('threadEvents', {
+                        chatEvents.fireEvent('threadEvents', {
                             type: 'THREAD_LAST_ACTIVITY_TIME',
                             result: {
                                 thread: threadId
@@ -4049,7 +4059,7 @@
                 var redirectToThread = (showThread === true) ? showThread : false;
 
                 if (addFromService) {
-                    fireEvent('threadEvents', {
+                    chatEvents.fireEvent('threadEvents', {
                         type: 'THREAD_NEW',
                         redirectToThread: redirectToThread,
                         result: {
@@ -5209,7 +5219,7 @@
                         callback = undefined;
 
                         if (!returnData.hasError && returnCache) {
-                            fireEvent('threadEvents', {
+                            chatEvents.fireEvent('threadEvents', {
                                 type: 'THREADS_LIST_CHANGE',
                                 result: returnData.result
                             });
@@ -6465,7 +6475,7 @@
                         });
                     });
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Thread ID is required for Getting history!'
                     });
@@ -6508,7 +6518,7 @@
                         threadId = parseInt(params.threadId);
                         updateThreadInfoData.subjectId = threadId;
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 999,
                             message: 'Thread ID is required for Updating thread info!'
                         });
@@ -6569,7 +6579,7 @@
                                         }
                                     });
                                 } else {
-                                    fireEvent('error', {
+                                    chatEvents.fireEvent('error', {
                                         code: 999,
                                         message: 'Thread picture can be a image type only!'
                                     });
@@ -8674,7 +8684,7 @@
                     fileUniqueId = (typeof params.fileUniqueId == 'string' && params.fileUniqueId.length > 0) ? params.fileUniqueId : Utility.generateUUID();
                 if (params) {
                     if (!params.userGroupHash || params.userGroupHash.length == 0 || typeof (params.userGroupHash) != 'string') {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 6304,
                             message: CHAT_ERRORS[6304]
                         });
@@ -8777,19 +8787,19 @@
              *
              * @return {undefined}
              */
-            fireEvent = function (eventName, param) {
-                if (eventName == "chatReady") {
-                    if (typeof navigator == "undefined") {
-                        console.log("\x1b[90m    ☰ \x1b[0m\x1b[90m%s\x1b[0m", "Chat is Ready 😉");
-                    } else {
-                        console.log("%c   Chat is Ready 😉", 'border-left: solid #666 10px; color: #666;');
-                    }
-                }
-                for (var id in eventCallbacks[eventName]) {
-                    if(eventCallbacks[eventName] && eventCallbacks[eventName][id])
-                        eventCallbacks[eventName][id](param);
-                }
-            },
+            // fireEvent = function (eventName, param) {
+            //     if (eventName == "chatReady") {
+            //         if (typeof navigator == "undefined") {
+            //             console.log("\x1b[90m    ☰ \x1b[0m\x1b[90m%s\x1b[0m", "Chat is Ready 😉");
+            //         } else {
+            //             console.log("%c   Chat is Ready 😉", 'border-left: solid #666 10px; color: #666;');
+            //         }
+            //     }
+            //     for (var id in eventCallbacks[eventName]) {
+            //         if(eventCallbacks[eventName] && eventCallbacks[eventName][id])
+            //             eventCallbacks[eventName][id](param);
+            //     }
+            // },
 
             /**
              * Delete Cache Database
@@ -9537,7 +9547,7 @@
                             .pop();
                     }
 
-                    fireEvent('fileUploadEvents', {
+                    chatEvents.fireEvent('fileUploadEvents', {
                         threadId: params.threadId,
                         uniqueId: fileUniqueId,
                         state: 'NOT_STARTED',
@@ -9586,7 +9596,7 @@
 
                     callbacks && callbacks(chatUploadHandlerResult, metadata, fileType, fileExtension);
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 6302,
                         message: CHAT_ERRORS[6302]
                     });
@@ -9668,14 +9678,14 @@
                     if (typeof +params.callId === 'number' && params.callId > 0) {
                         receiveCallData.subjectId = +params.callId;
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 999,
                             message: 'Invalid call id!'
                         });
                         return;
                     }
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'No params have been sent to ReceiveCall()'
                     });
@@ -9707,14 +9717,14 @@
                     if (typeof +params.callId === 'number' && params.callId > 0) {
                         endCallData.subjectId = +params.callId;
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 999,
                             message: 'Invalid call id!'
                         });
                         return;
                     }
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'No params have been sent to End the call!'
                     });
@@ -9815,13 +9825,16 @@
          *             P U B L I C   M E T H O D S            *
          ******************************************************/
 
-        this.on = function (eventName, callback) {
-            if (eventCallbacks[eventName]) {
-                var id = Utility.generateUUID();
-                eventCallbacks[eventName][id] = callback;
-                return id;
-            }
-        };
+        // this.on = function (eventName, callback) {
+        //     if (eventCallbacks[eventName]) {
+        //         var id = Utility.generateUUID();
+        //         eventCallbacks[eventName][id] = callback;
+        //         return id;
+        //     }
+        // };
+
+        this.on = chatEvents.on;
+        this.off = chatEvents.off;
 
         this.getPeerId = function () {
             return peerId;
@@ -10674,7 +10687,7 @@
                         data.center = params.mapCenter.lat + ',' + parseFloat(params.mapCenter.lng);
                     } else {
                         hasError = true;
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 6700,
                             message: CHAT_ERRORS[6700],
                             error: undefined
@@ -10682,7 +10695,7 @@
                     }
                 } else {
                     hasError = true;
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 6700,
                         message: CHAT_ERRORS[6700],
                         error: undefined
@@ -10872,7 +10885,7 @@
                             consoleLogging && console.log("[SDK][exportChat] a step passed...");
                             wantedCount = wantedCount > result.contentCount ? result.contentCount : wantedCount;
                             setTimeout(function () {
-                                fireEvent('threadEvents', {
+                                chatEvents.fireEvent('threadEvents', {
                                     type: 'EXPORT_CHAT',
                                     subType: 'IN_PROGRESS',
                                     threadId: sendData.subjectId,
@@ -10952,7 +10965,7 @@
                         hasError: false,
                         result: resultArray
                     });
-                    fireEvent('threadEvents', {
+                    chatEvents.fireEvent('threadEvents', {
                         type: 'EXPORT_CHAT',
                         subType: 'DONE',
                         threadId: sendData.subjectId,
@@ -11005,7 +11018,7 @@
 
                 FS.writeFile(params.exportPath, universalBOM + str, {encoding: 'utf8'}, function (err) {
                     if (err){
-                        fireEvent('ERROR', {
+                        chatEvents.fireEvent('ERROR', {
                             code: null,
                             message: err
                         });
@@ -11022,7 +11035,7 @@
                         exportPath: params.exportPath
                     });
 
-                    fireEvent('threadEvents', {
+                    chatEvents.fireEvent('threadEvents', {
                         type: 'EXPORT_CHAT',
                         subType: 'EXPORTED_TO_DIRECTORY',
                         threadId: sendData.subjectId,
@@ -11328,7 +11341,7 @@
                 fileUniqueId = Utility.generateUUID();
 
             if (!params.userGroupHash || params.userGroupHash.length == 0 || typeof (params.userGroupHash) != 'string') {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 6304,
                     message: CHAT_ERRORS[6304]
                 });
@@ -12002,7 +12015,7 @@
                     callback && callback(returnData);
 
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -12018,7 +12031,7 @@
                 if (parseInt(params.id) > 0) {
                     data.id = parseInt(params.id);
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'ID is required for Updating Contact!',
                         error: undefined
@@ -12028,7 +12041,7 @@
                 if (typeof params.firstName === 'string') {
                     data.firstName = params.firstName;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'firstName is required for Updating Contact!'
                     });
@@ -12037,7 +12050,7 @@
                 if (typeof params.lastName === 'string') {
                     data.lastName = params.lastName;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'lastName is required for Updating Contact!'
                     });
@@ -12046,7 +12059,7 @@
                 if (typeof params.cellphoneNumber === 'string') {
                     data.cellphoneNumber = params.cellphoneNumber;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'cellphoneNumber is required for Updating Contact!'
                     });
@@ -12055,7 +12068,7 @@
                 if (typeof params.email === 'string') {
                     data.email = params.email;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'email is required for Updating Contact!'
                     });
@@ -12159,7 +12172,7 @@
                     callback && callback(returnData);
 
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -12175,7 +12188,7 @@
                 if (parseInt(params.id) > 0) {
                     data.id = parseInt(params.id);
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'ID is required for Deleting Contact!',
                         error: undefined
@@ -12235,7 +12248,7 @@
                     callback && callback(returnData);
 
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -12554,13 +12567,13 @@
                     callback = undefined;
 
                     if (!returnData.hasError && returnCache) {
-                        fireEvent('contactEvents', {
+                        chatEvents.fireEvent('contactEvents', {
                             type: 'CONTACTS_SEARCH_RESULT_CHANGE',
                             result: returnData.result
                         });
                     }
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -12583,21 +12596,21 @@
                     if (params.botName.substr(-3) === "BOT") {
                         createBotData.content = params.botName;
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 999,
                             message: 'Bot name should end in "BOT", ex. "testBOT"'
                         });
                         return;
                     }
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Insert a bot name to create one!'
                     });
                     return;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'Insert a bot name to create one!'
                 });
@@ -12622,7 +12635,7 @@
 
             if (params) {
                 if (typeof params.botName !== 'string' || params.botName.length == 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'You need to insert a botName!'
                     });
@@ -12630,7 +12643,7 @@
                 }
 
                 if (!Array.isArray(params.commandList) || !params.commandList.length) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Bot Commands List has to be an array of strings.'
                     });
@@ -12647,7 +12660,7 @@
                 };
 
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to create bot commands'
                 });
@@ -12672,7 +12685,7 @@
 
             if (params) {
                 if (typeof +params.threadId !== 'number' || params.threadId < 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Enter a valid Thread Id for Bot to start in!'
                     });
@@ -12680,7 +12693,7 @@
                 }
 
                 if (typeof params.botName !== 'string' || params.botName.length == 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'You need to insert a botName!'
                     });
@@ -12694,7 +12707,7 @@
                 });
 
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to create bot commands'
                 });
@@ -12719,7 +12732,7 @@
 
             if (params) {
                 if (typeof +params.threadId !== 'number' || params.threadId < 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Enter a valid Thread Id for Bot to stop on!'
                     });
@@ -12727,7 +12740,7 @@
                 }
 
                 if (typeof params.botName !== 'string' || params.botName.length == 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'You need to insert a botName!'
                     });
@@ -12741,7 +12754,7 @@
                 });
 
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to create bot commands'
                 });
@@ -12766,7 +12779,7 @@
 
             if (params) {
                 if (typeof params.botName !== 'string' || params.botName.length == 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'You need to insert a botName!'
                     });
@@ -12778,7 +12791,7 @@
                 });
 
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to get bot commands'
                 });
@@ -12803,7 +12816,7 @@
 
             if (params) {
                 if (typeof +params.threadId !== 'number' || params.threadId < 0) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Enter a valid Thread Id to get all Bots List!'
                     });
@@ -12813,7 +12826,7 @@
                 getThreadBotsData.subjectId = +params.threadId;
 
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to get thread\' bots list!'
                 });
@@ -12866,7 +12879,7 @@
                     callback && callback(returnData);
 
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -12918,7 +12931,7 @@
                     callback && callback(returnData);
 
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -12980,7 +12993,7 @@
                     callback && callback(returnData);
 
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: result.errorCode,
                         message: result.errorMessage,
                         error: result
@@ -13114,7 +13127,7 @@
                         data.center = params.center.lat + ',' + parseFloat(params.center.lng);
                     } else {
                         hasError = true;
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 6700,
                             message: CHAT_ERRORS[6700],
                             error: undefined
@@ -13122,7 +13135,7 @@
                     }
                 } else {
                     hasError = true;
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 6700,
                         message: CHAT_ERRORS[6700],
                         error: undefined
@@ -13212,7 +13225,7 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     recordCallData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid Call id!'
                     });
@@ -13226,7 +13239,7 @@
                     recordCallData.content.threadId = typeof +params.threadId === 'number' ? params.threadId : null;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to Record call!'
                 });
@@ -13252,14 +13265,14 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     stopRecordingCallData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid Call id!'
                     });
                     return;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to Stop Recording the call!'
                 });
@@ -13318,7 +13331,7 @@
                             }
                         }
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 999,
                             message: 'Invitees list is empty! Send an array of invitees to start a call with, Or send a Thread Id to start a call with current participants'
                         });
@@ -13335,7 +13348,7 @@
 
                 startCallData.content = JSON.stringify(content);
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to start call!'
                 });
@@ -13350,7 +13363,7 @@
                 setTimeout( function(metaData) {
                     //Reject the call if participant didn't answer
                     if(!callStopQueue.callStarted ) {
-                        fireEvent("callEvents", {
+                        chatEvents.fireEvent("callEvents", {
                             type: "CALL_NO_ANSWER_TIMEOUT",
                             message: "Call request timed out, Participant(s) didn't answer",
                         });
@@ -13410,7 +13423,7 @@
                             }
                         }
                     } else {
-                        fireEvent('error', {
+                        chatEvents.fireEvent('error', {
                             code: 999,
                             message: 'Invitees list is empty! Send an array of invitees to start a call with, Or send a Thread Id to start a call with current participants'
                         });
@@ -13429,7 +13442,7 @@
 
                 startCallData.content = JSON.stringify(content);
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to start call!'
                 });
@@ -13460,7 +13473,7 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     terminateCallData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid call id!'
                     });
@@ -13469,7 +13482,7 @@
 
                 terminateCallData.content = JSON.stringify(content);
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to terminate the call!'
                 });
@@ -13495,7 +13508,7 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     acceptCallData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid call id!'
                     });
@@ -13521,7 +13534,7 @@
                     currentCallId = params.callId;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to accept the call!'
                 });
@@ -13547,14 +13560,14 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     rejectCallData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid call id!'
                     });
                     return;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to reject the call!'
                 });
@@ -13625,7 +13638,7 @@
 
                 getCallListData.content = JSON.stringify(content);
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to End the call!'
                 });
@@ -13681,7 +13694,7 @@
 
                 getCallListData.content = JSON.stringify(content);
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'Invalid params'
                 });
@@ -13704,7 +13717,7 @@
 
             if (params) {
                 if (isNaN(params.callId)) {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Call Id should be a valid number!'
                     });
@@ -13753,7 +13766,7 @@
                             callback = undefined;
 
                             if (!returnData.hasError) {
-                                fireEvent('callEvents', {
+                                chatEvents.fireEvent('callEvents', {
                                     type: 'CALL_PARTICIPANTS_LIST_CHANGE',
                                     threadId: callId,
                                     result: returnData.result
@@ -13763,7 +13776,7 @@
                     });
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to Get Call Participants!'
                 });
@@ -13969,14 +13982,14 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     turnOnVideoData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid call id!'
                     });
                     return;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to turn on the video call!'
                 });
@@ -14002,14 +14015,14 @@
                 if (typeof +params.callId === 'number' && params.callId > 0) {
                     turnOffVideoData.subjectId = +params.callId;
                 } else {
-                    fireEvent('error', {
+                    chatEvents.fireEvent('error', {
                         code: 999,
                         message: 'Invalid call id!'
                     });
                     return;
                 }
             } else {
-                fireEvent('error', {
+                chatEvents.fireEvent('error', {
                     code: 999,
                     message: 'No params have been sent to turn off the video call!'
                 });
@@ -14030,9 +14043,7 @@
             clearChatServerCaches();
 
             // Delete all event callbacks
-            for (var i in eventCallbacks) {
-                delete eventCallbacks[i];
-            }
+            chatEvents.clearEventCallbacks();
             messagesCallbacks = {};
             sendMessageCallbacks = {};
             threadCallbacks = {};

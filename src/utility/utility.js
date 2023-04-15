@@ -1,18 +1,13 @@
-(function() {
-
-    /**
-     * Global Variables
-     */
-    var CryptoJS;
+var CryptoJS = require('crypto-js');
 
     function ChatUtility() {
 
-        if (typeof(require) !== 'undefined' && typeof(exports) !== 'undefined') {
-            CryptoJS = require('crypto-js');
-        }
-        else {
-            CryptoJS = window.CryptoJS;
-        }
+        // if (typeof(require) !== 'undefined' && typeof(exports) !== 'undefined') {
+        //     //CryptoJS = require('crypto-js');
+        // }
+        // else {
+        //     CryptoJS = window.CryptoJS;
+        // }
 
         /**
          * Checks if Client is using NodeJS or not
@@ -526,13 +521,5 @@
         };
     }
 
-    if (typeof module !== 'undefined' && typeof module.exports != 'undefined') {
-        module.exports = ChatUtility;
-    }
-    else {
-        if (!window.POD) {
-            window.POD = {};
-        }
-        window.POD.ChatUtility = ChatUtility;
-    }
-})();
+export default new ChatUtility();
+// })();
