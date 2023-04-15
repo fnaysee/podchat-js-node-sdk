@@ -10,7 +10,7 @@
         ChatUtility,
         FormData,
         Request,
-        Dexie,
+        // Dexie,
         JSDOM,
         DOMPurify;
 
@@ -20,7 +20,7 @@
                 ChatUtility = require('./utility/utility.js');
                 FormData = require('form-data');
                 Request = require('request');
-                Dexie = require('dexie').default || require('dexie');
+                // Dexie = require('dexie').default || require('dexie');
                 DOMPurify = require('dompurify');
                 JSDOM = require('jsdom').JSDOM;
                 DOMPurify = DOMPurify(new JSDOM('').window);
@@ -34,24 +34,24 @@
             /**
              * Defining global variables for Dexie to work in Node ENV
              */
-            if (typeof global !== 'undefined' && ({}).toString.call(global) === '[object global]') {
-                var setGlobalVars = require('indexeddbshim'),
-                    shim = {};
-                setGlobalVars(shim, {
-                    checkOrigin: false
-                });
+            // if (typeof global !== 'undefined' && ({}).toString.call(global) === '[object global]') {
+                // var setGlobalVars = require('indexeddbshim'),
+                //     shim = {};
+                // setGlobalVars(shim, {
+                //     checkOrigin: false
+                // });
 
-                var indexedDB = shim.indexedDB,
-                    IDBKeyRange = shim.IDBKeyRange;
+                // var indexedDB = shim.indexedDB,
+                //     IDBKeyRange = shim.IDBKeyRange;
 
-                Dexie.dependencies.indexedDB = indexedDB;
-                Dexie.dependencies.IDBKeyRange = IDBKeyRange;
-            }
+                // Dexie.dependencies.indexedDB = indexedDB;
+                // Dexie.dependencies.IDBKeyRange = IDBKeyRange;
+            // }
         } else {
             Async = window.POD.Async,
                 ChatUtility = window.POD.ChatUtility,
                 FormData = window.FormData,
-                Dexie = window.Dexie,
+                // Dexie = window.Dexie,
                 DOMPurify = window.DOMPurify;
         }
 
@@ -75,9 +75,9 @@
             productEnv = (typeof navigator != 'undefined') ? navigator.product : 'undefined',
             db,
             queueDb,
-            hasCache = productEnv != 'ReactNative' && typeof Dexie != 'undefined',
-            enableCache = (params.enableCache && typeof params.enableCache === 'boolean') ? params.enableCache : false,
-            canUseCache = hasCache && enableCache,
+            // hasCache = productEnv != 'ReactNative' && typeof Dexie != 'undefined',
+            // enableCache = (params.enableCache && typeof params.enableCache === 'boolean') ? params.enableCache : false,
+            // canUseCache = hasCache && enableCache,
             isCacheReady = false,
             cacheDeletingInProgress = false,
             cacheExpireTime = params.cacheExpireTime || 2 * 24 * 60 * 60 * 1000,
@@ -419,7 +419,7 @@
                 /**
                  * Initialize Cache Databases
                  */
-                startCacheDatabases(function () {
+                // startCacheDatabases(function () {
                     if (grantDeviceIdFromSSO) {
                         var getDeviceIdWithTokenTime = new Date().getTime();
                         getDeviceIdWithToken(function (retrievedDeviceId) {
@@ -434,7 +434,7 @@
                     } else {
                         initAsync();
                     }
-                });
+                // });
             },
 
             /**
@@ -498,71 +498,75 @@
                                 /**
                                  * Check if user has KeyId stored in their cache or not?
                                  */
-                                if (canUseCache) {
-                                    if (db) {
-                                        db.users
-                                            .where('id')
-                                            .equals(parseInt(userInfo.id))
-                                            .toArray()
-                                            .then(function (users) {
-                                                if (users.length > 0 && typeof users[0].keyId != 'undefined') {
-                                                    var user = users[0];
+                                // if (canUseCache) {
+                                //     if (db) {
+                                //         db.users
+                                //             .where('id')
+                                //             .equals(parseInt(userInfo.id))
+                                //             .toArray()
+                                //             .then(function (users) {
+                                //                 if (users.length > 0 && typeof users[0].keyId != 'undefined') {
+                                //                     var user = users[0];
+                                //
+                                //                     getEncryptionKey({
+                                //                         keyId: user.keyId
+                                //                     }, function (result) {
+                                //                         if (!result.hasError) {
+                                //                             cacheSecret = result.secretKey;
+                                //
+                                //                             chatState = true;
+                                //                             fireEvent('chatReady');
+                                //                             chatSendQueueHandler();
+                                //                         } else {
+                                //                             if (result.message != '') {
+                                //                                 try {
+                                //                                     var response = JSON.parse(result.message);
+                                //                                     if (response.error == 'invalid_param') {
+                                //                                         generateEncryptionKey({
+                                //                                             keyAlgorithm: 'AES',
+                                //                                             keySize: 256
+                                //                                         });
+                                //                                     }
+                                //                                 } catch (e) {
+                                //                                     console.log(e);
+                                //                                 }
+                                //                             }
+                                //                         }
+                                //                     });
+                                //                 } else {
+                                //                     generateEncryptionKey({
+                                //                         keyAlgorithm: 'AES',
+                                //                         keySize: 256
+                                //                     }, function () {
+                                //                         chatState = true;
+                                //                         fireEvent('chatReady');
+                                //                         chatSendQueueHandler();
+                                //                     });
+                                //                 }
+                                //             })
+                                //             .catch(function (error) {
+                                //                 fireEvent('error', {
+                                //                     code: error.errorCode,
+                                //                     message: error.errorMessage,
+                                //                     error: error
+                                //                 });
+                                //             });
+                                //     } else {
+                                //         fireEvent('error', {
+                                //             code: 6601,
+                                //             message: CHAT_ERRORS[6601],
+                                //             error: null
+                                //         });
+                                //     }
+                                // } else {
+                                //     chatState = true;
+                                //     fireEvent('chatReady');
+                                //     chatSendQueueHandler();
+                                // }
 
-                                                    getEncryptionKey({
-                                                        keyId: user.keyId
-                                                    }, function (result) {
-                                                        if (!result.hasError) {
-                                                            cacheSecret = result.secretKey;
-
-                                                            chatState = true;
-                                                            fireEvent('chatReady');
-                                                            chatSendQueueHandler();
-                                                        } else {
-                                                            if (result.message != '') {
-                                                                try {
-                                                                    var response = JSON.parse(result.message);
-                                                                    if (response.error == 'invalid_param') {
-                                                                        generateEncryptionKey({
-                                                                            keyAlgorithm: 'AES',
-                                                                            keySize: 256
-                                                                        });
-                                                                    }
-                                                                } catch (e) {
-                                                                    console.log(e);
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                } else {
-                                                    generateEncryptionKey({
-                                                        keyAlgorithm: 'AES',
-                                                        keySize: 256
-                                                    }, function () {
-                                                        chatState = true;
-                                                        fireEvent('chatReady');
-                                                        chatSendQueueHandler();
-                                                    });
-                                                }
-                                            })
-                                            .catch(function (error) {
-                                                fireEvent('error', {
-                                                    code: error.errorCode,
-                                                    message: error.errorMessage,
-                                                    error: error
-                                                });
-                                            });
-                                    } else {
-                                        fireEvent('error', {
-                                            code: 6601,
-                                            message: CHAT_ERRORS[6601],
-                                            error: null
-                                        });
-                                    }
-                                } else {
                                     chatState = true;
                                     fireEvent('chatReady');
                                     chatSendQueueHandler();
-                                }
                             }
                         });
                     } else if (userInfo.id > 0) {
@@ -746,35 +750,35 @@
                         /**
                          * Save new Key Id in cache and update cacheSecret
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                db.users
-                                    .update(userInfo.id, {keyId: response.keyId})
-                                    .then(function () {
-                                        getEncryptionKey({
-                                            keyId: response.keyId
-                                        }, function (result) {
-                                            if (!result.hasError) {
-                                                cacheSecret = result.secretKey;
-                                                callback && callback();
-                                            }
-                                        });
-                                    })
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         db.users
+                        //             .update(userInfo.id, {keyId: response.keyId})
+                        //             .then(function () {
+                        //                 getEncryptionKey({
+                        //                     keyId: response.keyId
+                        //                 }, function (result) {
+                        //                     if (!result.hasError) {
+                        //                         cacheSecret = result.secretKey;
+                        //                         callback && callback();
+                        //                     }
+                        //                 });
+                        //             })
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
                     } else {
                         fireEvent('error', {
                             code: result.error,
@@ -1434,47 +1438,47 @@
                                 /**
                                  * Add current user into cache database #cache
                                  */
-                                if (canUseCache) {
-                                    if (db) {
-                                        db.users
-                                            .where('id')
-                                            .equals(parseInt(currentUser.id))
-                                            .toArray()
-                                            .then(function (users) {
-                                                if (users.length > 0 && users[0].id > 0) {
-                                                    db.users
-                                                        .update(currentUser.id, {
-                                                            cellphoneNumber: currentUser.cellphoneNumber,
-                                                            email: currentUser.email,
-                                                            image: currentUser.image,
-                                                            name: currentUser.name
-                                                        })
-                                                        .catch(function (error) {
-                                                            fireEvent('error', {
-                                                                code: error.code,
-                                                                message: error.message,
-                                                                error: error
-                                                            });
-                                                        });
-                                                } else {
-                                                    db.users.put(currentUser)
-                                                        .catch(function (error) {
-                                                            fireEvent('error', {
-                                                                code: error.code,
-                                                                message: error.message,
-                                                                error: error
-                                                            });
-                                                        });
-                                                }
-                                            });
-                                    } else {
-                                        fireEvent('error', {
-                                            code: 6601,
-                                            message: CHAT_ERRORS[6601],
-                                            error: null
-                                        });
-                                    }
-                                }
+                                // if (canUseCache) {
+                                //     if (db) {
+                                //         db.users
+                                //             .where('id')
+                                //             .equals(parseInt(currentUser.id))
+                                //             .toArray()
+                                //             .then(function (users) {
+                                //                 if (users.length > 0 && users[0].id > 0) {
+                                //                     db.users
+                                //                         .update(currentUser.id, {
+                                //                             cellphoneNumber: currentUser.cellphoneNumber,
+                                //                             email: currentUser.email,
+                                //                             image: currentUser.image,
+                                //                             name: currentUser.name
+                                //                         })
+                                //                         .catch(function (error) {
+                                //                             fireEvent('error', {
+                                //                                 code: error.code,
+                                //                                 message: error.message,
+                                //                                 error: error
+                                //                             });
+                                //                         });
+                                //                 } else {
+                                //                     db.users.put(currentUser)
+                                //                         .catch(function (error) {
+                                //                             fireEvent('error', {
+                                //                                 code: error.code,
+                                //                                 message: error.message,
+                                //                                 error: error
+                                //                             });
+                                //                         });
+                                //                 }
+                                //             });
+                                //     } else {
+                                //         fireEvent('error', {
+                                //             code: 6601,
+                                //             message: CHAT_ERRORS[6601],
+                                //             error: null
+                                //         });
+                                //     }
+                                // }
 
                                 let resultData = {
                                     user: currentUser
@@ -2011,74 +2015,74 @@
                         /**
                          * Remove the participant from cache
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                /**
-                                 * Remove the participant from participants
-                                 * table
-                                 */
-                                db.participants.where('threadId')
-                                    .equals(parseInt(threadId))
-                                    .and(function (participant) {
-                                        return (participant.id == messageContent.id || participant.owner == userInfo.id);
-                                    })
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-
-                                /**
-                                 * If this is the user who is leaving the thread
-                                 * we should delete the thread and messages of
-                                 * thread from this users cache database
-                                 */
-
-                                if (messageContent.id == userInfo.id) {
-
-                                    /**
-                                     * Remove Thread from this users cache
-                                     */
-                                    db.threads.where('[owner+id]')
-                                        .equals([userInfo.id, threadId])
-                                        .delete()
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-
-                                    /**
-                                     * Remove all messages of the thread which
-                                     * this user left
-                                     */
-                                    db.messages.where('threadId')
-                                        .equals(parseInt(threadId))
-                                        .and(function (message) {
-                                            return message.owner == userInfo.id;
-                                        })
-                                        .delete()
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                }
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         /**
+                        //          * Remove the participant from participants
+                        //          * table
+                        //          */
+                        //         db.participants.where('threadId')
+                        //             .equals(parseInt(threadId))
+                        //             .and(function (participant) {
+                        //                 return (participant.id == messageContent.id || participant.owner == userInfo.id);
+                        //             })
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //
+                        //         /**
+                        //          * If this is the user who is leaving the thread
+                        //          * we should delete the thread and messages of
+                        //          * thread from this users cache database
+                        //          */
+                        //
+                        //         if (messageContent.id == userInfo.id) {
+                        //
+                        //             /**
+                        //              * Remove Thread from this users cache
+                        //              */
+                        //             db.threads.where('[owner+id]')
+                        //                 .equals([userInfo.id, threadId])
+                        //                 .delete()
+                        //                 .catch(function (error) {
+                        //                     fireEvent('error', {
+                        //                         code: error.code,
+                        //                         message: error.message,
+                        //                         error: error
+                        //                     });
+                        //                 });
+                        //
+                        //             /**
+                        //              * Remove all messages of the thread which
+                        //              * this user left
+                        //              */
+                        //             db.messages.where('threadId')
+                        //                 .equals(parseInt(threadId))
+                        //                 .and(function (message) {
+                        //                     return message.owner == userInfo.id;
+                        //                 })
+                        //                 .delete()
+                        //                 .catch(function (error) {
+                        //                     fireEvent('error', {
+                        //                         code: error.code,
+                        //                         message: error.message,
+                        //                         error: error
+                        //                     });
+                        //                 });
+                        //         }
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                         if (fullResponseObject) {
                             getThreads({
@@ -2141,54 +2145,54 @@
                         /**
                          * Add participants into cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                var cacheData = [];
-
-                                for (var i = 0; i < messageContent.participants.length; i++) {
-                                    try {
-                                        var tempData = {},
-                                            salt = Utility.generateUUID();
-
-                                        tempData.id = messageContent.participants[i].id;
-                                        tempData.owner = userInfo.id;
-                                        tempData.threadId = messageContent.id;
-                                        tempData.notSeenDuration = messageContent.participants[i].notSeenDuration;
-                                        tempData.admin = messageContent.participants[i].admin;
-                                        tempData.auditor = messageContent.participants[i].auditor;
-                                        tempData.name = Utility.crypt(messageContent.participants[i].name, cacheSecret, salt);
-                                        tempData.contactName = Utility.crypt(messageContent.participants[i].contactName, cacheSecret, salt);
-                                        tempData.email = Utility.crypt(messageContent.participants[i].email, cacheSecret, salt);
-                                        tempData.expireTime = new Date().getTime() + cacheExpireTime;
-                                        tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(messageContent.participants[i])), cacheSecret, salt);
-                                        tempData.salt = salt;
-
-                                        cacheData.push(tempData);
-                                    } catch (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    }
-                                }
-
-                                db.participants.bulkPut(cacheData)
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         var cacheData = [];
+                        //
+                        //         for (var i = 0; i < messageContent.participants.length; i++) {
+                        //             try {
+                        //                 var tempData = {},
+                        //                     salt = Utility.generateUUID();
+                        //
+                        //                 tempData.id = messageContent.participants[i].id;
+                        //                 tempData.owner = userInfo.id;
+                        //                 tempData.threadId = messageContent.id;
+                        //                 tempData.notSeenDuration = messageContent.participants[i].notSeenDuration;
+                        //                 tempData.admin = messageContent.participants[i].admin;
+                        //                 tempData.auditor = messageContent.participants[i].auditor;
+                        //                 tempData.name = Utility.crypt(messageContent.participants[i].name, cacheSecret, salt);
+                        //                 tempData.contactName = Utility.crypt(messageContent.participants[i].contactName, cacheSecret, salt);
+                        //                 tempData.email = Utility.crypt(messageContent.participants[i].email, cacheSecret, salt);
+                        //                 tempData.expireTime = new Date().getTime() + cacheExpireTime;
+                        //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(messageContent.participants[i])), cacheSecret, salt);
+                        //                 tempData.salt = salt;
+                        //
+                        //                 cacheData.push(tempData);
+                        //             } catch (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             }
+                        //         }
+                        //
+                        //         db.participants.bulkPut(cacheData)
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                         if (fullResponseObject) {
                             getThreads({
@@ -2273,66 +2277,66 @@
                          * So we should delete thread, its participants
                          * and it's messages from this users cache
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                /**
-                                 * Remove Thread from this users cache
-                                 */
-                                db.threads.where('[owner+id]')
-                                    .equals([userInfo.id, threadId])
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-
-                                /**
-                                 * Remove all messages of the thread which this
-                                 * user left
-                                 */
-                                db.messages.where('threadId')
-                                    .equals(parseInt(threadId))
-                                    .and(function (message) {
-                                        return message.owner == userInfo.id;
-                                    })
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-
-                                /**
-                                 * Remove all participants of the thread which
-                                 * this user left
-                                 */
-                                db.participants.where('threadId')
-                                    .equals(parseInt(threadId))
-                                    .and(function (participant) {
-                                        return participant.owner == userInfo.id;
-                                    })
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         /**
+                        //          * Remove Thread from this users cache
+                        //          */
+                        //         db.threads.where('[owner+id]')
+                        //             .equals([userInfo.id, threadId])
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //
+                        //         /**
+                        //          * Remove all messages of the thread which this
+                        //          * user left
+                        //          */
+                        //         db.messages.where('threadId')
+                        //             .equals(parseInt(threadId))
+                        //             .and(function (message) {
+                        //                 return message.owner == userInfo.id;
+                        //             })
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //
+                        //         /**
+                        //          * Remove all participants of the thread which
+                        //          * this user left
+                        //          */
+                        //         db.participants.where('threadId')
+                        //             .equals(parseInt(threadId))
+                        //             .and(function (participant) {
+                        //                 return participant.owner == userInfo.id;
+                        //             })
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                         break;
 
@@ -2347,31 +2351,31 @@
                         /**
                          * Remove the participant from cache
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                for (var i = 0; i < messageContent.length; i++) {
-                                    db.participants.where('id')
-                                        .equals(parseInt(messageContent[i].id))
-                                        .and(function (participants) {
-                                            return participants.threadId == threadId;
-                                        })
-                                        .delete()
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                }
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         for (var i = 0; i < messageContent.length; i++) {
+                        //             db.participants.where('id')
+                        //                 .equals(parseInt(messageContent[i].id))
+                        //                 .and(function (participants) {
+                        //                     return participants.threadId == threadId;
+                        //                 })
+                        //                 .delete()
+                        //                 .catch(function (error) {
+                        //                     fireEvent('error', {
+                        //                         code: error.code,
+                        //                         message: error.message,
+                        //                         error: error
+                        //                     });
+                        //                 });
+                        //         }
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                         if (fullResponseObject) {
                             getThreads({
@@ -2495,43 +2499,43 @@
                                 /**
                                  * Add Updated Thread into cache database #cache
                                  */
-                                if (canUseCache && cacheSecret.length > 0) {
-                                    if (db) {
-                                        var tempData = {};
-
-                                        try {
-                                            var salt = Utility.generateUUID();
-
-                                            tempData.id = thread.id;
-                                            tempData.owner = userInfo.id;
-                                            tempData.title = Utility.crypt(thread.title, cacheSecret, salt);
-                                            tempData.time = thread.time;
-                                            tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(thread)), cacheSecret, salt);
-                                            tempData.salt = salt;
-                                        } catch (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        }
-
-                                        db.threads.put(tempData)
-                                            .catch(function (error) {
-                                                fireEvent('error', {
-                                                    code: error.code,
-                                                    message: error.message,
-                                                    error: error
-                                                });
-                                            });
-                                    } else {
-                                        fireEvent('error', {
-                                            code: 6601,
-                                            message: CHAT_ERRORS[6601],
-                                            error: null
-                                        });
-                                    }
-                                }
+                                // if (canUseCache && cacheSecret.length > 0) {
+                                //     if (db) {
+                                //         var tempData = {};
+                                //
+                                //         try {
+                                //             var salt = Utility.generateUUID();
+                                //
+                                //             tempData.id = thread.id;
+                                //             tempData.owner = userInfo.id;
+                                //             tempData.title = Utility.crypt(thread.title, cacheSecret, salt);
+                                //             tempData.time = thread.time;
+                                //             tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(thread)), cacheSecret, salt);
+                                //             tempData.salt = salt;
+                                //         } catch (error) {
+                                //             fireEvent('error', {
+                                //                 code: error.code,
+                                //                 message: error.message,
+                                //                 error: error
+                                //             });
+                                //         }
+                                //
+                                //         db.threads.put(tempData)
+                                //             .catch(function (error) {
+                                //                 fireEvent('error', {
+                                //                     code: error.code,
+                                //                     message: error.message,
+                                //                     error: error
+                                //                 });
+                                //             });
+                                //     } else {
+                                //         fireEvent('error', {
+                                //             code: 6601,
+                                //             message: CHAT_ERRORS[6601],
+                                //             error: null
+                                //         });
+                                //     }
+                                // }
 
                                 fireEvent('threadEvents', {
                                     type: 'THREAD_INFO_UPDATED',
@@ -2619,29 +2623,29 @@
                         /**
                          * Remove Message from cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                db.messages.where('id')
-                                    .equals(messageContent)
-                                    .and(function (message) {
-                                        return message.owner == userInfo.id;
-                                    })
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: 6602,
-                                            message: CHAT_ERRORS[6602],
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         db.messages.where('id')
+                        //             .equals(messageContent)
+                        //             .and(function (message) {
+                        //                 return message.owner == userInfo.id;
+                        //             })
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: 6602,
+                        //                     message: CHAT_ERRORS[6602],
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                         if (fullResponseObject) {
                             getThreads({
@@ -3821,49 +3825,49 @@
                 /**
                  * Add New Messages into cache database
                  */
-                if (canUseCache && cacheSecret.length > 0) {
-                    if (db) {
-                        /**
-                         * Insert new messages into cache database
-                         * after deleting old messages from cache
-                         */
-                        var tempData = {};
-
-                        try {
-                            var salt = Utility.generateUUID();
-                            tempData.id = parseInt(message.id);
-                            tempData.owner = parseInt(userInfo.id);
-                            tempData.threadId = parseInt(message.threadId);
-                            tempData.time = message.time;
-                            tempData.message = Utility.crypt(message.message, cacheSecret, salt);
-                            tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(message)), cacheSecret, salt);
-                            tempData.salt = salt;
-                            tempData.sendStatus = 'sent';
-
-                        } catch (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        }
-
-                        db.messages.put(tempData)
-                            .catch(function (error) {
-                                fireEvent('error', {
-                                    code: error.code,
-                                    message: error.message,
-                                    error: error
-                                });
-                            });
-                    } else {
-                        fireEvent('error', {
-                            code: 6601,
-                            message: CHAT_ERRORS[6601],
-                            error: null
-                        });
-                    }
-                }
+                // if (canUseCache && cacheSecret.length > 0) {
+                //     if (db) {
+                //         /**
+                //          * Insert new messages into cache database
+                //          * after deleting old messages from cache
+                //          */
+                //         var tempData = {};
+                //
+                //         try {
+                //             var salt = Utility.generateUUID();
+                //             tempData.id = parseInt(message.id);
+                //             tempData.owner = parseInt(userInfo.id);
+                //             tempData.threadId = parseInt(message.threadId);
+                //             tempData.time = message.time;
+                //             tempData.message = Utility.crypt(message.message, cacheSecret, salt);
+                //             tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(message)), cacheSecret, salt);
+                //             tempData.salt = salt;
+                //             tempData.sendStatus = 'sent';
+                //
+                //         } catch (error) {
+                //             fireEvent('error', {
+                //                 code: error.code,
+                //                 message: error.message,
+                //                 error: error
+                //             });
+                //         }
+                //
+                //         db.messages.put(tempData)
+                //             .catch(function (error) {
+                //                 fireEvent('error', {
+                //                     code: error.code,
+                //                     message: error.message,
+                //                     error: error
+                //                 });
+                //             });
+                //     } else {
+                //         fireEvent('error', {
+                //             code: 6601,
+                //             message: CHAT_ERRORS[6601],
+                //             error: null
+                //         });
+                //     }
+                // }
 
                 fireEvent('messageEvents', {
                     type: 'MESSAGE_NEW',
@@ -3901,27 +3905,27 @@
                 /**
                  * Update waitQ and remove sent messages from it
                  */
-                if (hasCache && typeof queueDb == 'object') {
-                    queueDb.waitQ.where('uniqueId')
-                        .equals(message.uniqueId)
-                        .and(function (item) {
-                            return item.owner == parseInt(userInfo.id);
-                        })
-                        .delete()
-                        .catch(function (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        });
-                } else {
+                // if (hasCache && typeof queueDb == 'object') {
+                //     queueDb.waitQ.where('uniqueId')
+                //         .equals(message.uniqueId)
+                //         .and(function (item) {
+                //             return item.owner == parseInt(userInfo.id);
+                //         })
+                //         .delete()
+                //         .catch(function (error) {
+                //             fireEvent('error', {
+                //                 code: error.code,
+                //                 message: error.message,
+                //                 error: error
+                //             });
+                //         });
+                // } else {
                     for (var i = 0; i < chatSendQueue.length; i++) {
                         if (chatSendQueue[i].uniqueId == message.uniqueId) {
                             chatSendQueue.splice(i, 1);
                         }
                     }
-                }
+                // }
             },
 
             /**
@@ -3942,45 +3946,45 @@
                 /**
                  * Update Message on cache
                  */
-                if (canUseCache && cacheSecret.length > 0) {
-                    if (db) {
-                        try {
-                            var tempData = {},
-                                salt = Utility.generateUUID();
-                            tempData.id = parseInt(message.id);
-                            tempData.owner = parseInt(userInfo.id);
-                            tempData.threadId = parseInt(message.threadId);
-                            tempData.time = message.time;
-                            tempData.message = Utility.crypt(message.message, cacheSecret, salt);
-                            tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(message)), cacheSecret, salt);
-                            tempData.salt = salt;
-
-                            /**
-                             * Insert Message into cache database
-                             */
-                            db.messages.put(tempData)
-                                .catch(function (error) {
-                                    fireEvent('error', {
-                                        code: error.code,
-                                        message: error.message,
-                                        error: error
-                                    });
-                                });
-                        } catch (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        }
-                    } else {
-                        fireEvent('error', {
-                            code: 6601,
-                            message: CHAT_ERRORS[6601],
-                            error: null
-                        });
-                    }
-                }
+                // if (canUseCache && cacheSecret.length > 0) {
+                //     if (db) {
+                //         try {
+                //             var tempData = {},
+                //                 salt = Utility.generateUUID();
+                //             tempData.id = parseInt(message.id);
+                //             tempData.owner = parseInt(userInfo.id);
+                //             tempData.threadId = parseInt(message.threadId);
+                //             tempData.time = message.time;
+                //             tempData.message = Utility.crypt(message.message, cacheSecret, salt);
+                //             tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(message)), cacheSecret, salt);
+                //             tempData.salt = salt;
+                //
+                //             /**
+                //              * Insert Message into cache database
+                //              */
+                //             db.messages.put(tempData)
+                //                 .catch(function (error) {
+                //                     fireEvent('error', {
+                //                         code: error.code,
+                //                         message: error.message,
+                //                         error: error
+                //                     });
+                //                 });
+                //         } catch (error) {
+                //             fireEvent('error', {
+                //                 code: error.code,
+                //                 message: error.message,
+                //                 error: error
+                //             });
+                //         }
+                //     } else {
+                //         fireEvent('error', {
+                //             code: 6601,
+                //             message: CHAT_ERRORS[6601],
+                //             error: null
+                //         });
+                //     }
+                // }
 
 
                 if (fullResponseObject) {
@@ -4056,43 +4060,43 @@
                     /**
                      * Add New Thread into cache database #cache
                      */
-                    if (canUseCache && cacheSecret.length > 0) {
-                        if (db) {
-                            var tempData = {};
-
-                            try {
-                                var salt = Utility.generateUUID();
-
-                                tempData.id = threadData.id;
-                                tempData.owner = userInfo.id;
-                                tempData.title = Utility.crypt(threadData.title, cacheSecret, salt);
-                                tempData.time = threadData.time;
-                                tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(threadData)), cacheSecret, salt);
-                                tempData.salt = salt;
-                            } catch (error) {
-                                fireEvent('error', {
-                                    code: error.code,
-                                    message: error.message,
-                                    error: error
-                                });
-                            }
-
-                            db.threads.put(tempData)
-                                .catch(function (error) {
-                                    fireEvent('error', {
-                                        code: error.code,
-                                        message: error.message,
-                                        error: error
-                                    });
-                                });
-                        } else {
-                            fireEvent('error', {
-                                code: 6601,
-                                message: CHAT_ERRORS[6601],
-                                error: null
-                            });
-                        }
-                    }
+                    // if (canUseCache && cacheSecret.length > 0) {
+                    //     if (db) {
+                    //         var tempData = {};
+                    //
+                    //         try {
+                    //             var salt = Utility.generateUUID();
+                    //
+                    //             tempData.id = threadData.id;
+                    //             tempData.owner = userInfo.id;
+                    //             tempData.title = Utility.crypt(threadData.title, cacheSecret, salt);
+                    //             tempData.time = threadData.time;
+                    //             tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(threadData)), cacheSecret, salt);
+                    //             tempData.salt = salt;
+                    //         } catch (error) {
+                    //             fireEvent('error', {
+                    //                 code: error.code,
+                    //                 message: error.message,
+                    //                 error: error
+                    //             });
+                    //         }
+                    //
+                    //         db.threads.put(tempData)
+                    //             .catch(function (error) {
+                    //                 fireEvent('error', {
+                    //                     code: error.code,
+                    //                     message: error.message,
+                    //                     error: error
+                    //                 });
+                    //             });
+                    //     } else {
+                    //         fireEvent('error', {
+                    //             code: 6601,
+                    //             message: CHAT_ERRORS[6601],
+                    //             error: null
+                    //         });
+                    //     }
+                    // }
                 }
                 return threadData;
             },
@@ -4934,102 +4938,102 @@
                  * Retrieve threads from cache
                  */
 
-                if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
-                    if (db) {
-                        var thenAble;
-
-                        if (Object.keys(whereClause).length === 0) {
-                            thenAble = db.threads.where('[owner+time]')
-                                .between([userInfo.id, minIntegerValue], [userInfo.id, maxIntegerValue * 1000])
-                                .reverse();
-                        } else {
-                            if (whereClause.hasOwnProperty('threadIds')) {
-                                thenAble = db.threads.where('id')
-                                    .anyOf(whereClause.threadIds)
-                                    .and(function (thread) {
-                                        return thread.owner == userInfo.id;
-                                    });
-                            }
-
-                            if (whereClause.hasOwnProperty('name')) {
-                                thenAble = db.threads.where('owner')
-                                    .equals(parseInt(userInfo.id))
-                                    .filter(function (thread) {
-                                        var reg = new RegExp(whereClause.name);
-                                        return reg.test(chatDecrypt(thread.title, cacheSecret, thread.salt));
-                                    });
-                            }
-
-                            if (whereClause.hasOwnProperty('creatorCoreUserId')) {
-                                thenAble = db.threads.where('owner')
-                                    .equals(parseInt(userInfo.id))
-                                    .filter(function (thread) {
-                                        var threadObject = JSON.parse(chatDecrypt(thread.data, cacheSecret, thread.salt), false);
-                                        return parseInt(threadObject.inviter.coreUserId) == parseInt(whereClause.creatorCoreUserId);
-                                    });
-                            }
-                        }
-
-                        thenAble.offset(offset)
-                            .limit(count)
-                            .toArray()
-                            .then(function (threads) {
-                                db.threads.where('owner')
-                                    .equals(parseInt(userInfo.id))
-                                    .count()
-                                    .then(function (threadsCount) {
-                                        var cacheData = [];
-
-                                        for (var i = 0; i < threads.length; i++) {
-                                            try {
-                                                var tempData = {},
-                                                    salt = threads[i].salt;
-
-                                                cacheData.push(createThread(JSON.parse(chatDecrypt(threads[i].data, cacheSecret, threads[i].salt)), false));
-                                            } catch (error) {
-                                                fireEvent('error', {
-                                                    code: error.code,
-                                                    message: error.message,
-                                                    error: error
-                                                });
-                                            }
-                                        }
-
-                                        var returnData = {
-                                            hasError: false,
-                                            cache: true,
-                                            errorCode: 0,
-                                            errorMessage: '',
-                                            result: {
-                                                threads: cacheData,
-                                                contentCount: threadsCount,
-                                                hasNext: !(threads.length < count),
-                                                nextOffset: offset + threads.length
-                                            }
-                                        };
-
-                                        if (cacheData.length > 0) {
-                                            callback && callback(returnData);
-                                            callback = undefined;
-                                            returnCache = true;
-                                        }
-                                    });
-                            })
-                            .catch(function (error) {
-                                fireEvent('error', {
-                                    code: error.code,
-                                    message: error.message,
-                                    error: error
-                                });
-                            });
-                    } else {
-                        fireEvent('error', {
-                            code: 6601,
-                            message: CHAT_ERRORS[6601],
-                            error: null
-                        });
-                    }
-                }
+                // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+                //     if (db) {
+                //         var thenAble;
+                //
+                //         if (Object.keys(whereClause).length === 0) {
+                //             thenAble = db.threads.where('[owner+time]')
+                //                 .between([userInfo.id, minIntegerValue], [userInfo.id, maxIntegerValue * 1000])
+                //                 .reverse();
+                //         } else {
+                //             if (whereClause.hasOwnProperty('threadIds')) {
+                //                 thenAble = db.threads.where('id')
+                //                     .anyOf(whereClause.threadIds)
+                //                     .and(function (thread) {
+                //                         return thread.owner == userInfo.id;
+                //                     });
+                //             }
+                //
+                //             if (whereClause.hasOwnProperty('name')) {
+                //                 thenAble = db.threads.where('owner')
+                //                     .equals(parseInt(userInfo.id))
+                //                     .filter(function (thread) {
+                //                         var reg = new RegExp(whereClause.name);
+                //                         return reg.test(chatDecrypt(thread.title, cacheSecret, thread.salt));
+                //                     });
+                //             }
+                //
+                //             if (whereClause.hasOwnProperty('creatorCoreUserId')) {
+                //                 thenAble = db.threads.where('owner')
+                //                     .equals(parseInt(userInfo.id))
+                //                     .filter(function (thread) {
+                //                         var threadObject = JSON.parse(chatDecrypt(thread.data, cacheSecret, thread.salt), false);
+                //                         return parseInt(threadObject.inviter.coreUserId) == parseInt(whereClause.creatorCoreUserId);
+                //                     });
+                //             }
+                //         }
+                //
+                //         thenAble.offset(offset)
+                //             .limit(count)
+                //             .toArray()
+                //             .then(function (threads) {
+                //                 db.threads.where('owner')
+                //                     .equals(parseInt(userInfo.id))
+                //                     .count()
+                //                     .then(function (threadsCount) {
+                //                         var cacheData = [];
+                //
+                //                         for (var i = 0; i < threads.length; i++) {
+                //                             try {
+                //                                 var tempData = {},
+                //                                     salt = threads[i].salt;
+                //
+                //                                 cacheData.push(createThread(JSON.parse(chatDecrypt(threads[i].data, cacheSecret, threads[i].salt)), false));
+                //                             } catch (error) {
+                //                                 fireEvent('error', {
+                //                                     code: error.code,
+                //                                     message: error.message,
+                //                                     error: error
+                //                                 });
+                //                             }
+                //                         }
+                //
+                //                         var returnData = {
+                //                             hasError: false,
+                //                             cache: true,
+                //                             errorCode: 0,
+                //                             errorMessage: '',
+                //                             result: {
+                //                                 threads: cacheData,
+                //                                 contentCount: threadsCount,
+                //                                 hasNext: !(threads.length < count),
+                //                                 nextOffset: offset + threads.length
+                //                             }
+                //                         };
+                //
+                //                         if (cacheData.length > 0) {
+                //                             callback && callback(returnData);
+                //                             callback = undefined;
+                //                             returnCache = true;
+                //                         }
+                //                     });
+                //             })
+                //             .catch(function (error) {
+                //                 fireEvent('error', {
+                //                     code: error.code,
+                //                     message: error.message,
+                //                     error: error
+                //                 });
+                //             });
+                //     } else {
+                //         fireEvent('error', {
+                //             code: 6601,
+                //             message: CHAT_ERRORS[6601],
+                //             error: null
+                //         });
+                //     }
+                // }
 
                 /**
                  * Retrive get threads response from server
@@ -5073,128 +5077,128 @@
                              * TODO: Implement Node Version
                              */
 
-                            if (typeof Worker !== 'undefined' && productEnv != 'ReactNative' && canUseCache && cacheSecret.length > 0) {
-                                if (typeof (cacheSyncWorker) == 'undefined') {
-                                    var plainWorker = function () {
-                                        self.importScripts('https://npmcdn.com/dexie@2.0.4/dist/dexie.min.js');
-                                        db = new Dexie('podChat');
-
-                                        db.version(1)
-                                            .stores({
-                                                users: '&id, name, cellphoneNumber, keyId',
-                                                contacts: '[owner+id], id, owner, uniqueId, userId, cellphoneNumber, email, firstName, lastName, expireTime',
-                                                threads: '[owner+id] ,id, owner, title, time, pin, [owner+time]',
-                                                participants: '[owner+id], id, owner, threadId, notSeenDuration, admin, name, contactName, email, expireTime',
-                                                messages: '[owner+id], id, owner, threadId, time, [threadId+id], [threadId+owner+time]',
-                                                messageGaps: '[owner+id], [owner+waitsFor], id, waitsFor, owner, threadId, time, [threadId+owner+time]',
-                                                contentCount: 'threadId, contentCount'
-                                            });
-
-                                        addEventListener('message', function (event) {
-                                            var data = JSON.parse(event.data);
-
-                                            switch (data.type) {
-                                                case 'getThreads':
-                                                    var content = JSON.parse(data.data),
-                                                        userId = parseInt(data.userId);
-                                                    for (var i = 0; i < content.length; i++) {
-                                                        var lastMessageTime = (content[i].lastMessageVO) ? content[i].lastMessageVO.time : 0,
-                                                            threadId = parseInt(content[i].id);
-                                                        if (lastMessageTime > 0) {
-                                                            db.messages
-                                                                .where('[threadId+owner+time]')
-                                                                .between([threadId, userId, lastMessageTime], [
-                                                                    threadId,
-                                                                    userId,
-                                                                    Number.MAX_SAFE_INTEGER * 1000], false, true)
-                                                                .delete();
-                                                        }
-                                                    }
-                                                    break;
-                                            }
-                                        }, false);
-                                    };
-                                    var code = plainWorker.toString();
-                                    code = code.substring(code.indexOf('{') + 1, code.lastIndexOf('}'));
-                                    var blob = new Blob([code], {type: 'application/javascript'});
-                                    cacheSyncWorker = new Worker(URL.createObjectURL(blob));
-                                }
-
-                                var workerCommand = {
-                                    type: 'getThreads',
-                                    userId: userInfo.id,
-                                    data: JSON.stringify(resultData.threads)
-                                };
-
-                                cacheSyncWorker.postMessage(JSON.stringify(workerCommand));
-
-                                cacheSyncWorker.onmessage = function (event) {
-                                    if (event.data == 'terminate') {
-                                        cacheSyncWorker.terminate();
-                                        cacheSyncWorker = undefined;
-                                    }
-                                };
-
-                                cacheSyncWorker.onerror = function (event) {
-                                    console.log(event);
-                                };
-                            }
+                            // if (typeof Worker !== 'undefined' && productEnv != 'ReactNative' && canUseCache && cacheSecret.length > 0) {
+                            //     if (typeof (cacheSyncWorker) == 'undefined') {
+                            //         var plainWorker = function () {
+                            //             self.importScripts('https://npmcdn.com/dexie@2.0.4/dist/dexie.min.js');
+                            //             db = new Dexie('podChat');
+                            //
+                            //             db.version(1)
+                            //                 .stores({
+                            //                     users: '&id, name, cellphoneNumber, keyId',
+                            //                     contacts: '[owner+id], id, owner, uniqueId, userId, cellphoneNumber, email, firstName, lastName, expireTime',
+                            //                     threads: '[owner+id] ,id, owner, title, time, pin, [owner+time]',
+                            //                     participants: '[owner+id], id, owner, threadId, notSeenDuration, admin, name, contactName, email, expireTime',
+                            //                     messages: '[owner+id], id, owner, threadId, time, [threadId+id], [threadId+owner+time]',
+                            //                     messageGaps: '[owner+id], [owner+waitsFor], id, waitsFor, owner, threadId, time, [threadId+owner+time]',
+                            //                     contentCount: 'threadId, contentCount'
+                            //                 });
+                            //
+                            //             addEventListener('message', function (event) {
+                            //                 var data = JSON.parse(event.data);
+                            //
+                            //                 switch (data.type) {
+                            //                     case 'getThreads':
+                            //                         var content = JSON.parse(data.data),
+                            //                             userId = parseInt(data.userId);
+                            //                         for (var i = 0; i < content.length; i++) {
+                            //                             var lastMessageTime = (content[i].lastMessageVO) ? content[i].lastMessageVO.time : 0,
+                            //                                 threadId = parseInt(content[i].id);
+                            //                             if (lastMessageTime > 0) {
+                            //                                 db.messages
+                            //                                     .where('[threadId+owner+time]')
+                            //                                     .between([threadId, userId, lastMessageTime], [
+                            //                                         threadId,
+                            //                                         userId,
+                            //                                         Number.MAX_SAFE_INTEGER * 1000], false, true)
+                            //                                     .delete();
+                            //                             }
+                            //                         }
+                            //                         break;
+                            //                 }
+                            //             }, false);
+                            //         };
+                            //         var code = plainWorker.toString();
+                            //         code = code.substring(code.indexOf('{') + 1, code.lastIndexOf('}'));
+                            //         var blob = new Blob([code], {type: 'application/javascript'});
+                            //         cacheSyncWorker = new Worker(URL.createObjectURL(blob));
+                            //     }
+                            //
+                            //     var workerCommand = {
+                            //         type: 'getThreads',
+                            //         userId: userInfo.id,
+                            //         data: JSON.stringify(resultData.threads)
+                            //     };
+                            //
+                            //     cacheSyncWorker.postMessage(JSON.stringify(workerCommand));
+                            //
+                            //     cacheSyncWorker.onmessage = function (event) {
+                            //         if (event.data == 'terminate') {
+                            //             cacheSyncWorker.terminate();
+                            //             cacheSyncWorker = undefined;
+                            //         }
+                            //     };
+                            //
+                            //     cacheSyncWorker.onerror = function (event) {
+                            //         console.log(event);
+                            //     };
+                            // }
 
                             /**
                              * Add Threads into cache database #cache
                              */
-                            if (canUseCache && cacheSecret.length > 0) {
-                                if (db) {
-                                    var cacheData = [];
-
-                                    /*
-                                     * There will be only 5 pinned threads
-                                     * So we multiply thread time by pin
-                                     * order to have them ordered on cache
-                                     * by the same order of server
-                                     */
-                                    var pinnedThreadsOrderTime = 5;
-
-                                    for (var i = 0; i < resultData.threads.length; i++) {
-                                        try {
-                                            var tempData = {},
-                                                salt = Utility.generateUUID();
-
-                                            tempData.id = resultData.threads[i].id;
-                                            tempData.owner = userInfo.id;
-                                            tempData.title = Utility.crypt(resultData.threads[i].title, cacheSecret, salt);
-                                            tempData.pin = resultData.threads[i].pin;
-                                            tempData.time = (resultData.threads[i].pin) ? resultData.threads[i].time * pinnedThreadsOrderTime : resultData.threads[i].time;
-                                            tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.threads[i])), cacheSecret, salt);
-                                            tempData.salt = salt;
-
-                                            cacheData.push(tempData);
-                                            pinnedThreadsOrderTime--;
-                                        } catch (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        }
-                                    }
-
-                                    db.threads.bulkPut(cacheData)
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                } else {
-                                    fireEvent('error', {
-                                        code: 6601,
-                                        message: CHAT_ERRORS[6601],
-                                        error: null
-                                    });
-                                }
-                            }
+                            // if (canUseCache && cacheSecret.length > 0) {
+                            //     if (db) {
+                            //         var cacheData = [];
+                            //
+                            //         /*
+                            //          * There will be only 5 pinned threads
+                            //          * So we multiply thread time by pin
+                            //          * order to have them ordered on cache
+                            //          * by the same order of server
+                            //          */
+                            //         var pinnedThreadsOrderTime = 5;
+                            //
+                            //         for (var i = 0; i < resultData.threads.length; i++) {
+                            //             try {
+                            //                 var tempData = {},
+                            //                     salt = Utility.generateUUID();
+                            //
+                            //                 tempData.id = resultData.threads[i].id;
+                            //                 tempData.owner = userInfo.id;
+                            //                 tempData.title = Utility.crypt(resultData.threads[i].title, cacheSecret, salt);
+                            //                 tempData.pin = resultData.threads[i].pin;
+                            //                 tempData.time = (resultData.threads[i].pin) ? resultData.threads[i].time * pinnedThreadsOrderTime : resultData.threads[i].time;
+                            //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.threads[i])), cacheSecret, salt);
+                            //                 tempData.salt = salt;
+                            //
+                            //                 cacheData.push(tempData);
+                            //                 pinnedThreadsOrderTime--;
+                            //             } catch (error) {
+                            //                 fireEvent('error', {
+                            //                     code: error.code,
+                            //                     message: error.message,
+                            //                     error: error
+                            //                 });
+                            //             }
+                            //         }
+                            //
+                            //         db.threads.bulkPut(cacheData)
+                            //             .catch(function (error) {
+                            //                 fireEvent('error', {
+                            //                     code: error.code,
+                            //                     message: error.message,
+                            //                     error: error
+                            //                 });
+                            //             });
+                            //     } else {
+                            //         fireEvent('error', {
+                            //             code: 6601,
+                            //             message: CHAT_ERRORS[6601],
+                            //             error: null
+                            //         });
+                            //     }
+                            // }
                         }
 
                         callback && callback(returnData);
@@ -5231,34 +5235,34 @@
                     onResult: function (result) {
 
                         if (!result.hasError) {
-                            if (canUseCache) {
-                                if (db) {
-                                    var allThreads = [];
-                                    for (var m = 0; m < result.result.length; m++) {
-                                        allThreads.push(result.result[m].id);
-                                    }
-                                    db.threads
-                                        .where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .and(function (thread) {
-                                            return allThreads.indexOf(thread.id) < 0;
-                                        })
-                                        .delete()
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                } else {
-                                    fireEvent('error', {
-                                        code: 6601,
-                                        message: CHAT_ERRORS[6601],
-                                        error: null
-                                    });
-                                }
-                            }
+                            // if (canUseCache) {
+                            //     if (db) {
+                            //         var allThreads = [];
+                            //         for (var m = 0; m < result.result.length; m++) {
+                            //             allThreads.push(result.result[m].id);
+                            //         }
+                            //         db.threads
+                            //             .where('owner')
+                            //             .equals(parseInt(userInfo.id))
+                            //             .and(function (thread) {
+                            //                 return allThreads.indexOf(thread.id) < 0;
+                            //             })
+                            //             .delete()
+                            //             .catch(function (error) {
+                            //                 fireEvent('error', {
+                            //                     code: error.code,
+                            //                     message: error.message,
+                            //                     error: error
+                            //                 });
+                            //             });
+                            //     } else {
+                            //         fireEvent('error', {
+                            //             code: 6601,
+                            //             message: CHAT_ERRORS[6601],
+                            //             error: null
+                            //         });
+                            //     }
+                            // }
                         }
 
                         callback && callback(result);
@@ -5466,243 +5470,243 @@
                          */
 
                         // TODO ASC order?!
-                        if (functionLevelCache
-                            && canUseCache
-                            && cacheSecret.length > 0
-                            && !whereClause.hasOwnProperty('metadataCriteria')
-                            && order.toLowerCase() != "asc") {
-                            if (db) {
-                                var table = db.messages,
-                                    collection;
-                                returnCache = true;
-
-                                if (whereClause.hasOwnProperty('id') && whereClause.id > 0) {
-                                    collection = table.where('id')
-                                        .equals(parseInt(params.id))
-                                        .and(function (message) {
-                                            return message.owner == userInfo.id;
-                                        })
-                                        .reverse();
-                                } else {
-                                    collection = table.where('[threadId+owner+time]')
-                                        .between([parseInt(params.threadId), parseInt(userInfo.id), minIntegerValue],
-                                            [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000])
-                                        .reverse();
-                                }
-
-                                collection.toArray()
-                                    .then(function (resultMessages) {
-                                        messages = resultMessages.sort(Utility.dynamicSort('time', !(order === 'asc')));
-
-                                        if (whereClause.hasOwnProperty('fromTime')) {
-                                            var fromTime = (whereClause.hasOwnProperty('fromTimeNanos'))
-                                                ? (Math.floor(whereClause.fromTime / 1000) * 1000000000) + whereClause.fromTimeNanos
-                                                : whereClause.fromTime * 1000000;
-                                            messages = messages.filter(function (message) {
-                                                return message.time >= fromTime;
-                                            });
-                                        }
-
-                                        if (whereClause.hasOwnProperty('toTime')) {
-                                            var toTime = (whereClause.hasOwnProperty('toTimeNanos'))
-                                                ? ((Math.floor(whereClause.toTime / 1000)) * 1000000000) + whereClause.toTimeNanos
-                                                : (whereClause.toTime) * 1000000;
-                                            messages = messages.filter(function (message) {
-                                                return message.time <= toTime;
-                                            });
-                                        }
-
-                                        if (whereClause.hasOwnProperty('query') && typeof whereClause.query == 'string') {
-                                            messages = messages.filter(function (message) {
-                                                var reg = new RegExp(whereClause.query);
-                                                return reg.test(chatDecrypt(message.message, cacheSecret, message.salt));
-                                            });
-                                        }
-
-                                        /**
-                                         * We should check to see if message[offset-1] has
-                                         * GAP on cache or not? if yes, we should not return
-                                         * any value from cache, because there is a gap between
-                                         */
-
-                                        if (offset > 0) {
-                                            if (typeof messages[offset - 1] == 'object' && messages[offset - 1].hasGap) {
-                                                returnCache = false;
-                                            }
-                                        }
-
-                                        if (returnCache) {
-                                            messages = messages.slice(offset, offset + count);
-
-                                            if (messages.length == 0) {
-                                                returnCache = false;
-                                            }
-
-                                            cacheFirstMessage = messages[0];
-                                            cacheLastMessage = messages[messages.length - 1];
-
-                                            /**
-                                             * There should not be any GAPs before
-                                             * firstMessage of requested messages in cache
-                                             * if there is a gap or more, the cache is not
-                                             * valid, therefore we wont return any values
-                                             * from cache and wait for server's response
-                                             *
-                                             * To find out if there is a gap or not, all we
-                                             * have to do is to check messageGaps table and
-                                             * query it for gaps with time bigger than
-                                             * firstMessage's time
-                                             */
-                                            if (cacheFirstMessage && cacheFirstMessage.time > 0) {
-                                                db.messageGaps
-                                                    .where('[threadId+owner+time]')
-                                                    .between([parseInt(params.threadId), parseInt(userInfo.id), cacheFirstMessage.time],
-                                                        [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], true, true)
-                                                    .toArray()
-                                                    .then(function (gaps) {
-                                                        // TODO fill these gaps in a worker
-                                                        if (gaps.length > 0) {
-                                                            returnCache = false;
-                                                        }
-                                                    })
-                                                    .catch(function (error) {
-                                                        fireEvent('error', {
-                                                            code: error.code,
-                                                            message: error.message,
-                                                            error: error
-                                                        });
-                                                    });
-                                            }
-
-                                            if (returnCache) {
-                                                collection.count()
-                                                    .then(function (collectionContentCount) {
-                                                        var contentCount = 0;
-                                                        var cacheData = [];
-
-                                                        for (var i = 0; i < messages.length; i++) {
-                                                            /**
-                                                             * If any of messages between first and last message of cache response
-                                                             * has a GAP before them, we shouldn't return cache's result and
-                                                             * wait for server's response to hit in
-                                                             */
-
-                                                            if (i != 0 && i != messages.length - 1 && messages[i].hasGap) {
-                                                                returnCache = false;
-                                                                break;
-                                                            }
-
-                                                            try {
-                                                                var tempData = {},
-                                                                    salt = messages[i].salt;
-
-                                                                var tempMessage = formatDataToMakeMessage(messages[i].threadId, JSON.parse(chatDecrypt(messages[i].data, cacheSecret, messages[i].salt)), true);
-                                                                cacheData.push(tempMessage);
-
-                                                                cacheResult[tempMessage.id] = {
-                                                                    index: i,
-                                                                    messageId: tempMessage.id,
-                                                                    threadId: tempMessage.threadId,
-                                                                    data: Utility.MD5(JSON.stringify([
-                                                                        tempMessage.id,
-                                                                        tempMessage.message,
-                                                                        tempMessage.metadata,
-                                                                        tempMessage.systemMetadata]))
-                                                                };
-                                                            } catch (error) {
-                                                                fireEvent('error', {
-                                                                    code: error.code,
-                                                                    message: error.message,
-                                                                    error: error
-                                                                });
-                                                            }
-                                                        }
-
-                                                        /**
-                                                         * If there is a GAP between messages of cache result
-                                                         * WE should not return data from cache, cause it is not valid!
-                                                         * Therefore we wait for server's response and edit cache afterwards
-                                                         */
-                                                        if (returnCache) {
-
-                                                            /**
-                                                             * Get contentCount of this thread from cache
-                                                             */
-                                                            db.contentCount
-                                                                .where('threadId')
-                                                                .equals(parseInt(params.threadId))
-                                                                .toArray()
-                                                                .then(function (res) {
-                                                                    var hasNext = true;
-                                                                    if (res.length > 0 && res[0].threadId == parseInt(params.threadId)) {
-                                                                        contentCount = res[0].contentCount;
-                                                                        hasNext = offset + count < res[0].contentCount && messages.length > 0
-                                                                    } else {
-                                                                        contentCount = collectionContentCount;
-                                                                    }
-
-                                                                    var returnData = {
-                                                                        hasError: false,
-                                                                        cache: true,
-                                                                        errorCode: 0,
-                                                                        errorMessage: '',
-                                                                        result: {
-                                                                            history: cacheData,
-                                                                            contentCount: contentCount,
-                                                                            hasNext: hasNext,
-                                                                            nextOffset: offset + messages.length
-                                                                        }
-                                                                    };
-
-                                                                    if (sendingQueue) {
-                                                                        returnData.result.sending = sendingQueueMessages;
-                                                                    }
-                                                                    if (uploadingQueue) {
-                                                                        returnData.result.uploading = uploadingQueueMessages;
-                                                                    }
-                                                                    if (failedQueue) {
-                                                                        returnData.result.failed = failedQueueMessages;
-                                                                    }
-
-                                                                    cacheReady = true;
-
-                                                                    callback && callback(returnData);
-                                                                    callback = undefined;
-                                                                })
-                                                                .catch(function (error) {
-                                                                    fireEvent('error', {
-                                                                        code: error.code,
-                                                                        message: error.message,
-                                                                        error: error
-                                                                    });
-                                                                });
-                                                        }
-                                                    })
-                                                    .catch(function (error) {
-                                                        fireEvent('error', {
-                                                            code: error.code,
-                                                            message: error.message,
-                                                            error: error
-                                                        });
-                                                    });
-                                            }
-                                        }
-                                    })
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (functionLevelCache
+                        //     && canUseCache
+                        //     && cacheSecret.length > 0
+                        //     && !whereClause.hasOwnProperty('metadataCriteria')
+                        //     && order.toLowerCase() != "asc") {
+                        //     if (db) {
+                        //         var table = db.messages,
+                        //             collection;
+                        //         returnCache = true;
+                        //
+                        //         if (whereClause.hasOwnProperty('id') && whereClause.id > 0) {
+                        //             collection = table.where('id')
+                        //                 .equals(parseInt(params.id))
+                        //                 .and(function (message) {
+                        //                     return message.owner == userInfo.id;
+                        //                 })
+                        //                 .reverse();
+                        //         } else {
+                        //             collection = table.where('[threadId+owner+time]')
+                        //                 .between([parseInt(params.threadId), parseInt(userInfo.id), minIntegerValue],
+                        //                     [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000])
+                        //                 .reverse();
+                        //         }
+                        //
+                        //         collection.toArray()
+                        //             .then(function (resultMessages) {
+                        //                 messages = resultMessages.sort(Utility.dynamicSort('time', !(order === 'asc')));
+                        //
+                        //                 if (whereClause.hasOwnProperty('fromTime')) {
+                        //                     var fromTime = (whereClause.hasOwnProperty('fromTimeNanos'))
+                        //                         ? (Math.floor(whereClause.fromTime / 1000) * 1000000000) + whereClause.fromTimeNanos
+                        //                         : whereClause.fromTime * 1000000;
+                        //                     messages = messages.filter(function (message) {
+                        //                         return message.time >= fromTime;
+                        //                     });
+                        //                 }
+                        //
+                        //                 if (whereClause.hasOwnProperty('toTime')) {
+                        //                     var toTime = (whereClause.hasOwnProperty('toTimeNanos'))
+                        //                         ? ((Math.floor(whereClause.toTime / 1000)) * 1000000000) + whereClause.toTimeNanos
+                        //                         : (whereClause.toTime) * 1000000;
+                        //                     messages = messages.filter(function (message) {
+                        //                         return message.time <= toTime;
+                        //                     });
+                        //                 }
+                        //
+                        //                 if (whereClause.hasOwnProperty('query') && typeof whereClause.query == 'string') {
+                        //                     messages = messages.filter(function (message) {
+                        //                         var reg = new RegExp(whereClause.query);
+                        //                         return reg.test(chatDecrypt(message.message, cacheSecret, message.salt));
+                        //                     });
+                        //                 }
+                        //
+                        //                 /**
+                        //                  * We should check to see if message[offset-1] has
+                        //                  * GAP on cache or not? if yes, we should not return
+                        //                  * any value from cache, because there is a gap between
+                        //                  */
+                        //
+                        //                 if (offset > 0) {
+                        //                     if (typeof messages[offset - 1] == 'object' && messages[offset - 1].hasGap) {
+                        //                         returnCache = false;
+                        //                     }
+                        //                 }
+                        //
+                        //                 if (returnCache) {
+                        //                     messages = messages.slice(offset, offset + count);
+                        //
+                        //                     if (messages.length == 0) {
+                        //                         returnCache = false;
+                        //                     }
+                        //
+                        //                     cacheFirstMessage = messages[0];
+                        //                     cacheLastMessage = messages[messages.length - 1];
+                        //
+                        //                     /**
+                        //                      * There should not be any GAPs before
+                        //                      * firstMessage of requested messages in cache
+                        //                      * if there is a gap or more, the cache is not
+                        //                      * valid, therefore we wont return any values
+                        //                      * from cache and wait for server's response
+                        //                      *
+                        //                      * To find out if there is a gap or not, all we
+                        //                      * have to do is to check messageGaps table and
+                        //                      * query it for gaps with time bigger than
+                        //                      * firstMessage's time
+                        //                      */
+                        //                     if (cacheFirstMessage && cacheFirstMessage.time > 0) {
+                        //                         db.messageGaps
+                        //                             .where('[threadId+owner+time]')
+                        //                             .between([parseInt(params.threadId), parseInt(userInfo.id), cacheFirstMessage.time],
+                        //                                 [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], true, true)
+                        //                             .toArray()
+                        //                             .then(function (gaps) {
+                        //                                 // TODO fill these gaps in a worker
+                        //                                 if (gaps.length > 0) {
+                        //                                     returnCache = false;
+                        //                                 }
+                        //                             })
+                        //                             .catch(function (error) {
+                        //                                 fireEvent('error', {
+                        //                                     code: error.code,
+                        //                                     message: error.message,
+                        //                                     error: error
+                        //                                 });
+                        //                             });
+                        //                     }
+                        //
+                        //                     if (returnCache) {
+                        //                         collection.count()
+                        //                             .then(function (collectionContentCount) {
+                        //                                 var contentCount = 0;
+                        //                                 var cacheData = [];
+                        //
+                        //                                 for (var i = 0; i < messages.length; i++) {
+                        //                                     /**
+                        //                                      * If any of messages between first and last message of cache response
+                        //                                      * has a GAP before them, we shouldn't return cache's result and
+                        //                                      * wait for server's response to hit in
+                        //                                      */
+                        //
+                        //                                     if (i != 0 && i != messages.length - 1 && messages[i].hasGap) {
+                        //                                         returnCache = false;
+                        //                                         break;
+                        //                                     }
+                        //
+                        //                                     try {
+                        //                                         var tempData = {},
+                        //                                             salt = messages[i].salt;
+                        //
+                        //                                         var tempMessage = formatDataToMakeMessage(messages[i].threadId, JSON.parse(chatDecrypt(messages[i].data, cacheSecret, messages[i].salt)), true);
+                        //                                         cacheData.push(tempMessage);
+                        //
+                        //                                         cacheResult[tempMessage.id] = {
+                        //                                             index: i,
+                        //                                             messageId: tempMessage.id,
+                        //                                             threadId: tempMessage.threadId,
+                        //                                             data: Utility.MD5(JSON.stringify([
+                        //                                                 tempMessage.id,
+                        //                                                 tempMessage.message,
+                        //                                                 tempMessage.metadata,
+                        //                                                 tempMessage.systemMetadata]))
+                        //                                         };
+                        //                                     } catch (error) {
+                        //                                         fireEvent('error', {
+                        //                                             code: error.code,
+                        //                                             message: error.message,
+                        //                                             error: error
+                        //                                         });
+                        //                                     }
+                        //                                 }
+                        //
+                        //                                 /**
+                        //                                  * If there is a GAP between messages of cache result
+                        //                                  * WE should not return data from cache, cause it is not valid!
+                        //                                  * Therefore we wait for server's response and edit cache afterwards
+                        //                                  */
+                        //                                 if (returnCache) {
+                        //
+                        //                                     /**
+                        //                                      * Get contentCount of this thread from cache
+                        //                                      */
+                        //                                     db.contentCount
+                        //                                         .where('threadId')
+                        //                                         .equals(parseInt(params.threadId))
+                        //                                         .toArray()
+                        //                                         .then(function (res) {
+                        //                                             var hasNext = true;
+                        //                                             if (res.length > 0 && res[0].threadId == parseInt(params.threadId)) {
+                        //                                                 contentCount = res[0].contentCount;
+                        //                                                 hasNext = offset + count < res[0].contentCount && messages.length > 0
+                        //                                             } else {
+                        //                                                 contentCount = collectionContentCount;
+                        //                                             }
+                        //
+                        //                                             var returnData = {
+                        //                                                 hasError: false,
+                        //                                                 cache: true,
+                        //                                                 errorCode: 0,
+                        //                                                 errorMessage: '',
+                        //                                                 result: {
+                        //                                                     history: cacheData,
+                        //                                                     contentCount: contentCount,
+                        //                                                     hasNext: hasNext,
+                        //                                                     nextOffset: offset + messages.length
+                        //                                                 }
+                        //                                             };
+                        //
+                        //                                             if (sendingQueue) {
+                        //                                                 returnData.result.sending = sendingQueueMessages;
+                        //                                             }
+                        //                                             if (uploadingQueue) {
+                        //                                                 returnData.result.uploading = uploadingQueueMessages;
+                        //                                             }
+                        //                                             if (failedQueue) {
+                        //                                                 returnData.result.failed = failedQueueMessages;
+                        //                                             }
+                        //
+                        //                                             cacheReady = true;
+                        //
+                        //                                             callback && callback(returnData);
+                        //                                             callback = undefined;
+                        //                                         })
+                        //                                         .catch(function (error) {
+                        //                                             fireEvent('error', {
+                        //                                                 code: error.code,
+                        //                                                 message: error.message,
+                        //                                                 error: error
+                        //                                             });
+                        //                                         });
+                        //                                 }
+                        //                             })
+                        //                             .catch(function (error) {
+                        //                                 fireEvent('error', {
+                        //                                     code: error.code,
+                        //                                     message: error.message,
+                        //                                     error: error
+                        //                                 });
+                        //                             });
+                        //                     }
+                        //                 }
+                        //             })
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                         /**
                          * Get Thread Messages From Server
@@ -5746,594 +5750,594 @@
                                      * Add Thread Messages into cache database
                                      * and remove deleted messages from cache database
                                      */
-                                    if (canUseCache && cacheSecret.length > 0) {
-                                        if (db) {
-
-                                            /**
-                                             * Cache Synchronization
-                                             *
-                                             * If there are some results in cache
-                                             * Database, we have to check if they need
-                                             * to be deleted or not?
-                                             *
-                                             * To do so, first of all we should make
-                                             * sure that metadataCriteria has not been
-                                             * set, cuz we are not applying it on the
-                                             * cache results, besides the results from
-                                             * cache should not be empty, otherwise
-                                             * there is no need to sync cache
-                                             */
-                                            if (Object.keys(cacheResult).length > 0 && !whereClause.hasOwnProperty('metadataCriteria')) {
-
-                                                /**
-                                                 * Check if a condition has been
-                                                 * applied on query or not, if there is
-                                                 * none, the only limitations on
-                                                 * results are count and offset
-                                                 *
-                                                 * whereClause == []
-                                                 */
-                                                if (!whereClause || Object.keys(whereClause).length == 0) {
-
-                                                    /**
-                                                     * There is no condition applied on
-                                                     * query and result is [], so there
-                                                     * are no messages in this thread
-                                                     * after this offset, and we should
-                                                     * delete those messages from cache
-                                                     * too
-                                                     *
-                                                     * result   []
-                                                     */
-                                                    if (messageLength == 0) {
-
-                                                        /**
-                                                         * Order is ASC, so if the server result is empty we
-                                                         * should delete everything from cache which has bigger
-                                                         * time than first item of cache results for this query
-                                                         */
-                                                        if (order == 'asc') {
-                                                            var finalMessageTime = cacheFirstMessage.time;
-
-                                                            db.messages.where('[threadId+owner+time]')
-                                                                .between([parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime],
-                                                                    [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], true, false)
-                                                                .delete()
-                                                                .catch(function (error) {
-                                                                    fireEvent('error', {
-                                                                        code: error.code,
-                                                                        message: error.message,
-                                                                        error: error
-                                                                    });
-                                                                });
-                                                        }
-
-                                                        /**
-                                                         * Order is DESC, so if the
-                                                         * server result is empty we
-                                                         * should delete everything
-                                                         * from cache which has smaller
-                                                         * time than first item of
-                                                         * cache results for this query
-                                                         */
-                                                        else {
-                                                            var finalMessageTime = cacheFirstMessage.time;
-
-                                                            db.messages.where('[threadId+owner+time]')
-                                                                .between([parseInt(params.threadId), parseInt(userInfo.id), 0],
-                                                                    [parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime], true, true)
-                                                                .delete()
-                                                                .catch(function (error) {
-                                                                    fireEvent('error', {
-                                                                        code: error.code,
-                                                                        message: error.message,
-                                                                        error: error
-                                                                    });
-                                                                });
-                                                        }
-                                                    }
-
-                                                    /**
-                                                     * Result is not Empty or doesn't
-                                                     * have just one single record, so
-                                                     * we should remove everything
-                                                     * which are between firstMessage
-                                                     * and lastMessage of this result
-                                                     * from cache database and insert
-                                                     * the new result into cache, so
-                                                     * the deleted ones would be
-                                                     * deleted
-                                                     *
-                                                     * result   [..., n-1, n, n+1, ...]
-                                                     */
-                                                    else {
-
-                                                        /**
-                                                         * We should check for last message's previouseId if it
-                                                         * is undefined, so it is the first message of thread and
-                                                         * we should delete everything before it from cache
-                                                         */
-                                                        if (firstMessage.previousId == undefined || lastMessage.previousId == undefined) {
-                                                            var finalMessageTime = (lastMessage.previousId == undefined)
-                                                                ? lastMessage.time
-                                                                : firstMessage.time;
-
-                                                            db.messages.where('[threadId+owner+time]')
-                                                                .between([parseInt(params.threadId), parseInt(userInfo.id), 0],
-                                                                    [parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime], true, false)
-                                                                .delete()
-                                                                .catch(function (error) {
-                                                                    fireEvent('error', {
-                                                                        code: error.code,
-                                                                        message: error.message,
-                                                                        error: error
-                                                                    });
-                                                                });
-                                                        }
-
-                                                        /**
-                                                         * Offset has been set as 0 so this result is either the
-                                                         * very beginning part of thread or the very last
-                                                         * Depending on the sort order
-                                                         *
-                                                         * offset == 0
-                                                         */
-                                                        if (offset == 0) {
-
-                                                            /**
-                                                             * Results are sorted ASC, and the offset is 0 so
-                                                             * the first Message of this result is first
-                                                             * Message of thread, everything in cache
-                                                             * database which has smaller time than this
-                                                             * one should be removed
-                                                             *
-                                                             * order    ASC
-                                                             * result   [0, 1, 2, ...]
-                                                             */
-                                                            if (order === 'asc') {
-                                                                var finalMessageTime = firstMessage.time;
-
-                                                                db.messages.where('[threadId+owner+time]')
-                                                                    .between([parseInt(params.threadId), parseInt(userInfo.id), 0],
-                                                                        [parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime], true, false)
-                                                                    .delete()
-                                                                    .catch(function (error) {
-                                                                        fireEvent('error', {
-                                                                            code: error.code,
-                                                                            message: error.message,
-                                                                            error: error
-                                                                        });
-                                                                    });
-                                                            }
-
-                                                            /**
-                                                             * Results are sorted DESC and the offset is 0 so
-                                                             * the last Message of this result is the last
-                                                             * Message of the thread, everything in cache
-                                                             * database which has bigger time than this
-                                                             * one should be removed from cache
-                                                             *
-                                                             * order    DESC
-                                                             * result   [..., n-2, n-1, n]
-                                                             */
-                                                            else {
-                                                                var finalMessageTime = firstMessage.time;
-
-                                                                db.messages.where('[threadId+owner+time]')
-                                                                    .between([parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime],
-                                                                        [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], false, true)
-                                                                    .delete()
-                                                                    .catch(function (error) {
-                                                                        fireEvent('error', {
-                                                                            code: error.code,
-                                                                            message: error.message,
-                                                                            error: error
-                                                                        });
-                                                                    });
-                                                            }
-                                                        }
-
-                                                        /**
-                                                         * Server result is not Empty, so we should remove
-                                                         * everything which are between firstMessage and lastMessage
-                                                         * of this result from cache database and insert the new
-                                                         * result into cache, so the deleted ones would be deleted
-                                                         *
-                                                         * result   [..., n-1, n, n+1, ...]
-                                                         */
-                                                        var boundryStartMessageTime = (firstMessage.time < lastMessage.time)
-                                                            ? firstMessage.time
-                                                            : lastMessage.time,
-                                                            boundryEndMessageTime = (firstMessage.time > lastMessage.time)
-                                                                ? firstMessage.time
-                                                                : lastMessage.time;
-
-                                                        db.messages.where('[threadId+owner+time]')
-                                                            .between([parseInt(params.threadId), parseInt(userInfo.id), boundryStartMessageTime],
-                                                                [parseInt(params.threadId), parseInt(userInfo.id), boundryEndMessageTime], true, true)
-                                                            .delete()
-                                                            .catch(function (error) {
-                                                                fireEvent('error', {
-                                                                    code: error.code,
-                                                                    message: error.message,
-                                                                    error: error
-                                                                });
-                                                            });
-                                                    }
-                                                }
-
-                                                /**
-                                                 * whereClasue is not empty and we
-                                                 * should check for every single one of
-                                                 * the conditions to update the cache
-                                                 * properly
-                                                 *
-                                                 * whereClause != []
-                                                 */
-                                                else {
-
-                                                    /**
-                                                     * When user ordered a message with
-                                                     * exact ID and server returns []
-                                                     * but there is something in cache
-                                                     * database, we should delete that
-                                                     * row from cache, because it has
-                                                     * been deleted
-                                                     */
-                                                    if (whereClause.hasOwnProperty('id') && whereClause.id > 0) {
-                                                        db.messages.where('id')
-                                                            .equals(parseInt(whereClause.id))
-                                                            .and(function (message) {
-                                                                return message.owner == userInfo.id;
-                                                            })
-                                                            .delete()
-                                                            .catch(function (error) {
-                                                                fireEvent('error', {
-                                                                    code: error.code,
-                                                                    message: error.message,
-                                                                    error: error
-                                                                });
-                                                            });
-                                                    }
-
-                                                    /**
-                                                     * When user sets a query to search
-                                                     * on messages we should delete all
-                                                     * the results came from cache and
-                                                     * insert new results instead,
-                                                     * because those messages would be
-                                                     * either removed or updated
-                                                     */
-                                                    if (whereClause.hasOwnProperty('query') && typeof whereClause.query == 'string') {
-                                                        db.messages.where('[threadId+owner+time]')
-                                                            .between([parseInt(params.threadId), parseInt(userInfo.id), minIntegerValue],
-                                                                [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000])
-                                                            .and(function (message) {
-                                                                var reg = new RegExp(whereClause.query);
-                                                                return reg.test(chatDecrypt(message.message, cacheSecret, message.salt));
-                                                            })
-                                                            .delete()
-                                                            .catch(function (error) {
-                                                                fireEvent('error', {
-                                                                    code: error.code,
-                                                                    message: error.message,
-                                                                    error: error
-                                                                });
-                                                            });
-                                                    }
-
-                                                    /**
-                                                     * Users sets fromTime or toTime or
-                                                     * both of them
-                                                     */
-                                                    if (whereClause.hasOwnProperty('fromTime') || whereClause.hasOwnProperty('toTime')) {
-
-                                                        /**
-                                                         * Server response is Empty []
-                                                         */
-                                                        if (messageLength == 0) {
-
-                                                            /**
-                                                             * User set both fromTime and toTime, so we have a
-                                                             * boundary restriction in this case. if server
-                                                             * result is empty, we should delete all messages from cache
-                                                             * which are between fromTime and toTime. if
-                                                             * there are any messages on server in this
-                                                             * boundary, we should delete all messages
-                                                             * which are between time of first and last
-                                                             * message of the server result, from cache and
-                                                             * insert new result into cache.
-                                                             */
-                                                            if (whereClause.hasOwnProperty('fromTime') && whereClause.hasOwnProperty('toTime')) {
-
-                                                                /**
-                                                                 * Server response is Empty []
-                                                                 */
-                                                                var fromTime = (whereClause.hasOwnProperty('fromTimeNanos'))
-                                                                    ? ((whereClause.fromTime / 1000) * 1000000000) + whereClause.fromTimeNanos
-                                                                    : whereClause.fromTime * 1000000,
-                                                                    toTime = (whereClause.hasOwnProperty('toTimeNanos'))
-                                                                        ? (((whereClause.toTime / 1000) + 1) * 1000000000) + whereClause.toTimeNanos
-                                                                        : (whereClause.toTime + 1) * 1000000;
-
-                                                                db.messages.where('[threadId+owner+time]')
-                                                                    .between([parseInt(params.threadId), parseInt(userInfo.id), fromTime],
-                                                                        [parseInt(params.threadId), parseInt(userInfo.id), toTime], true, true)
-                                                                    .delete()
-                                                                    .catch(function (error) {
-                                                                        fireEvent('error', {
-                                                                            code: error.code,
-                                                                            message: error.message,
-                                                                            error: error
-                                                                        });
-                                                                    });
-                                                            }
-
-                                                            /**
-                                                             * User only set fromTime
-                                                             */
-                                                            else if (whereClause.hasOwnProperty('fromTime')) {
-
-                                                                /**
-                                                                 * Server response is Empty []
-                                                                 */
-                                                                var fromTime = (whereClause.hasOwnProperty('fromTimeNanos'))
-                                                                    ? ((whereClause.fromTime / 1000) * 1000000000) + whereClause.fromTimeNanos
-                                                                    : whereClause.fromTime * 1000000;
-
-                                                                db.messages.where('[threadId+owner+time]')
-                                                                    .between([parseInt(params.threadId), parseInt(userInfo.id), fromTime],
-                                                                        [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], true, false)
-                                                                    .delete()
-                                                                    .catch(function (error) {
-                                                                        fireEvent('error', {
-                                                                            code: error.code,
-                                                                            message: error.message,
-                                                                            error: error
-                                                                        });
-                                                                    });
-                                                            }
-
-                                                            /**
-                                                             * User only set toTime
-                                                             */
-                                                            else {
-                                                                /**
-                                                                 * Server response is Empty []
-                                                                 */
-                                                                var toTime = (whereClause.hasOwnProperty('toTimeNanos'))
-                                                                    ? (((whereClause.toTime / 1000) + 1) * 1000000000) + whereClause.toTimeNanos
-                                                                    : (whereClause.toTime + 1) * 1000000;
-
-                                                                db.messages.where('[threadId+owner+time]')
-                                                                    .between([parseInt(params.threadId), parseInt(userInfo.id), minIntegerValue],
-                                                                        [parseInt(params.threadId), parseInt(userInfo.id), toTime], true, true)
-                                                                    .delete()
-                                                                    .catch(function (error) {
-                                                                        fireEvent('error', {
-                                                                            code: error.code,
-                                                                            message: error.message,
-                                                                            error: error
-                                                                        });
-                                                                    });
-                                                            }
-                                                        }
-
-                                                        /**
-                                                         * Server response is not Empty
-                                                         * [..., n-1, n, n+1, ...]
-                                                         */
-                                                        else {
-
-                                                            /**
-                                                             * Server response is not Empty
-                                                             * [..., n-1, n, n+1, ...]
-                                                             */
-                                                            var boundryStartMessageTime = (firstMessage.time < lastMessage.time)
-                                                                ? firstMessage.time
-                                                                : lastMessage.time,
-                                                                boundryEndMessageTime = (firstMessage.time > lastMessage.time)
-                                                                    ? firstMessage.time
-                                                                    : lastMessage.time;
-
-                                                            db.messages.where('[threadId+owner+time]')
-                                                                .between([parseInt(params.threadId), parseInt(userInfo.id), boundryStartMessageTime],
-                                                                    [parseInt(params.threadId), parseInt(userInfo.id), boundryEndMessageTime], true, true)
-                                                                .delete()
-                                                                .catch(function (error) {
-                                                                    fireEvent('error', {
-                                                                        code: error.code,
-                                                                        message: error.message,
-                                                                        error: error
-                                                                    });
-                                                                });
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            /**
-                                             * Insert new messages into cache database
-                                             * after deleting old messages from cache
-                                             */
-                                            var cacheData = [];
-
-                                            for (var i = 0; i < history.length; i++) {
-                                                serverResult[history[i].id] = {
-                                                    index: i,
-                                                    data: Utility.MD5(JSON.stringify([
-                                                        history[i].id,
-                                                        history[i].message,
-                                                        history[i].metadata,
-                                                        history[i].systemMetadata]))
-                                                };
-                                                try {
-                                                    var tempData = {},
-                                                        salt = Utility.generateUUID();
-                                                    tempData.id = parseInt(history[i].id);
-                                                    tempData.owner = parseInt(userInfo.id);
-                                                    tempData.threadId = parseInt(history[i].threadId);
-                                                    tempData.time = history[i].time;
-                                                    tempData.message = Utility.crypt(history[i].message, cacheSecret, salt);
-                                                    tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(history[i])), cacheSecret, salt);
-                                                    tempData.salt = salt;
-                                                    tempData.sendStatus = 'sent';
-                                                    tempData.hasGap = false;
-
-                                                    cacheData.push(tempData);
-                                                    resultMessagesId.push(history[i].id);
-                                                } catch (error) {
-                                                    fireEvent('error', {
-                                                        code: error.code,
-                                                        message: error.message,
-                                                        error: error
-                                                    });
-                                                }
-                                            }
-
-                                            db.messages.bulkPut(cacheData)
-                                                .then(function () {
-                                                    if (typeof lastMessage == 'object' &&
-                                                        lastMessage != null &&
-                                                        lastMessage.id > 0 &&
-                                                        lastMessage.previousId > 0) {
-                                                        /**
-                                                         * Check to see if there is a Gap in cache before
-                                                         * lastMessage or not?
-                                                         * To do this, we should check existence of message
-                                                         * with the ID of lastMessage's previousId field
-                                                         */
-                                                        db.messages
-                                                            .where('[owner+id]')
-                                                            .between([userInfo.id, lastMessage.previousId], [userInfo.id, lastMessage.previousId], true, true)
-                                                            .toArray()
-                                                            .then(function (messages) {
-                                                                if (messages.length == 0) {
-                                                                    /**
-                                                                     * Previous Message of last message is not in cache database
-                                                                     * so there is a GAP in cache database for this thread before
-                                                                     * the last message.
-                                                                     * We should insert this GAP in messageGaps database
-                                                                     */
-                                                                    db.messageGaps
-                                                                        .put({
-                                                                            id: parseInt(lastMessage.id),
-                                                                            owner: parseInt(userInfo.id),
-                                                                            waitsFor: parseInt(lastMessage.previousId),
-                                                                            threadId: parseInt(lastMessage.threadId),
-                                                                            time: lastMessage.time
-                                                                        })
-                                                                        .then(function () {
-                                                                            db.messages
-                                                                                .update([userInfo.id, lastMessage.id], {hasGap: true})
-                                                                                .catch(function (error) {
-                                                                                    fireEvent('error', {
-                                                                                        code: error.code,
-                                                                                        message: error.message,
-                                                                                        error: error
-                                                                                    });
-                                                                                });
-                                                                        })
-                                                                        .catch(function (error) {
-                                                                            fireEvent('error', {
-                                                                                code: error.code,
-                                                                                message: error.message,
-                                                                                error: error
-                                                                            });
-                                                                        });
-                                                                }
-                                                            })
-                                                            .catch(function (error) {
-                                                                fireEvent('error', {
-                                                                    code: error.code,
-                                                                    message: error.message,
-                                                                    error: error
-                                                                });
-                                                            });
-                                                    }
-
-                                                    /**
-                                                     * Some new messages have been added into cache,
-                                                     * We should check to see if any GAPs have been
-                                                     * filled with these messages or not?
-                                                     */
-
-                                                    db.messageGaps
-                                                        .where('waitsFor')
-                                                        .anyOf(resultMessagesId)
-                                                        .and(function (messages) {
-                                                            return messages.owner == userInfo.id;
-                                                        })
-                                                        .toArray()
-                                                        .then(function (needsToBeDeleted) {
-                                                            /**
-                                                             * These messages have to be deleted from messageGaps table
-                                                             */
-                                                            var messagesToBeDeleted = needsToBeDeleted.map(function (msg) {
-                                                                /**
-                                                                 * We have to update messages table and
-                                                                 * set hasGap for those messages as false
-                                                                 */
-                                                                db.messages
-                                                                    .update([userInfo.id, msg.id], {hasGap: false})
-                                                                    .catch(function (error) {
-                                                                        fireEvent('error', {
-                                                                            code: error.code,
-                                                                            message: error.message,
-                                                                            error: error
-                                                                        });
-                                                                    });
-
-                                                                return [userInfo.id, msg.id];
-                                                            });
-
-                                                            db.messageGaps.bulkDelete(messagesToBeDeleted);
-                                                        })
-                                                        .catch(function (error) {
-                                                            fireEvent('error', {
-                                                                code: error.code,
-                                                                message: error.message,
-                                                                error: error
-                                                            });
-                                                        });
-                                                })
-                                                .catch(function (error) {
-                                                    fireEvent('error', {
-                                                        code: error.code,
-                                                        message: error.message,
-                                                        error: error
-                                                    });
-                                                });
-
-                                            /**
-                                             * Update contentCount of this thread in cache
-                                             * contentCount of thread would be count of all
-                                             * thread messages if and only if there are no
-                                             * other conditions applied on getHistory that
-                                             * count and offset
-                                             */
-                                            if ((Object.keys(whereClause).length === 0)) {
-                                                db.contentCount
-                                                    .put({
-                                                        threadId: parseInt(params.threadId),
-                                                        contentCount: result.contentCount
-                                                    })
-                                                    .catch(function (error) {
-                                                        fireEvent('error', {
-                                                            code: error.code,
-                                                            message: error.message,
-                                                            error: error
-                                                        });
-                                                    });
-                                            }
-                                        } else {
-                                            fireEvent('error', {
-                                                code: 6601,
-                                                message: CHAT_ERRORS[6601],
-                                                error: null
-                                            });
-                                        }
-                                    }
+                                    // if (canUseCache && cacheSecret.length > 0) {
+                                    //     if (db) {
+                                    //
+                                    //         /**
+                                    //          * Cache Synchronization
+                                    //          *
+                                    //          * If there are some results in cache
+                                    //          * Database, we have to check if they need
+                                    //          * to be deleted or not?
+                                    //          *
+                                    //          * To do so, first of all we should make
+                                    //          * sure that metadataCriteria has not been
+                                    //          * set, cuz we are not applying it on the
+                                    //          * cache results, besides the results from
+                                    //          * cache should not be empty, otherwise
+                                    //          * there is no need to sync cache
+                                    //          */
+                                    //         if (Object.keys(cacheResult).length > 0 && !whereClause.hasOwnProperty('metadataCriteria')) {
+                                    //
+                                    //             /**
+                                    //              * Check if a condition has been
+                                    //              * applied on query or not, if there is
+                                    //              * none, the only limitations on
+                                    //              * results are count and offset
+                                    //              *
+                                    //              * whereClause == []
+                                    //              */
+                                    //             if (!whereClause || Object.keys(whereClause).length == 0) {
+                                    //
+                                    //                 /**
+                                    //                  * There is no condition applied on
+                                    //                  * query and result is [], so there
+                                    //                  * are no messages in this thread
+                                    //                  * after this offset, and we should
+                                    //                  * delete those messages from cache
+                                    //                  * too
+                                    //                  *
+                                    //                  * result   []
+                                    //                  */
+                                    //                 if (messageLength == 0) {
+                                    //
+                                    //                     /**
+                                    //                      * Order is ASC, so if the server result is empty we
+                                    //                      * should delete everything from cache which has bigger
+                                    //                      * time than first item of cache results for this query
+                                    //                      */
+                                    //                     if (order == 'asc') {
+                                    //                         var finalMessageTime = cacheFirstMessage.time;
+                                    //
+                                    //                         db.messages.where('[threadId+owner+time]')
+                                    //                             .between([parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime],
+                                    //                                 [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], true, false)
+                                    //                             .delete()
+                                    //                             .catch(function (error) {
+                                    //                                 fireEvent('error', {
+                                    //                                     code: error.code,
+                                    //                                     message: error.message,
+                                    //                                     error: error
+                                    //                                 });
+                                    //                             });
+                                    //                     }
+                                    //
+                                    //                     /**
+                                    //                      * Order is DESC, so if the
+                                    //                      * server result is empty we
+                                    //                      * should delete everything
+                                    //                      * from cache which has smaller
+                                    //                      * time than first item of
+                                    //                      * cache results for this query
+                                    //                      */
+                                    //                     else {
+                                    //                         var finalMessageTime = cacheFirstMessage.time;
+                                    //
+                                    //                         db.messages.where('[threadId+owner+time]')
+                                    //                             .between([parseInt(params.threadId), parseInt(userInfo.id), 0],
+                                    //                                 [parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime], true, true)
+                                    //                             .delete()
+                                    //                             .catch(function (error) {
+                                    //                                 fireEvent('error', {
+                                    //                                     code: error.code,
+                                    //                                     message: error.message,
+                                    //                                     error: error
+                                    //                                 });
+                                    //                             });
+                                    //                     }
+                                    //                 }
+                                    //
+                                    //                 /**
+                                    //                  * Result is not Empty or doesn't
+                                    //                  * have just one single record, so
+                                    //                  * we should remove everything
+                                    //                  * which are between firstMessage
+                                    //                  * and lastMessage of this result
+                                    //                  * from cache database and insert
+                                    //                  * the new result into cache, so
+                                    //                  * the deleted ones would be
+                                    //                  * deleted
+                                    //                  *
+                                    //                  * result   [..., n-1, n, n+1, ...]
+                                    //                  */
+                                    //                 else {
+                                    //
+                                    //                     /**
+                                    //                      * We should check for last message's previouseId if it
+                                    //                      * is undefined, so it is the first message of thread and
+                                    //                      * we should delete everything before it from cache
+                                    //                      */
+                                    //                     if (firstMessage.previousId == undefined || lastMessage.previousId == undefined) {
+                                    //                         var finalMessageTime = (lastMessage.previousId == undefined)
+                                    //                             ? lastMessage.time
+                                    //                             : firstMessage.time;
+                                    //
+                                    //                         db.messages.where('[threadId+owner+time]')
+                                    //                             .between([parseInt(params.threadId), parseInt(userInfo.id), 0],
+                                    //                                 [parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime], true, false)
+                                    //                             .delete()
+                                    //                             .catch(function (error) {
+                                    //                                 fireEvent('error', {
+                                    //                                     code: error.code,
+                                    //                                     message: error.message,
+                                    //                                     error: error
+                                    //                                 });
+                                    //                             });
+                                    //                     }
+                                    //
+                                    //                     /**
+                                    //                      * Offset has been set as 0 so this result is either the
+                                    //                      * very beginning part of thread or the very last
+                                    //                      * Depending on the sort order
+                                    //                      *
+                                    //                      * offset == 0
+                                    //                      */
+                                    //                     if (offset == 0) {
+                                    //
+                                    //                         /**
+                                    //                          * Results are sorted ASC, and the offset is 0 so
+                                    //                          * the first Message of this result is first
+                                    //                          * Message of thread, everything in cache
+                                    //                          * database which has smaller time than this
+                                    //                          * one should be removed
+                                    //                          *
+                                    //                          * order    ASC
+                                    //                          * result   [0, 1, 2, ...]
+                                    //                          */
+                                    //                         if (order === 'asc') {
+                                    //                             var finalMessageTime = firstMessage.time;
+                                    //
+                                    //                             db.messages.where('[threadId+owner+time]')
+                                    //                                 .between([parseInt(params.threadId), parseInt(userInfo.id), 0],
+                                    //                                     [parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime], true, false)
+                                    //                                 .delete()
+                                    //                                 .catch(function (error) {
+                                    //                                     fireEvent('error', {
+                                    //                                         code: error.code,
+                                    //                                         message: error.message,
+                                    //                                         error: error
+                                    //                                     });
+                                    //                                 });
+                                    //                         }
+                                    //
+                                    //                         /**
+                                    //                          * Results are sorted DESC and the offset is 0 so
+                                    //                          * the last Message of this result is the last
+                                    //                          * Message of the thread, everything in cache
+                                    //                          * database which has bigger time than this
+                                    //                          * one should be removed from cache
+                                    //                          *
+                                    //                          * order    DESC
+                                    //                          * result   [..., n-2, n-1, n]
+                                    //                          */
+                                    //                         else {
+                                    //                             var finalMessageTime = firstMessage.time;
+                                    //
+                                    //                             db.messages.where('[threadId+owner+time]')
+                                    //                                 .between([parseInt(params.threadId), parseInt(userInfo.id), finalMessageTime],
+                                    //                                     [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], false, true)
+                                    //                                 .delete()
+                                    //                                 .catch(function (error) {
+                                    //                                     fireEvent('error', {
+                                    //                                         code: error.code,
+                                    //                                         message: error.message,
+                                    //                                         error: error
+                                    //                                     });
+                                    //                                 });
+                                    //                         }
+                                    //                     }
+                                    //
+                                    //                     /**
+                                    //                      * Server result is not Empty, so we should remove
+                                    //                      * everything which are between firstMessage and lastMessage
+                                    //                      * of this result from cache database and insert the new
+                                    //                      * result into cache, so the deleted ones would be deleted
+                                    //                      *
+                                    //                      * result   [..., n-1, n, n+1, ...]
+                                    //                      */
+                                    //                     var boundryStartMessageTime = (firstMessage.time < lastMessage.time)
+                                    //                         ? firstMessage.time
+                                    //                         : lastMessage.time,
+                                    //                         boundryEndMessageTime = (firstMessage.time > lastMessage.time)
+                                    //                             ? firstMessage.time
+                                    //                             : lastMessage.time;
+                                    //
+                                    //                     db.messages.where('[threadId+owner+time]')
+                                    //                         .between([parseInt(params.threadId), parseInt(userInfo.id), boundryStartMessageTime],
+                                    //                             [parseInt(params.threadId), parseInt(userInfo.id), boundryEndMessageTime], true, true)
+                                    //                         .delete()
+                                    //                         .catch(function (error) {
+                                    //                             fireEvent('error', {
+                                    //                                 code: error.code,
+                                    //                                 message: error.message,
+                                    //                                 error: error
+                                    //                             });
+                                    //                         });
+                                    //                 }
+                                    //             }
+                                    //
+                                    //             /**
+                                    //              * whereClasue is not empty and we
+                                    //              * should check for every single one of
+                                    //              * the conditions to update the cache
+                                    //              * properly
+                                    //              *
+                                    //              * whereClause != []
+                                    //              */
+                                    //             else {
+                                    //
+                                    //                 /**
+                                    //                  * When user ordered a message with
+                                    //                  * exact ID and server returns []
+                                    //                  * but there is something in cache
+                                    //                  * database, we should delete that
+                                    //                  * row from cache, because it has
+                                    //                  * been deleted
+                                    //                  */
+                                    //                 if (whereClause.hasOwnProperty('id') && whereClause.id > 0) {
+                                    //                     db.messages.where('id')
+                                    //                         .equals(parseInt(whereClause.id))
+                                    //                         .and(function (message) {
+                                    //                             return message.owner == userInfo.id;
+                                    //                         })
+                                    //                         .delete()
+                                    //                         .catch(function (error) {
+                                    //                             fireEvent('error', {
+                                    //                                 code: error.code,
+                                    //                                 message: error.message,
+                                    //                                 error: error
+                                    //                             });
+                                    //                         });
+                                    //                 }
+                                    //
+                                    //                 /**
+                                    //                  * When user sets a query to search
+                                    //                  * on messages we should delete all
+                                    //                  * the results came from cache and
+                                    //                  * insert new results instead,
+                                    //                  * because those messages would be
+                                    //                  * either removed or updated
+                                    //                  */
+                                    //                 if (whereClause.hasOwnProperty('query') && typeof whereClause.query == 'string') {
+                                    //                     db.messages.where('[threadId+owner+time]')
+                                    //                         .between([parseInt(params.threadId), parseInt(userInfo.id), minIntegerValue],
+                                    //                             [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000])
+                                    //                         .and(function (message) {
+                                    //                             var reg = new RegExp(whereClause.query);
+                                    //                             return reg.test(chatDecrypt(message.message, cacheSecret, message.salt));
+                                    //                         })
+                                    //                         .delete()
+                                    //                         .catch(function (error) {
+                                    //                             fireEvent('error', {
+                                    //                                 code: error.code,
+                                    //                                 message: error.message,
+                                    //                                 error: error
+                                    //                             });
+                                    //                         });
+                                    //                 }
+                                    //
+                                    //                 /**
+                                    //                  * Users sets fromTime or toTime or
+                                    //                  * both of them
+                                    //                  */
+                                    //                 if (whereClause.hasOwnProperty('fromTime') || whereClause.hasOwnProperty('toTime')) {
+                                    //
+                                    //                     /**
+                                    //                      * Server response is Empty []
+                                    //                      */
+                                    //                     if (messageLength == 0) {
+                                    //
+                                    //                         /**
+                                    //                          * User set both fromTime and toTime, so we have a
+                                    //                          * boundary restriction in this case. if server
+                                    //                          * result is empty, we should delete all messages from cache
+                                    //                          * which are between fromTime and toTime. if
+                                    //                          * there are any messages on server in this
+                                    //                          * boundary, we should delete all messages
+                                    //                          * which are between time of first and last
+                                    //                          * message of the server result, from cache and
+                                    //                          * insert new result into cache.
+                                    //                          */
+                                    //                         if (whereClause.hasOwnProperty('fromTime') && whereClause.hasOwnProperty('toTime')) {
+                                    //
+                                    //                             /**
+                                    //                              * Server response is Empty []
+                                    //                              */
+                                    //                             var fromTime = (whereClause.hasOwnProperty('fromTimeNanos'))
+                                    //                                 ? ((whereClause.fromTime / 1000) * 1000000000) + whereClause.fromTimeNanos
+                                    //                                 : whereClause.fromTime * 1000000,
+                                    //                                 toTime = (whereClause.hasOwnProperty('toTimeNanos'))
+                                    //                                     ? (((whereClause.toTime / 1000) + 1) * 1000000000) + whereClause.toTimeNanos
+                                    //                                     : (whereClause.toTime + 1) * 1000000;
+                                    //
+                                    //                             db.messages.where('[threadId+owner+time]')
+                                    //                                 .between([parseInt(params.threadId), parseInt(userInfo.id), fromTime],
+                                    //                                     [parseInt(params.threadId), parseInt(userInfo.id), toTime], true, true)
+                                    //                                 .delete()
+                                    //                                 .catch(function (error) {
+                                    //                                     fireEvent('error', {
+                                    //                                         code: error.code,
+                                    //                                         message: error.message,
+                                    //                                         error: error
+                                    //                                     });
+                                    //                                 });
+                                    //                         }
+                                    //
+                                    //                         /**
+                                    //                          * User only set fromTime
+                                    //                          */
+                                    //                         else if (whereClause.hasOwnProperty('fromTime')) {
+                                    //
+                                    //                             /**
+                                    //                              * Server response is Empty []
+                                    //                              */
+                                    //                             var fromTime = (whereClause.hasOwnProperty('fromTimeNanos'))
+                                    //                                 ? ((whereClause.fromTime / 1000) * 1000000000) + whereClause.fromTimeNanos
+                                    //                                 : whereClause.fromTime * 1000000;
+                                    //
+                                    //                             db.messages.where('[threadId+owner+time]')
+                                    //                                 .between([parseInt(params.threadId), parseInt(userInfo.id), fromTime],
+                                    //                                     [parseInt(params.threadId), parseInt(userInfo.id), maxIntegerValue * 1000], true, false)
+                                    //                                 .delete()
+                                    //                                 .catch(function (error) {
+                                    //                                     fireEvent('error', {
+                                    //                                         code: error.code,
+                                    //                                         message: error.message,
+                                    //                                         error: error
+                                    //                                     });
+                                    //                                 });
+                                    //                         }
+                                    //
+                                    //                         /**
+                                    //                          * User only set toTime
+                                    //                          */
+                                    //                         else {
+                                    //                             /**
+                                    //                              * Server response is Empty []
+                                    //                              */
+                                    //                             var toTime = (whereClause.hasOwnProperty('toTimeNanos'))
+                                    //                                 ? (((whereClause.toTime / 1000) + 1) * 1000000000) + whereClause.toTimeNanos
+                                    //                                 : (whereClause.toTime + 1) * 1000000;
+                                    //
+                                    //                             db.messages.where('[threadId+owner+time]')
+                                    //                                 .between([parseInt(params.threadId), parseInt(userInfo.id), minIntegerValue],
+                                    //                                     [parseInt(params.threadId), parseInt(userInfo.id), toTime], true, true)
+                                    //                                 .delete()
+                                    //                                 .catch(function (error) {
+                                    //                                     fireEvent('error', {
+                                    //                                         code: error.code,
+                                    //                                         message: error.message,
+                                    //                                         error: error
+                                    //                                     });
+                                    //                                 });
+                                    //                         }
+                                    //                     }
+                                    //
+                                    //                     /**
+                                    //                      * Server response is not Empty
+                                    //                      * [..., n-1, n, n+1, ...]
+                                    //                      */
+                                    //                     else {
+                                    //
+                                    //                         /**
+                                    //                          * Server response is not Empty
+                                    //                          * [..., n-1, n, n+1, ...]
+                                    //                          */
+                                    //                         var boundryStartMessageTime = (firstMessage.time < lastMessage.time)
+                                    //                             ? firstMessage.time
+                                    //                             : lastMessage.time,
+                                    //                             boundryEndMessageTime = (firstMessage.time > lastMessage.time)
+                                    //                                 ? firstMessage.time
+                                    //                                 : lastMessage.time;
+                                    //
+                                    //                         db.messages.where('[threadId+owner+time]')
+                                    //                             .between([parseInt(params.threadId), parseInt(userInfo.id), boundryStartMessageTime],
+                                    //                                 [parseInt(params.threadId), parseInt(userInfo.id), boundryEndMessageTime], true, true)
+                                    //                             .delete()
+                                    //                             .catch(function (error) {
+                                    //                                 fireEvent('error', {
+                                    //                                     code: error.code,
+                                    //                                     message: error.message,
+                                    //                                     error: error
+                                    //                                 });
+                                    //                             });
+                                    //                     }
+                                    //                 }
+                                    //             }
+                                    //         }
+                                    //
+                                    //         /**
+                                    //          * Insert new messages into cache database
+                                    //          * after deleting old messages from cache
+                                    //          */
+                                    //         var cacheData = [];
+                                    //
+                                    //         for (var i = 0; i < history.length; i++) {
+                                    //             serverResult[history[i].id] = {
+                                    //                 index: i,
+                                    //                 data: Utility.MD5(JSON.stringify([
+                                    //                     history[i].id,
+                                    //                     history[i].message,
+                                    //                     history[i].metadata,
+                                    //                     history[i].systemMetadata]))
+                                    //             };
+                                    //             try {
+                                    //                 var tempData = {},
+                                    //                     salt = Utility.generateUUID();
+                                    //                 tempData.id = parseInt(history[i].id);
+                                    //                 tempData.owner = parseInt(userInfo.id);
+                                    //                 tempData.threadId = parseInt(history[i].threadId);
+                                    //                 tempData.time = history[i].time;
+                                    //                 tempData.message = Utility.crypt(history[i].message, cacheSecret, salt);
+                                    //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(history[i])), cacheSecret, salt);
+                                    //                 tempData.salt = salt;
+                                    //                 tempData.sendStatus = 'sent';
+                                    //                 tempData.hasGap = false;
+                                    //
+                                    //                 cacheData.push(tempData);
+                                    //                 resultMessagesId.push(history[i].id);
+                                    //             } catch (error) {
+                                    //                 fireEvent('error', {
+                                    //                     code: error.code,
+                                    //                     message: error.message,
+                                    //                     error: error
+                                    //                 });
+                                    //             }
+                                    //         }
+                                    //
+                                    //         db.messages.bulkPut(cacheData)
+                                    //             .then(function () {
+                                    //                 if (typeof lastMessage == 'object' &&
+                                    //                     lastMessage != null &&
+                                    //                     lastMessage.id > 0 &&
+                                    //                     lastMessage.previousId > 0) {
+                                    //                     /**
+                                    //                      * Check to see if there is a Gap in cache before
+                                    //                      * lastMessage or not?
+                                    //                      * To do this, we should check existence of message
+                                    //                      * with the ID of lastMessage's previousId field
+                                    //                      */
+                                    //                     db.messages
+                                    //                         .where('[owner+id]')
+                                    //                         .between([userInfo.id, lastMessage.previousId], [userInfo.id, lastMessage.previousId], true, true)
+                                    //                         .toArray()
+                                    //                         .then(function (messages) {
+                                    //                             if (messages.length == 0) {
+                                    //                                 /**
+                                    //                                  * Previous Message of last message is not in cache database
+                                    //                                  * so there is a GAP in cache database for this thread before
+                                    //                                  * the last message.
+                                    //                                  * We should insert this GAP in messageGaps database
+                                    //                                  */
+                                    //                                 db.messageGaps
+                                    //                                     .put({
+                                    //                                         id: parseInt(lastMessage.id),
+                                    //                                         owner: parseInt(userInfo.id),
+                                    //                                         waitsFor: parseInt(lastMessage.previousId),
+                                    //                                         threadId: parseInt(lastMessage.threadId),
+                                    //                                         time: lastMessage.time
+                                    //                                     })
+                                    //                                     .then(function () {
+                                    //                                         db.messages
+                                    //                                             .update([userInfo.id, lastMessage.id], {hasGap: true})
+                                    //                                             .catch(function (error) {
+                                    //                                                 fireEvent('error', {
+                                    //                                                     code: error.code,
+                                    //                                                     message: error.message,
+                                    //                                                     error: error
+                                    //                                                 });
+                                    //                                             });
+                                    //                                     })
+                                    //                                     .catch(function (error) {
+                                    //                                         fireEvent('error', {
+                                    //                                             code: error.code,
+                                    //                                             message: error.message,
+                                    //                                             error: error
+                                    //                                         });
+                                    //                                     });
+                                    //                             }
+                                    //                         })
+                                    //                         .catch(function (error) {
+                                    //                             fireEvent('error', {
+                                    //                                 code: error.code,
+                                    //                                 message: error.message,
+                                    //                                 error: error
+                                    //                             });
+                                    //                         });
+                                    //                 }
+                                    //
+                                    //                 /**
+                                    //                  * Some new messages have been added into cache,
+                                    //                  * We should check to see if any GAPs have been
+                                    //                  * filled with these messages or not?
+                                    //                  */
+                                    //
+                                    //                 db.messageGaps
+                                    //                     .where('waitsFor')
+                                    //                     .anyOf(resultMessagesId)
+                                    //                     .and(function (messages) {
+                                    //                         return messages.owner == userInfo.id;
+                                    //                     })
+                                    //                     .toArray()
+                                    //                     .then(function (needsToBeDeleted) {
+                                    //                         /**
+                                    //                          * These messages have to be deleted from messageGaps table
+                                    //                          */
+                                    //                         var messagesToBeDeleted = needsToBeDeleted.map(function (msg) {
+                                    //                             /**
+                                    //                              * We have to update messages table and
+                                    //                              * set hasGap for those messages as false
+                                    //                              */
+                                    //                             db.messages
+                                    //                                 .update([userInfo.id, msg.id], {hasGap: false})
+                                    //                                 .catch(function (error) {
+                                    //                                     fireEvent('error', {
+                                    //                                         code: error.code,
+                                    //                                         message: error.message,
+                                    //                                         error: error
+                                    //                                     });
+                                    //                                 });
+                                    //
+                                    //                             return [userInfo.id, msg.id];
+                                    //                         });
+                                    //
+                                    //                         db.messageGaps.bulkDelete(messagesToBeDeleted);
+                                    //                     })
+                                    //                     .catch(function (error) {
+                                    //                         fireEvent('error', {
+                                    //                             code: error.code,
+                                    //                             message: error.message,
+                                    //                             error: error
+                                    //                         });
+                                    //                     });
+                                    //             })
+                                    //             .catch(function (error) {
+                                    //                 fireEvent('error', {
+                                    //                     code: error.code,
+                                    //                     message: error.message,
+                                    //                     error: error
+                                    //                 });
+                                    //             });
+                                    //
+                                    //         /**
+                                    //          * Update contentCount of this thread in cache
+                                    //          * contentCount of thread would be count of all
+                                    //          * thread messages if and only if there are no
+                                    //          * other conditions applied on getHistory that
+                                    //          * count and offset
+                                    //          */
+                                    //         if ((Object.keys(whereClause).length === 0)) {
+                                    //             db.contentCount
+                                    //                 .put({
+                                    //                     threadId: parseInt(params.threadId),
+                                    //                     contentCount: result.contentCount
+                                    //                 })
+                                    //                 .catch(function (error) {
+                                    //                     fireEvent('error', {
+                                    //                         code: error.code,
+                                    //                         message: error.message,
+                                    //                         error: error
+                                    //                     });
+                                    //                 });
+                                    //         }
+                                    //     } else {
+                                    //         fireEvent('error', {
+                                    //             code: 6601,
+                                    //             message: CHAT_ERRORS[6601],
+                                    //             error: null
+                                    //         });
+                                    //     }
+                                    // }
 
                                     var resultData = {
                                         history: history,
@@ -6357,105 +6361,105 @@
                                     /**
                                      * Check Differences between Cache and Server response
                                      */
-                                    if (returnCache && cacheReady) {
-                                        /**
-                                         * If there are some messages in cache but they
-                                         * are not in server's response, we can assume
-                                         * that they have been removed from server, so
-                                         * we should call MESSAGE_DELETE event for them
-                                         */
-                                        var batchDeleteMessage = [],
-                                            batchEditMessage = [],
-                                            batchNewMessage = [];
-
-                                        for (var key in cacheResult) {
-                                            if (!serverResult.hasOwnProperty(key)) {
-                                                batchDeleteMessage.push({
-                                                    id: cacheResult[key].messageId,
-                                                    pinned: cacheResult[key].pinned,
-                                                    threadId: cacheResult[key].threadId
-                                                });
-
-                                                // fireEvent('messageEvents', {
-                                                //     type: 'MESSAGE_DELETE',
-                                                //     result: {
-                                                //         message: {
-                                                //             id: cacheResult[key].messageId,
-                                                //             pinned: cacheResult[key].pinned,
-                                                //             threadId: cacheResult[key].threadId
-                                                //         }
-                                                //     }
-                                                // });
-                                            }
-                                        }
-
-                                        if (batchDeleteMessage.length) {
-                                            fireEvent('messageEvents', {
-                                                type: 'MESSAGE_DELETE_BATCH',
-                                                cache: true,
-                                                result: batchDeleteMessage
-                                            });
-                                        }
-
-                                        for (var key in serverResult) {
-                                            if (cacheResult.hasOwnProperty(key)) {
-                                                /**
-                                                 * Check digest of cache and server response, if
-                                                 * they are not the same, we should emit
-                                                 */
-                                                if (cacheResult[key].data != serverResult[key].data) {
-                                                    /**
-                                                     * This message is already on cache, but it's
-                                                     * content has been changed, so we emit a
-                                                     * message edit event to inform client
-                                                     */
-
-                                                    batchEditMessage.push(history[serverResult[key].index]);
-
-                                                    //  fireEvent('messageEvents', {
-                                                    //     type: 'MESSAGE_EDIT',
-                                                    //     result: {
-                                                    //         message: history[serverResult[key].index]
-                                                    //     }
-                                                    // });
-                                                }
-                                            } else {
-                                                /**
-                                                 * This Message has not found on cache but it has
-                                                 * came from server, so we emit it as a new message
-                                                 */
-
-                                                batchNewMessage.push(history[serverResult[key].index]);
-
-                                                // fireEvent('messageEvents', {
-                                                //     type: 'MESSAGE_NEW',
-                                                //     cache: true,
-                                                //     result: {
-                                                //         message: history[serverResult[key].index]
-                                                //     }
-                                                // });
-                                            }
-                                        }
-
-                                        if (batchEditMessage.length) {
-                                            fireEvent('messageEvents', {
-                                                type: 'MESSAGE_EDIT_BATCH',
-                                                cache: true,
-                                                result: batchEditMessage
-                                            });
-                                        }
-
-                                        if (batchNewMessage.length) {
-                                            fireEvent('messageEvents', {
-                                                type: 'MESSAGE_NEW_BATCH',
-                                                cache: true,
-                                                result: batchNewMessage
-                                            });
-                                        }
-                                    } else {
+                                    // if (returnCache && cacheReady) {
+                                    //     /**
+                                    //      * If there are some messages in cache but they
+                                    //      * are not in server's response, we can assume
+                                    //      * that they have been removed from server, so
+                                    //      * we should call MESSAGE_DELETE event for them
+                                    //      */
+                                    //     var batchDeleteMessage = [],
+                                    //         batchEditMessage = [],
+                                    //         batchNewMessage = [];
+                                    //
+                                    //     for (var key in cacheResult) {
+                                    //         if (!serverResult.hasOwnProperty(key)) {
+                                    //             batchDeleteMessage.push({
+                                    //                 id: cacheResult[key].messageId,
+                                    //                 pinned: cacheResult[key].pinned,
+                                    //                 threadId: cacheResult[key].threadId
+                                    //             });
+                                    //
+                                    //             // fireEvent('messageEvents', {
+                                    //             //     type: 'MESSAGE_DELETE',
+                                    //             //     result: {
+                                    //             //         message: {
+                                    //             //             id: cacheResult[key].messageId,
+                                    //             //             pinned: cacheResult[key].pinned,
+                                    //             //             threadId: cacheResult[key].threadId
+                                    //             //         }
+                                    //             //     }
+                                    //             // });
+                                    //         }
+                                    //     }
+                                    //
+                                    //     if (batchDeleteMessage.length) {
+                                    //         fireEvent('messageEvents', {
+                                    //             type: 'MESSAGE_DELETE_BATCH',
+                                    //             cache: true,
+                                    //             result: batchDeleteMessage
+                                    //         });
+                                    //     }
+                                    //
+                                    //     for (var key in serverResult) {
+                                    //         if (cacheResult.hasOwnProperty(key)) {
+                                    //             /**
+                                    //              * Check digest of cache and server response, if
+                                    //              * they are not the same, we should emit
+                                    //              */
+                                    //             if (cacheResult[key].data != serverResult[key].data) {
+                                    //                 /**
+                                    //                  * This message is already on cache, but it's
+                                    //                  * content has been changed, so we emit a
+                                    //                  * message edit event to inform client
+                                    //                  */
+                                    //
+                                    //                 batchEditMessage.push(history[serverResult[key].index]);
+                                    //
+                                    //                 //  fireEvent('messageEvents', {
+                                    //                 //     type: 'MESSAGE_EDIT',
+                                    //                 //     result: {
+                                    //                 //         message: history[serverResult[key].index]
+                                    //                 //     }
+                                    //                 // });
+                                    //             }
+                                    //         } else {
+                                    //             /**
+                                    //              * This Message has not found on cache but it has
+                                    //              * came from server, so we emit it as a new message
+                                    //              */
+                                    //
+                                    //             batchNewMessage.push(history[serverResult[key].index]);
+                                    //
+                                    //             // fireEvent('messageEvents', {
+                                    //             //     type: 'MESSAGE_NEW',
+                                    //             //     cache: true,
+                                    //             //     result: {
+                                    //             //         message: history[serverResult[key].index]
+                                    //             //     }
+                                    //             // });
+                                    //         }
+                                    //     }
+                                    //
+                                    //     if (batchEditMessage.length) {
+                                    //         fireEvent('messageEvents', {
+                                    //             type: 'MESSAGE_EDIT_BATCH',
+                                    //             cache: true,
+                                    //             result: batchEditMessage
+                                    //         });
+                                    //     }
+                                    //
+                                    //     if (batchNewMessage.length) {
+                                    //         fireEvent('messageEvents', {
+                                    //             type: 'MESSAGE_NEW_BATCH',
+                                    //             cache: true,
+                                    //             result: batchNewMessage
+                                    //         });
+                                    //     }
+                                    // } else {
                                         callback && callback(returnData);
                                         callback = undefined;
-                                    }
+                                    // }
                                 }
                             }
                         });
@@ -6745,111 +6749,111 @@
                 /**
                  * Retrieve thread participants from cache
                  */
-                if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
-                    if (db) {
-                        db.participants.where('expireTime')
-                            .below(new Date().getTime())
-                            .delete()
-                            .then(function () {
-
-                                var thenAble;
-
-                                if (Object.keys(whereClause).length === 0) {
-                                    thenAble = db.participants.where('threadId')
-                                        .equals(parseInt(params.threadId))
-                                        .and(function (participant) {
-                                            return participant.owner == userInfo.id;
-                                        });
-                                } else {
-                                    if (whereClause.hasOwnProperty('name')) {
-                                        thenAble = db.participants.where('threadId')
-                                            .equals(parseInt(params.threadId))
-                                            .and(function (participant) {
-                                                return participant.owner == userInfo.id;
-                                            })
-                                            .filter(function (contact) {
-                                                var reg = new RegExp(whereClause.name);
-                                                return reg.test(chatDecrypt(contact.contactName, cacheSecret, contact.salt) + ' '
-                                                    + chatDecrypt(contact.name, cacheSecret, contact.salt) + ' '
-                                                    + chatDecrypt(contact.email, cacheSecret, contact.salt));
-                                            });
-                                    }
-                                }
-
-                                thenAble.offset(offset)
-                                    .limit(count)
-                                    .reverse()
-                                    .toArray()
-                                    .then(function (participants) {
-                                        db.participants.where('threadId')
-                                            .equals(parseInt(params.threadId))
-                                            .and(function (participant) {
-                                                return participant.owner == userInfo.id;
-                                            })
-                                            .count()
-                                            .then(function (participantsCount) {
-
-                                                var cacheData = [];
-
-                                                for (var i = 0; i < participants.length; i++) {
-                                                    try {
-                                                        var tempData = {},
-                                                            salt = participants[i].salt;
-
-                                                        cacheData.push(formatDataToMakeParticipant(
-                                                            JSON.parse(chatDecrypt(participants[i].data, cacheSecret, participants[i].salt)), participants[i].threadId));
-                                                    } catch (error) {
-                                                        fireEvent('error', {
-                                                            code: error.code,
-                                                            message: error.message,
-                                                            error: error
-                                                        });
-                                                    }
-                                                }
-
-                                                var returnData = {
-                                                    hasError: false,
-                                                    cache: true,
-                                                    errorCode: 0,
-                                                    errorMessage: '',
-                                                    result: {
-                                                        participants: cacheData,
-                                                        contentCount: participantsCount,
-                                                        hasNext: !(participants.length < count),
-                                                        nextOffset: offset + participants.length
-                                                    }
-                                                };
-
-                                                if (cacheData.length > 0) {
-                                                    callback && callback(returnData);
-                                                    callback = undefined;
-                                                    returnCache = true;
-                                                }
-                                            });
-                                    })
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            })
-                            .catch(function (error) {
-                                fireEvent('error', {
-                                    code: error.code,
-                                    message: error.message,
-                                    error: error
-                                });
-                            });
-                    } else {
-                        fireEvent('error', {
-                            code: 6601,
-                            message: CHAT_ERRORS[6601],
-                            error: null
-                        });
-                    }
-                }
+                // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+                //     if (db) {
+                //         db.participants.where('expireTime')
+                //             .below(new Date().getTime())
+                //             .delete()
+                //             .then(function () {
+                //
+                //                 var thenAble;
+                //
+                //                 if (Object.keys(whereClause).length === 0) {
+                //                     thenAble = db.participants.where('threadId')
+                //                         .equals(parseInt(params.threadId))
+                //                         .and(function (participant) {
+                //                             return participant.owner == userInfo.id;
+                //                         });
+                //                 } else {
+                //                     if (whereClause.hasOwnProperty('name')) {
+                //                         thenAble = db.participants.where('threadId')
+                //                             .equals(parseInt(params.threadId))
+                //                             .and(function (participant) {
+                //                                 return participant.owner == userInfo.id;
+                //                             })
+                //                             .filter(function (contact) {
+                //                                 var reg = new RegExp(whereClause.name);
+                //                                 return reg.test(chatDecrypt(contact.contactName, cacheSecret, contact.salt) + ' '
+                //                                     + chatDecrypt(contact.name, cacheSecret, contact.salt) + ' '
+                //                                     + chatDecrypt(contact.email, cacheSecret, contact.salt));
+                //                             });
+                //                     }
+                //                 }
+                //
+                //                 thenAble.offset(offset)
+                //                     .limit(count)
+                //                     .reverse()
+                //                     .toArray()
+                //                     .then(function (participants) {
+                //                         db.participants.where('threadId')
+                //                             .equals(parseInt(params.threadId))
+                //                             .and(function (participant) {
+                //                                 return participant.owner == userInfo.id;
+                //                             })
+                //                             .count()
+                //                             .then(function (participantsCount) {
+                //
+                //                                 var cacheData = [];
+                //
+                //                                 for (var i = 0; i < participants.length; i++) {
+                //                                     try {
+                //                                         var tempData = {},
+                //                                             salt = participants[i].salt;
+                //
+                //                                         cacheData.push(formatDataToMakeParticipant(
+                //                                             JSON.parse(chatDecrypt(participants[i].data, cacheSecret, participants[i].salt)), participants[i].threadId));
+                //                                     } catch (error) {
+                //                                         fireEvent('error', {
+                //                                             code: error.code,
+                //                                             message: error.message,
+                //                                             error: error
+                //                                         });
+                //                                     }
+                //                                 }
+                //
+                //                                 var returnData = {
+                //                                     hasError: false,
+                //                                     cache: true,
+                //                                     errorCode: 0,
+                //                                     errorMessage: '',
+                //                                     result: {
+                //                                         participants: cacheData,
+                //                                         contentCount: participantsCount,
+                //                                         hasNext: !(participants.length < count),
+                //                                         nextOffset: offset + participants.length
+                //                                     }
+                //                                 };
+                //
+                //                                 if (cacheData.length > 0) {
+                //                                     callback && callback(returnData);
+                //                                     callback = undefined;
+                //                                     returnCache = true;
+                //                                 }
+                //                             });
+                //                     })
+                //                     .catch(function (error) {
+                //                         fireEvent('error', {
+                //                             code: error.code,
+                //                             message: error.message,
+                //                             error: error
+                //                         });
+                //                     });
+                //             })
+                //             .catch(function (error) {
+                //                 fireEvent('error', {
+                //                     code: error.code,
+                //                     message: error.message,
+                //                     error: error
+                //                 });
+                //             });
+                //     } else {
+                //         fireEvent('error', {
+                //             code: 6601,
+                //             message: CHAT_ERRORS[6601],
+                //             error: null
+                //         });
+                //     }
+                // }
 
                 return sendMessage(sendMessageParams, {
                     onResult: function (result) {
@@ -6875,55 +6879,55 @@
                             /**
                              * Add thread participants into cache database #cache
                              */
-                            if (canUseCache && cacheSecret.length > 0) {
-                                if (db) {
-
-                                    var cacheData = [];
-
-                                    for (var i = 0; i < resultData.participants.length; i++) {
-                                        try {
-                                            var tempData = {},
-                                                salt = Utility.generateUUID();
-
-                                            tempData.id = parseInt(resultData.participants[i].id);
-                                            tempData.owner = parseInt(userInfo.id);
-                                            tempData.threadId = parseInt(resultData.participants[i].threadId);
-                                            tempData.notSeenDuration = resultData.participants[i].notSeenDuration;
-                                            tempData.admin = resultData.participants[i].admin;
-                                            tempData.auditor = resultData.participants[i].auditor;
-                                            tempData.name = Utility.crypt(resultData.participants[i].name, cacheSecret, salt);
-                                            tempData.contactName = Utility.crypt(resultData.participants[i].contactName, cacheSecret, salt);
-                                            tempData.email = Utility.crypt(resultData.participants[i].email, cacheSecret, salt);
-                                            tempData.expireTime = new Date().getTime() + cacheExpireTime;
-                                            tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.participants[i])), cacheSecret, salt);
-                                            tempData.salt = salt;
-
-                                            cacheData.push(tempData);
-                                        } catch (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        }
-                                    }
-
-                                    db.participants.bulkPut(cacheData)
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                } else {
-                                    fireEvent('error', {
-                                        code: 6601,
-                                        message: CHAT_ERRORS[6601],
-                                        error: null
-                                    });
-                                }
-                            }
+                            // if (canUseCache && cacheSecret.length > 0) {
+                            //     if (db) {
+                            //
+                            //         var cacheData = [];
+                            //
+                            //         for (var i = 0; i < resultData.participants.length; i++) {
+                            //             try {
+                            //                 var tempData = {},
+                            //                     salt = Utility.generateUUID();
+                            //
+                            //                 tempData.id = parseInt(resultData.participants[i].id);
+                            //                 tempData.owner = parseInt(userInfo.id);
+                            //                 tempData.threadId = parseInt(resultData.participants[i].threadId);
+                            //                 tempData.notSeenDuration = resultData.participants[i].notSeenDuration;
+                            //                 tempData.admin = resultData.participants[i].admin;
+                            //                 tempData.auditor = resultData.participants[i].auditor;
+                            //                 tempData.name = Utility.crypt(resultData.participants[i].name, cacheSecret, salt);
+                            //                 tempData.contactName = Utility.crypt(resultData.participants[i].contactName, cacheSecret, salt);
+                            //                 tempData.email = Utility.crypt(resultData.participants[i].email, cacheSecret, salt);
+                            //                 tempData.expireTime = new Date().getTime() + cacheExpireTime;
+                            //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.participants[i])), cacheSecret, salt);
+                            //                 tempData.salt = salt;
+                            //
+                            //                 cacheData.push(tempData);
+                            //             } catch (error) {
+                            //                 fireEvent('error', {
+                            //                     code: error.code,
+                            //                     message: error.message,
+                            //                     error: error
+                            //                 });
+                            //             }
+                            //         }
+                            //
+                            //         db.participants.bulkPut(cacheData)
+                            //             .catch(function (error) {
+                            //                 fireEvent('error', {
+                            //                     code: error.code,
+                            //                     message: error.message,
+                            //                     error: error
+                            //                 });
+                            //             });
+                            //     } else {
+                            //         fireEvent('error', {
+                            //             code: 6601,
+                            //             message: CHAT_ERRORS[6601],
+                            //             error: null
+                            //         });
+                            //     }
+                            // }
                         }
 
                         callback && callback(returnData);
@@ -6933,13 +6937,13 @@
                          */
                         callback = undefined;
 
-                        if (!returnData.hasError && returnCache) {
-                            fireEvent('threadEvents', {
-                                type: 'THREAD_PARTICIPANTS_LIST_CHANGE',
-                                threadId: params.threadId,
-                                result: returnData.result
-                            });
-                        }
+                        // if (!returnData.hasError && returnCache) {
+                        //     fireEvent('threadEvents', {
+                        //         type: 'THREAD_PARTICIPANTS_LIST_CHANGE',
+                        //         threadId: params.threadId,
+                        //         result: returnData.result
+                        //     });
+                        // }
                     }
                 });
             },
@@ -8797,38 +8801,38 @@
              *
              * @return {undefined}
              */
-            deleteCacheDatabases = function () {
-                if (db) {
-                    db.close();
-                }
-
-                if (queueDb) {
-                    queueDb.close();
-                }
-
-                var chatCacheDB = new Dexie('podChat');
-                if (chatCacheDB) {
-                    chatCacheDB.delete()
-                        .then(function () {
-                            console.log('PodChat Database successfully deleted!');
-
-                            var queueDb = new Dexie('podQueues');
-                            if (queueDb) {
-                                queueDb.delete()
-                                    .then(function () {
-                                        console.log('PodQueues Database successfully deleted!');
-                                        startCacheDatabases();
-                                    })
-                                    .catch(function (err) {
-                                        console.log(err);
-                                    });
-                            }
-                        })
-                        .catch(function (err) {
-                            console.log(err);
-                        });
-                }
-            },
+            // deleteCacheDatabases = function () {
+            //     if (db) {
+            //         db.close();
+            //     }
+            //
+            //     if (queueDb) {
+            //         queueDb.close();
+            //     }
+            //
+            //     // var chatCacheDB = new Dexie('podChat');
+            //     // if (chatCacheDB) {
+            //     //     chatCacheDB.delete()
+            //     //         .then(function () {
+            //     //             console.log('PodChat Database successfully deleted!');
+            //     //
+            //     //             var queueDb = new Dexie('podQueues');
+            //     //             if (queueDb) {
+            //     //                 queueDb.delete()
+            //     //                     .then(function () {
+            //     //                         console.log('PodQueues Database successfully deleted!');
+            //     //                         startCacheDatabases();
+            //     //                     })
+            //     //                     .catch(function (err) {
+            //     //                         console.log(err);
+            //     //                     });
+            //     //             }
+            //     //         })
+            //     //         .catch(function (err) {
+            //     //             console.log(err);
+            //     //         });
+            //     // }
+            // },
 
             /**
              * Clear Cache Database of Some User
@@ -8840,113 +8844,113 @@
              *
              * @return {undefined}
              */
-            clearCacheDatabasesOfUser = function (callback) {
-                if (db && !cacheDeletingInProgress) {
-                    cacheDeletingInProgress = true;
-                    db.threads
-                        .where('owner')
-                        .equals(parseInt(userInfo.id))
-                        .delete()
-                        .then(function () {
-                            console.log('Threads table deleted');
-
-                            db.contacts
-                                .where('owner')
-                                .equals(parseInt(userInfo.id))
-                                .delete()
-                                .then(function () {
-                                    console.log('Contacts table deleted');
-
-                                    db.messages
-                                        .where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .delete()
-                                        .then(function () {
-                                            console.log('Messages table deleted');
-
-                                            db.participants
-                                                .where('owner')
-                                                .equals(parseInt(userInfo.id))
-                                                .delete()
-                                                .then(function () {
-                                                    console.log('Participants table deleted');
-
-                                                    db.messageGaps
-                                                        .where('owner')
-                                                        .equals(parseInt(userInfo.id))
-                                                        .delete()
-                                                        .then(function () {
-                                                            console.log('MessageGaps table deleted');
-                                                            cacheDeletingInProgress = false;
-                                                            callback && callback();
-                                                        });
-                                                });
-                                        });
-                                });
-                        })
-                        .catch(function (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        });
-                }
-            },
-
-            /**
-             * Initialize Cache Database
-             *
-             * if client's environment is capable of supporting indexedDB
-             * and the hasCache attribute set to be true, we created
-             * a indexedDB instance based on DexieDb and Initialize
-             * client sde caching
-             *
-             * @return {undefined}
-             */
-            startCacheDatabases = function (callback) {
-                if (hasCache) {
-                    queueDb = new Dexie('podQueues');
-
-                    queueDb.version(1)
-                        .stores({
-                            waitQ: '[owner+threadId+uniqueId], owner, threadId, uniqueId, message'
-                        });
-
-                    if (enableCache) {
-                        db = new Dexie('podChat');
-
-                        db.version(1)
-                            .stores({
-                                users: '&id, name, cellphoneNumber, keyId',
-                                contacts: '[owner+id], id, owner, uniqueId, userId, cellphoneNumber, email, firstName, lastName, expireTime',
-                                threads: '[owner+id] ,id, owner, title, time, pin, [owner+time]',
-                                participants: '[owner+id], id, owner, threadId, notSeenDuration, admin, auditor, name, contactName, email, expireTime',
-                                messages: '[owner+id], id, owner, threadId, time, [threadId+id], [threadId+owner+time]',
-                                messageGaps: '[owner+id], [owner+waitsFor], id, waitsFor, owner, threadId, time, [threadId+owner+time]',
-                                contentCount: 'threadId, contentCount'
-                            });
-
-                        db.open()
-                            .catch(function (e) {
-                                console.log('Open failed: ' + e.stack);
-                            });
-
-                        db.on('ready', function () {
-                            isCacheReady = true;
-                            callback && callback();
-                        }, true);
-
-                        db.on('versionchange', function (event) {
-                            window.location.reload();
-                        });
-                    } else {
-                        callback && callback();
-                    }
-                } else {
-                    console.log(CHAT_ERRORS[6600]);
-                }
-            },
+            // clearCacheDatabasesOfUser = function (callback) {
+            //     if (db && !cacheDeletingInProgress) {
+            //         cacheDeletingInProgress = true;
+            //         db.threads
+            //             .where('owner')
+            //             .equals(parseInt(userInfo.id))
+            //             .delete()
+            //             .then(function () {
+            //                 console.log('Threads table deleted');
+            //
+            //                 db.contacts
+            //                     .where('owner')
+            //                     .equals(parseInt(userInfo.id))
+            //                     .delete()
+            //                     .then(function () {
+            //                         console.log('Contacts table deleted');
+            //
+            //                         db.messages
+            //                             .where('owner')
+            //                             .equals(parseInt(userInfo.id))
+            //                             .delete()
+            //                             .then(function () {
+            //                                 console.log('Messages table deleted');
+            //
+            //                                 db.participants
+            //                                     .where('owner')
+            //                                     .equals(parseInt(userInfo.id))
+            //                                     .delete()
+            //                                     .then(function () {
+            //                                         console.log('Participants table deleted');
+            //
+            //                                         db.messageGaps
+            //                                             .where('owner')
+            //                                             .equals(parseInt(userInfo.id))
+            //                                             .delete()
+            //                                             .then(function () {
+            //                                                 console.log('MessageGaps table deleted');
+            //                                                 cacheDeletingInProgress = false;
+            //                                                 callback && callback();
+            //                                             });
+            //                                     });
+            //                             });
+            //                     });
+            //             })
+            //             .catch(function (error) {
+            //                 fireEvent('error', {
+            //                     code: error.code,
+            //                     message: error.message,
+            //                     error: error
+            //                 });
+            //             });
+            //     }
+            // },
+            //
+            // /**
+            //  * Initialize Cache Database
+            //  *
+            //  * if client's environment is capable of supporting indexedDB
+            //  * and the hasCache attribute set to be true, we created
+            //  * a indexedDB instance based on DexieDb and Initialize
+            //  * client sde caching
+            //  *
+            //  * @return {undefined}
+            //  */
+            // startCacheDatabases = function (callback) {
+            //     if (hasCache) {
+            //         queueDb = new Dexie('podQueues');
+            //
+            //         queueDb.version(1)
+            //             .stores({
+            //                 waitQ: '[owner+threadId+uniqueId], owner, threadId, uniqueId, message'
+            //             });
+            //
+            //         if (enableCache) {
+            //             db = new Dexie('podChat');
+            //
+            //             db.version(1)
+            //                 .stores({
+            //                     users: '&id, name, cellphoneNumber, keyId',
+            //                     contacts: '[owner+id], id, owner, uniqueId, userId, cellphoneNumber, email, firstName, lastName, expireTime',
+            //                     threads: '[owner+id] ,id, owner, title, time, pin, [owner+time]',
+            //                     participants: '[owner+id], id, owner, threadId, notSeenDuration, admin, auditor, name, contactName, email, expireTime',
+            //                     messages: '[owner+id], id, owner, threadId, time, [threadId+id], [threadId+owner+time]',
+            //                     messageGaps: '[owner+id], [owner+waitsFor], id, waitsFor, owner, threadId, time, [threadId+owner+time]',
+            //                     contentCount: 'threadId, contentCount'
+            //                 });
+            //
+            //             db.open()
+            //                 .catch(function (e) {
+            //                     console.log('Open failed: ' + e.stack);
+            //                 });
+            //
+            //             db.on('ready', function () {
+            //                 isCacheReady = true;
+            //                 callback && callback();
+            //             }, true);
+            //
+            //             db.on('versionchange', function (event) {
+            //                 window.location.reload();
+            //             });
+            //         } else {
+            //             callback && callback();
+            //         }
+            //     } else {
+            //         console.log(CHAT_ERRORS[6600]);
+            //     }
+            // },
 
             /**
              * Get Chat Send Queue
@@ -8988,80 +8992,80 @@
              */
             getChatWaitQueue = function (threadId, active, callback) {
                 if (active && threadId > 0) {
-                    if (hasCache && typeof queueDb == 'object') {
-                        queueDb.waitQ.where('threadId')
-                            .equals(threadId)
-                            .and(function (item) {
-                                return item.owner == parseInt(userInfo.id);
-                            })
-                            .toArray()
-                            .then(function (waitQueueOnCache) {
-                                var uniqueIds = [];
-
-                                for (var i = 0; i < waitQueueOnCache.length; i++) {
-                                    uniqueIds.push(waitQueueOnCache[i].uniqueId);
-                                }
-
-                                if (uniqueIds.length && chatState) {
-                                    sendMessage({
-                                        chatMessageVOType: chatMessageVOTypes.GET_HISTORY,
-                                        content: {
-                                            uniqueIds: uniqueIds
-                                        },
-                                        subjectId: threadId
-                                    }, {
-                                        onResult: function (result) {
-                                            if (!result.hasError) {
-                                                var messageContent = result.result;
-
-                                                /**
-                                                 * Delete those messages from wait
-                                                 * queue which are already on the
-                                                 * server databases
-                                                 */
-                                                for (var i = 0; i < messageContent.length; i++) {
-                                                    for (var j = 0; j < uniqueIds.length; j++) {
-                                                        if (uniqueIds[j] == messageContent[i].uniqueId) {
-                                                            deleteFromChatWaitQueue(messageContent[i], function () {
-                                                            });
-                                                            uniqueIds.splice(j, 1);
-                                                            waitQueueOnCache.splice(j, 1);
-                                                        }
-                                                    }
-                                                }
-
-                                                /**
-                                                 * Delete those messages from wait
-                                                 * queue which are in the send
-                                                 * queue and are going to be sent
-                                                 */
-                                                for (var i = 0; i < chatSendQueue.length; i++) {
-                                                    for (var j = 0; j < uniqueIds.length; j++) {
-                                                        if (uniqueIds[j] == chatSendQueue[i].message.uniqueId) {
-                                                            deleteFromChatWaitQueue(chatSendQueue[i].message, function () {
-                                                            });
-                                                            uniqueIds.splice(j, 1);
-                                                            waitQueueOnCache.splice(j, 1);
-                                                        }
-                                                    }
-                                                }
-
-                                                callback && callback(waitQueueOnCache);
-                                            }
-                                        }
-                                    });
-                                } else {
-                                    callback && callback(waitQueueOnCache);
-                                }
-                            })
-                            .catch(function (error) {
-                                fireEvent('error', {
-                                    code: error.code,
-                                    message: error.message,
-                                    error: error
-                                });
-                            });
-                    } else {
+                    // if (hasCache && typeof queueDb == 'object') {
+                    //     queueDb.waitQ.where('threadId')
+                    //         .equals(threadId)
+                    //         .and(function (item) {
+                    //             return item.owner == parseInt(userInfo.id);
+                    //         })
+                    //         .toArray()
+                    //         .then(function (waitQueueOnCache) {
+                    //             var uniqueIds = [];
+                    //
+                    //             for (var i = 0; i < waitQueueOnCache.length; i++) {
+                    //                 uniqueIds.push(waitQueueOnCache[i].uniqueId);
+                    //             }
+                    //
+                    //             if (uniqueIds.length && chatState) {
+                    //                 sendMessage({
+                    //                     chatMessageVOType: chatMessageVOTypes.GET_HISTORY,
+                    //                     content: {
+                    //                         uniqueIds: uniqueIds
+                    //                     },
+                    //                     subjectId: threadId
+                    //                 }, {
+                    //                     onResult: function (result) {
+                    //                         if (!result.hasError) {
+                    //                             var messageContent = result.result;
+                    //
+                    //                             /**
+                    //                              * Delete those messages from wait
+                    //                              * queue which are already on the
+                    //                              * server databases
+                    //                              */
+                    //                             for (var i = 0; i < messageContent.length; i++) {
+                    //                                 for (var j = 0; j < uniqueIds.length; j++) {
+                    //                                     if (uniqueIds[j] == messageContent[i].uniqueId) {
+                    //                                         deleteFromChatWaitQueue(messageContent[i], function () {
+                    //                                         });
+                    //                                         uniqueIds.splice(j, 1);
+                    //                                         waitQueueOnCache.splice(j, 1);
+                    //                                     }
+                    //                                 }
+                    //                             }
+                    //
+                    //                             /**
+                    //                              * Delete those messages from wait
+                    //                              * queue which are in the send
+                    //                              * queue and are going to be sent
+                    //                              */
+                    //                             for (var i = 0; i < chatSendQueue.length; i++) {
+                    //                                 for (var j = 0; j < uniqueIds.length; j++) {
+                    //                                     if (uniqueIds[j] == chatSendQueue[i].message.uniqueId) {
+                    //                                         deleteFromChatWaitQueue(chatSendQueue[i].message, function () {
+                    //                                         });
+                    //                                         uniqueIds.splice(j, 1);
+                    //                                         waitQueueOnCache.splice(j, 1);
+                    //                                     }
+                    //                                 }
+                    //                             }
+                    //
+                    //                             callback && callback(waitQueueOnCache);
+                    //                         }
+                    //                     }
+                    //                 });
+                    //             } else {
+                    //                 callback && callback(waitQueueOnCache);
+                    //             }
+                    //         })
+                    //         .catch(function (error) {
+                    //             fireEvent('error', {
+                    //                 code: error.code,
+                    //                 message: error.message,
+                    //                 error: error
+                    //             });
+                    //         });
+                    // } else {
                         var uniqueIds = [];
 
                         for (var i = 0; i < chatWaitQueue.length; i++) {
@@ -9095,7 +9099,7 @@
                         } else {
                             callback && callback([]);
                         }
-                    }
+                    // }
                 } else {
                     callback && callback([]);
                 }
@@ -9155,31 +9159,31 @@
              * @return {undefined}
              */
             deleteFromChatWaitQueue = function (item, callback) {
-                if (hasCache && typeof queueDb == 'object') {
-                    queueDb.waitQ.where('uniqueId')
-                        .equals(item.uniqueId)
-                        .and(function (item) {
-                            return item.owner == parseInt(userInfo.id);
-                        })
-                        .delete()
-                        .then(function () {
-                            callback && callback();
-                        })
-                        .catch(function (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        });
-                } else {
+                // if (hasCache && typeof queueDb == 'object') {
+                //     queueDb.waitQ.where('uniqueId')
+                //         .equals(item.uniqueId)
+                //         .and(function (item) {
+                //             return item.owner == parseInt(userInfo.id);
+                //         })
+                //         .delete()
+                //         .then(function () {
+                //             callback && callback();
+                //         })
+                //         .catch(function (error) {
+                //             fireEvent('error', {
+                //                 code: error.code,
+                //                 message: error.message,
+                //                 error: error
+                //             });
+                //         });
+                // } else {
                     for (var i = 0; i < chatWaitQueue.length; i++) {
                         if (chatWaitQueue[i].uniqueId == item.uniqueId) {
                             chatWaitQueue.splice(i, 1);
                         }
                     }
                     callback && callback();
-                }
+                // }
             },
 
             /**
@@ -9237,29 +9241,29 @@
                     var waitQueueUniqueId = (typeof item.uniqueId == 'string') ? item.uniqueId : (Array.isArray(item.uniqueId)) ? item.uniqueId[0] : null;
 
                     if (waitQueueUniqueId != null) {
-                        if (hasCache && typeof queueDb == 'object') {
-                            queueDb.waitQ
-                                .put({
-                                    threadId: parseInt(item.subjectId),
-                                    uniqueId: waitQueueUniqueId,
-                                    owner: parseInt(userInfo.id),
-                                    message: Utility.crypt(item, cacheSecret)
-                                })
-                                .then(function () {
-                                    callback && callback();
-                                })
-                                .catch(function (error) {
-                                    fireEvent('error', {
-                                        code: error.code,
-                                        message: error.message,
-                                        error: error
-                                    });
-                                });
-                        } else {
+                        // if (hasCache && typeof queueDb == 'object') {
+                        //     queueDb.waitQ
+                        //         .put({
+                        //             threadId: parseInt(item.subjectId),
+                        //             uniqueId: waitQueueUniqueId,
+                        //             owner: parseInt(userInfo.id),
+                        //             message: Utility.crypt(item, cacheSecret)
+                        //         })
+                        //         .then(function () {
+                        //             callback && callback();
+                        //         })
+                        //         .catch(function (error) {
+                        //             fireEvent('error', {
+                        //                 code: error.code,
+                        //                 message: error.message,
+                        //                 error: error
+                        //             });
+                        //         });
+                        // } else {
                             item.uniqueId = waitQueueUniqueId;
                             chatWaitQueue.push(item);
                             callback && callback();
-                        }
+                        // }
                     }
                 }
             },
@@ -9951,110 +9955,110 @@
             /**
              * Retrieve contacts from cache #cache
              */
-            if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
-                if (db) {
-
-                    /**
-                     * First of all we delete all contacts those
-                     * expireTime has been expired. after that
-                     * we query our cache database to retrieve
-                     * what we wanted
-                     */
-                    db.contacts.where('expireTime')
-                        .below(new Date().getTime())
-                        .delete()
-                        .then(function () {
-
-                            /**
-                             * Query cache database to get contacts
-                             */
-                            var thenAble;
-
-                            if (Object.keys(whereClause).length === 0) {
-                                thenAble = db.contacts.where('owner')
-                                    .equals(parseInt(userInfo.id));
-                            } else {
-                                if (whereClause.hasOwnProperty('query')) {
-                                    thenAble = db.contacts.where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .filter(function (contact) {
-                                            var reg = new RegExp(whereClause.query);
-                                            return reg.test(chatDecrypt(contact.firstName, cacheSecret, contact.salt) + ' '
-                                                + chatDecrypt(contact.lastName, cacheSecret, contact.salt) + ' '
-                                                + chatDecrypt(contact.email, cacheSecret, contact.salt));
-                                        });
-                                }
-                            }
-
-                            thenAble.reverse()
-                                .offset(offset)
-                                .limit(count)
-                                .toArray()
-                                .then(function (contacts) {
-                                    db.contacts.where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .count()
-                                        .then(function (contactsCount) {
-                                            var cacheData = [];
-
-                                            for (var i = 0; i < contacts.length; i++) {
-                                                try {
-                                                    var tempData = {},
-                                                        salt = contacts[i].salt;
-
-                                                    cacheData.push(formatDataToMakeContact(JSON.parse(chatDecrypt(contacts[i].data, cacheSecret, contacts[i].salt))));
-                                                } catch (error) {
-                                                    fireEvent('error', {
-                                                        code: error.code,
-                                                        message: error.message,
-                                                        error: error
-                                                    });
-                                                }
-                                            }
-
-                                            var returnData = {
-                                                hasError: false,
-                                                cache: true,
-                                                errorCode: 0,
-                                                errorMessage: '',
-                                                result: {
-                                                    contacts: cacheData,
-                                                    contentCount: contactsCount,
-                                                    hasNext: !(contacts.length < count),
-                                                    nextOffset: offset + contacts.length
-                                                }
-                                            };
-
-                                            if (cacheData.length > 0) {
-                                                callback && callback(returnData);
-                                                callback = undefined;
-                                                returnCache = true;
-                                            }
-                                        });
-                                })
-                                .catch(function (error) {
-                                    fireEvent('error', {
-                                        code: error.code,
-                                        message: error.message,
-                                        error: error
-                                    });
-                                });
-                        })
-                        .catch(function (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        });
-                } else {
-                    fireEvent('error', {
-                        code: 6601,
-                        message: CHAT_ERRORS[6601],
-                        error: null
-                    });
-                }
-            }
+            // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+            //     if (db) {
+            //
+            //         /**
+            //          * First of all we delete all contacts those
+            //          * expireTime has been expired. after that
+            //          * we query our cache database to retrieve
+            //          * what we wanted
+            //          */
+            //         db.contacts.where('expireTime')
+            //             .below(new Date().getTime())
+            //             .delete()
+            //             .then(function () {
+            //
+            //                 /**
+            //                  * Query cache database to get contacts
+            //                  */
+            //                 var thenAble;
+            //
+            //                 if (Object.keys(whereClause).length === 0) {
+            //                     thenAble = db.contacts.where('owner')
+            //                         .equals(parseInt(userInfo.id));
+            //                 } else {
+            //                     if (whereClause.hasOwnProperty('query')) {
+            //                         thenAble = db.contacts.where('owner')
+            //                             .equals(parseInt(userInfo.id))
+            //                             .filter(function (contact) {
+            //                                 var reg = new RegExp(whereClause.query);
+            //                                 return reg.test(chatDecrypt(contact.firstName, cacheSecret, contact.salt) + ' '
+            //                                     + chatDecrypt(contact.lastName, cacheSecret, contact.salt) + ' '
+            //                                     + chatDecrypt(contact.email, cacheSecret, contact.salt));
+            //                             });
+            //                     }
+            //                 }
+            //
+            //                 thenAble.reverse()
+            //                     .offset(offset)
+            //                     .limit(count)
+            //                     .toArray()
+            //                     .then(function (contacts) {
+            //                         db.contacts.where('owner')
+            //                             .equals(parseInt(userInfo.id))
+            //                             .count()
+            //                             .then(function (contactsCount) {
+            //                                 var cacheData = [];
+            //
+            //                                 for (var i = 0; i < contacts.length; i++) {
+            //                                     try {
+            //                                         var tempData = {},
+            //                                             salt = contacts[i].salt;
+            //
+            //                                         cacheData.push(formatDataToMakeContact(JSON.parse(chatDecrypt(contacts[i].data, cacheSecret, contacts[i].salt))));
+            //                                     } catch (error) {
+            //                                         fireEvent('error', {
+            //                                             code: error.code,
+            //                                             message: error.message,
+            //                                             error: error
+            //                                         });
+            //                                     }
+            //                                 }
+            //
+            //                                 var returnData = {
+            //                                     hasError: false,
+            //                                     cache: true,
+            //                                     errorCode: 0,
+            //                                     errorMessage: '',
+            //                                     result: {
+            //                                         contacts: cacheData,
+            //                                         contentCount: contactsCount,
+            //                                         hasNext: !(contacts.length < count),
+            //                                         nextOffset: offset + contacts.length
+            //                                     }
+            //                                 };
+            //
+            //                                 if (cacheData.length > 0) {
+            //                                     callback && callback(returnData);
+            //                                     callback = undefined;
+            //                                     returnCache = true;
+            //                                 }
+            //                             });
+            //                     })
+            //                     .catch(function (error) {
+            //                         fireEvent('error', {
+            //                             code: error.code,
+            //                             message: error.message,
+            //                             error: error
+            //                         });
+            //                     });
+            //             })
+            //             .catch(function (error) {
+            //                 fireEvent('error', {
+            //                     code: error.code,
+            //                     message: error.message,
+            //                     error: error
+            //                 });
+            //             });
+            //     } else {
+            //         fireEvent('error', {
+            //             code: 6601,
+            //             message: CHAT_ERRORS[6601],
+            //             error: null
+            //         });
+            //     }
+            // }
 
             /**
              * Retrieve Contacts from server
@@ -10092,52 +10096,52 @@
                         /**
                          * Add Contacts into cache database #cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                var cacheData = [];
-
-                                for (var i = 0; i < resultData.contacts.length; i++) {
-                                    try {
-                                        var tempData = {},
-                                            salt = Utility.generateUUID();
-                                        tempData.id = resultData.contacts[i].id;
-                                        tempData.owner = userInfo.id;
-                                        tempData.uniqueId = resultData.contacts[i].uniqueId;
-                                        tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
-                                        tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
-                                        tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
-                                        tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
-                                        tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
-                                        tempData.expireTime = new Date().getTime() + cacheExpireTime;
-                                        tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
-                                        tempData.salt = salt;
-
-                                        cacheData.push(tempData);
-                                    } catch (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    }
-                                }
-
-                                db.contacts.bulkPut(cacheData)
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         var cacheData = [];
+                        //
+                        //         for (var i = 0; i < resultData.contacts.length; i++) {
+                        //             try {
+                        //                 var tempData = {},
+                        //                     salt = Utility.generateUUID();
+                        //                 tempData.id = resultData.contacts[i].id;
+                        //                 tempData.owner = userInfo.id;
+                        //                 tempData.uniqueId = resultData.contacts[i].uniqueId;
+                        //                 tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
+                        //                 tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
+                        //                 tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
+                        //                 tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
+                        //                 tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
+                        //                 tempData.expireTime = new Date().getTime() + cacheExpireTime;
+                        //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
+                        //                 tempData.salt = salt;
+                        //
+                        //                 cacheData.push(tempData);
+                        //             } catch (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             }
+                        //         }
+                        //
+                        //         db.contacts.bulkPut(cacheData)
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
                     }
 
                     callback && callback(returnData);
@@ -10147,12 +10151,12 @@
                      */
                     callback = undefined;
 
-                    if (!returnData.hasError && returnCache) {
-                        fireEvent('contactEvents', {
-                            type: 'CONTACTS_LIST_CHANGE',
-                            result: returnData.result
-                        });
-                    }
+                    // if (!returnData.hasError && returnCache) {
+                    //     fireEvent('contactEvents', {
+                    //         type: 'CONTACTS_LIST_CHANGE',
+                    //         result: returnData.result
+                    //     });
+                    // }
                 }
             });
         };
@@ -10728,31 +10732,31 @@
         };
 
         this.resendMessage = function (uniqueId, callbacks) {
-            if (hasCache && typeof queueDb == 'object') {
-                queueDb.waitQ.where('uniqueId')
-                    .equals(uniqueId)
-                    .and(function (item) {
-                        return item.owner == parseInt(userInfo.id);
-                    })
-                    .toArray()
-                    .then(function (messages) {
-                        if (messages.length) {
-                            putInChatSendQueue({
-                                message: Utility.jsonParser(chatDecrypt(messages[0].message, cacheSecret)),
-                                callbacks: callbacks
-                            }, function () {
-                                chatSendQueueHandler();
-                            });
-                        }
-                    })
-                    .catch(function (error) {
-                        fireEvent('error', {
-                            code: error.code,
-                            message: error.message,
-                            error: error
-                        });
-                    });
-            } else {
+            // if (hasCache && typeof queueDb == 'object') {
+            //     queueDb.waitQ.where('uniqueId')
+            //         .equals(uniqueId)
+            //         .and(function (item) {
+            //             return item.owner == parseInt(userInfo.id);
+            //         })
+            //         .toArray()
+            //         .then(function (messages) {
+            //             if (messages.length) {
+            //                 putInChatSendQueue({
+            //                     message: Utility.jsonParser(chatDecrypt(messages[0].message, cacheSecret)),
+            //                     callbacks: callbacks
+            //                 }, function () {
+            //                     chatSendQueueHandler();
+            //                 });
+            //             }
+            //         })
+            //         .catch(function (error) {
+            //             fireEvent('error', {
+            //                 code: error.code,
+            //                 message: error.message,
+            //                 error: error
+            //             });
+            //         });
+            // } else {
                 for (var i = 0; i < chatWaitQueue.length; i++) {
                     if (chatWaitQueue[i].message.uniqueId == uniqueId) {
                         putInChatSendQueue({
@@ -10764,7 +10768,7 @@
                         break;
                     }
                 }
-            }
+            // }
         };
 
         this.cancelMessage = function (uniqueId, callback) {
@@ -10816,29 +10820,29 @@
                         /**
                          * Delete all messages of this thread from cache
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                db.messages.where('threadId')
-                                    .equals(parseInt(result.result))
-                                    .and(function (message) {
-                                        return message.owner == userInfo.id;
-                                    })
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         db.messages.where('threadId')
+                        //             .equals(parseInt(result.result))
+                        //             .and(function (message) {
+                        //                 return message.owner == userInfo.id;
+                        //             })
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
                     }
 
                     callback && callback(returnData);
@@ -11096,45 +11100,45 @@
                         /**
                          * Update Message on cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                try {
-                                    var tempData = {},
-                                        salt = Utility.generateUUID();
-                                    tempData.id = parseInt(resultData.editedMessage.id);
-                                    tempData.owner = parseInt(userInfo.id);
-                                    tempData.threadId = parseInt(resultData.editedMessage.threadId);
-                                    tempData.time = resultData.editedMessage.time;
-                                    tempData.message = Utility.crypt(resultData.editedMessage.message, cacheSecret, salt);
-                                    tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.editedMessage)), cacheSecret, salt);
-                                    tempData.salt = salt;
-
-                                    /**
-                                     * Insert Message into cache database
-                                     */
-                                    db.messages.put(tempData)
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                } catch (error) {
-                                    fireEvent('error', {
-                                        code: error.code,
-                                        message: error.message,
-                                        error: error
-                                    });
-                                }
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         try {
+                        //             var tempData = {},
+                        //                 salt = Utility.generateUUID();
+                        //             tempData.id = parseInt(resultData.editedMessage.id);
+                        //             tempData.owner = parseInt(userInfo.id);
+                        //             tempData.threadId = parseInt(resultData.editedMessage.threadId);
+                        //             tempData.time = resultData.editedMessage.time;
+                        //             tempData.message = Utility.crypt(resultData.editedMessage.message, cacheSecret, salt);
+                        //             tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.editedMessage)), cacheSecret, salt);
+                        //             tempData.salt = salt;
+                        //
+                        //             /**
+                        //              * Insert Message into cache database
+                        //              */
+                        //             db.messages.put(tempData)
+                        //                 .catch(function (error) {
+                        //                     fireEvent('error', {
+                        //                         code: error.code,
+                        //                         message: error.message,
+                        //                         error: error
+                        //                     });
+                        //                 });
+                        //         } catch (error) {
+                        //             fireEvent('error', {
+                        //                 code: error.code,
+                        //                 message: error.message,
+                        //                 error: error
+                        //             });
+                        //         }
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
                     }
 
                     callback && callback(returnData);
@@ -11180,26 +11184,26 @@
                         /**
                          * Remove Message from cache
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                db.messages.where('id')
-                                    .equals(parseInt(result.result))
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: 6602,
-                                            message: CHAT_ERRORS[6602],
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         db.messages.where('id')
+                        //             .equals(parseInt(result.result))
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: 6602,
+                        //                     message: CHAT_ERRORS[6602],
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                     }
 
@@ -11245,26 +11249,26 @@
                         /**
                          * Remove Message from cache
                          */
-                        if (canUseCache) {
-                            if (db) {
-                                db.messages.where('id')
-                                    .equals(parseInt(result.result))
-                                    .delete()
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: 6602,
-                                            message: CHAT_ERRORS[6602],
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache) {
+                        //     if (db) {
+                        //         db.messages.where('id')
+                        //             .equals(parseInt(result.result))
+                        //             .delete()
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: 6602,
+                        //                     message: CHAT_ERRORS[6602],
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
                     }
 
                     callback && callback(returnData);
@@ -11946,52 +11950,52 @@
                         /**
                          * Add Contacts into cache database #cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                var cacheData = [];
-
-                                for (var i = 0; i < resultData.contacts.length; i++) {
-                                    try {
-                                        var tempData = {},
-                                            salt = Utility.generateUUID();
-                                        tempData.id = resultData.contacts[i].id;
-                                        tempData.owner = userInfo.id;
-                                        tempData.uniqueId = resultData.contacts[i].uniqueId;
-                                        tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
-                                        tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
-                                        tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
-                                        tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
-                                        tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
-                                        tempData.expireTime = new Date().getTime() + cacheExpireTime;
-                                        tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
-                                        tempData.salt = salt;
-
-                                        cacheData.push(tempData);
-                                    } catch (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    }
-                                }
-
-                                db.contacts.bulkPut(cacheData)
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         var cacheData = [];
+                        //
+                        //         for (var i = 0; i < resultData.contacts.length; i++) {
+                        //             try {
+                        //                 var tempData = {},
+                        //                     salt = Utility.generateUUID();
+                        //                 tempData.id = resultData.contacts[i].id;
+                        //                 tempData.owner = userInfo.id;
+                        //                 tempData.uniqueId = resultData.contacts[i].uniqueId;
+                        //                 tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
+                        //                 tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
+                        //                 tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
+                        //                 tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
+                        //                 tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
+                        //                 tempData.expireTime = new Date().getTime() + cacheExpireTime;
+                        //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
+                        //                 tempData.salt = salt;
+                        //
+                        //                 cacheData.push(tempData);
+                        //             } catch (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             }
+                        //         }
+                        //
+                        //         db.contacts.bulkPut(cacheData)
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                     }
 
@@ -12103,52 +12107,52 @@
                         /**
                          * Add Contacts into cache database #cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                var cacheData = [];
-
-                                for (var i = 0; i < resultData.contacts.length; i++) {
-                                    try {
-                                        var tempData = {},
-                                            salt = Utility.generateUUID();
-                                        tempData.id = resultData.contacts[i].id;
-                                        tempData.owner = userInfo.id;
-                                        tempData.uniqueId = resultData.contacts[i].uniqueId;
-                                        tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
-                                        tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
-                                        tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
-                                        tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
-                                        tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
-                                        tempData.expireTime = new Date().getTime() + cacheExpireTime;
-                                        tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
-                                        tempData.salt = salt;
-
-                                        cacheData.push(tempData);
-                                    } catch (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    }
-                                }
-
-                                db.contacts.bulkPut(cacheData)
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         var cacheData = [];
+                        //
+                        //         for (var i = 0; i < resultData.contacts.length; i++) {
+                        //             try {
+                        //                 var tempData = {},
+                        //                     salt = Utility.generateUUID();
+                        //                 tempData.id = resultData.contacts[i].id;
+                        //                 tempData.owner = userInfo.id;
+                        //                 tempData.uniqueId = resultData.contacts[i].uniqueId;
+                        //                 tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
+                        //                 tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
+                        //                 tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
+                        //                 tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
+                        //                 tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
+                        //                 tempData.expireTime = new Date().getTime() + cacheExpireTime;
+                        //                 tempData.data = Utility.crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
+                        //                 tempData.salt = salt;
+                        //
+                        //                 cacheData.push(tempData);
+                        //             } catch (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             }
+                        //         }
+                        //
+                        //         db.contacts.bulkPut(cacheData)
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
 
                     }
 
@@ -12207,26 +12211,26 @@
                     /**
                      * Remove the contact from cache
                      */
-                    if (canUseCache) {
-                        if (db) {
-                            db.contacts.where('id')
-                                .equals(parseInt(params.id))
-                                .delete()
-                                .catch(function (error) {
-                                    fireEvent('error', {
-                                        code: 6602,
-                                        message: CHAT_ERRORS[6602],
-                                        error: error
-                                    });
-                                });
-                        } else {
-                            fireEvent('error', {
-                                code: 6601,
-                                message: CHAT_ERRORS[6601],
-                                error: null
-                            });
-                        }
-                    }
+                    // if (canUseCache) {
+                    //     if (db) {
+                    //         db.contacts.where('id')
+                    //             .equals(parseInt(params.id))
+                    //             .delete()
+                    //             .catch(function (error) {
+                    //                 fireEvent('error', {
+                    //                     code: 6602,
+                    //                     message: CHAT_ERRORS[6602],
+                    //                     error: error
+                    //                 });
+                    //             });
+                    //     } else {
+                    //         fireEvent('error', {
+                    //             code: 6601,
+                    //             message: CHAT_ERRORS[6601],
+                    //             error: null
+                    //         });
+                    //     }
+                    // }
 
                     callback && callback(returnData);
 
@@ -12305,158 +12309,158 @@
             /**
              * Search contacts in cache #cache
              */
-            if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
-                if (db) {
-
-                    /**
-                     * First of all we delete all contacts those
-                     * expireTime has been expired. after that
-                     * we query our cache database to retrieve
-                     * what we wanted
-                     */
-                    db.contacts.where('expireTime')
-                        .below(new Date().getTime())
-                        .delete()
-                        .then(function () {
-
-                            /**
-                             * Query cache database to get contacts
-                             */
-
-                            var thenAble;
-
-                            if (Object.keys(whereClause).length === 0) {
-                                thenAble = db.contacts.where('owner')
-                                    .equals(parseInt(userInfo.id));
-                            } else {
-                                if (whereClause.hasOwnProperty('id')) {
-                                    thenAble = db.contacts.where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .and(function (contact) {
-                                            return contact.id == whereClause.id;
-                                        });
-                                } else if (whereClause.hasOwnProperty('uniqueId')) {
-                                    thenAble = db.contacts.where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .and(function (contact) {
-                                            return contact.uniqueId == whereClause.uniqueId;
-                                        });
-                                } else {
-                                    if (whereClause.hasOwnProperty('firstName')) {
-                                        thenAble = db.contacts.where('owner')
-                                            .equals(parseInt(userInfo.id))
-                                            .filter(function (contact) {
-                                                var reg = new RegExp(whereClause.firstName);
-                                                return reg.test(chatDecrypt(contact.firstName, cacheSecret, contact.salt));
-                                            });
-                                    }
-
-                                    if (whereClause.hasOwnProperty('lastName')) {
-                                        thenAble = db.contacts.where('owner')
-                                            .equals(parseInt(userInfo.id))
-                                            .filter(function (contact) {
-                                                var reg = new RegExp(whereClause.lastName);
-                                                return reg.test(chatDecrypt(contact.lastName, cacheSecret, contact.salt));
-                                            });
-                                    }
-
-                                    if (whereClause.hasOwnProperty('email')) {
-                                        thenAble = db.contacts.where('owner')
-                                            .equals(parseInt(userInfo.id))
-                                            .filter(function (contact) {
-                                                var reg = new RegExp(whereClause.email);
-                                                return reg.test(chatDecrypt(contact.email, cacheSecret, contact.salt));
-                                            });
-                                    }
-
-                                    if (whereClause.hasOwnProperty('q')) {
-                                        thenAble = db.contacts.where('owner')
-                                            .equals(parseInt(userInfo.id))
-                                            .filter(function (contact) {
-                                                var reg = new RegExp(whereClause.q);
-                                                return reg.test(chatDecrypt(contact.firstName, cacheSecret, contact.salt) + ' ' +
-                                                    chatDecrypt(contact.lastName, cacheSecret, contact.salt) + ' ' +
-                                                    chatDecrypt(contact.email, cacheSecret, contact.salt));
-                                            });
-                                    }
-                                }
-                            }
-
-                            thenAble.offset(data.offset)
-                                .limit(data.size)
-                                .toArray()
-                                .then(function (contacts) {
-                                    db.contacts.where('owner')
-                                        .equals(parseInt(userInfo.id))
-                                        .count()
-                                        .then(function (contactsCount) {
-                                            var cacheData = [];
-
-                                            for (var i = 0; i < contacts.length; i++) {
-                                                try {
-                                                    var tempData = {},
-                                                        salt = contacts[i].salt;
-
-                                                    cacheData.push(formatDataToMakeContact(JSON.parse(chatDecrypt(contacts[i].data, cacheSecret, ontacts[i].salt))));
-                                                } catch (error) {
-                                                    fireEvent('error', {
-                                                        code: error.code,
-                                                        message: error.message,
-                                                        error: error
-                                                    });
-                                                }
-                                            }
-
-                                            var returnData = {
-                                                hasError: false,
-                                                cache: true,
-                                                errorCode: 0,
-                                                errorMessage: '',
-                                                result: {
-                                                    contacts: cacheData,
-                                                    contentCount: contactsCount,
-                                                    hasNext: !(contacts.length < data.size),
-                                                    nextOffset: data.offset + contacts.length
-                                                }
-                                            };
-
-                                            if (cacheData.length > 0) {
-                                                callback && callback(returnData);
-                                                callback = undefined;
-                                                returnCache = true;
-                                            }
-                                        })
-                                        .catch(function (error) {
-                                            fireEvent('error', {
-                                                code: error.code,
-                                                message: error.message,
-                                                error: error
-                                            });
-                                        });
-                                })
-                                .catch(function (error) {
-                                    fireEvent('error', {
-                                        code: error.code,
-                                        message: error.message,
-                                        error: error
-                                    });
-                                });
-                        })
-                        .catch(function (error) {
-                            fireEvent('error', {
-                                code: error.code,
-                                message: error.message,
-                                error: error
-                            });
-                        });
-                } else {
-                    fireEvent('error', {
-                        code: 6601,
-                        message: CHAT_ERRORS[6601],
-                        error: null
-                    });
-                }
-            }
+            // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+            //     if (db) {
+            //
+            //         /**
+            //          * First of all we delete all contacts those
+            //          * expireTime has been expired. after that
+            //          * we query our cache database to retrieve
+            //          * what we wanted
+            //          */
+            //         db.contacts.where('expireTime')
+            //             .below(new Date().getTime())
+            //             .delete()
+            //             .then(function () {
+            //
+            //                 /**
+            //                  * Query cache database to get contacts
+            //                  */
+            //
+            //                 var thenAble;
+            //
+            //                 if (Object.keys(whereClause).length === 0) {
+            //                     thenAble = db.contacts.where('owner')
+            //                         .equals(parseInt(userInfo.id));
+            //                 } else {
+            //                     if (whereClause.hasOwnProperty('id')) {
+            //                         thenAble = db.contacts.where('owner')
+            //                             .equals(parseInt(userInfo.id))
+            //                             .and(function (contact) {
+            //                                 return contact.id == whereClause.id;
+            //                             });
+            //                     } else if (whereClause.hasOwnProperty('uniqueId')) {
+            //                         thenAble = db.contacts.where('owner')
+            //                             .equals(parseInt(userInfo.id))
+            //                             .and(function (contact) {
+            //                                 return contact.uniqueId == whereClause.uniqueId;
+            //                             });
+            //                     } else {
+            //                         if (whereClause.hasOwnProperty('firstName')) {
+            //                             thenAble = db.contacts.where('owner')
+            //                                 .equals(parseInt(userInfo.id))
+            //                                 .filter(function (contact) {
+            //                                     var reg = new RegExp(whereClause.firstName);
+            //                                     return reg.test(chatDecrypt(contact.firstName, cacheSecret, contact.salt));
+            //                                 });
+            //                         }
+            //
+            //                         if (whereClause.hasOwnProperty('lastName')) {
+            //                             thenAble = db.contacts.where('owner')
+            //                                 .equals(parseInt(userInfo.id))
+            //                                 .filter(function (contact) {
+            //                                     var reg = new RegExp(whereClause.lastName);
+            //                                     return reg.test(chatDecrypt(contact.lastName, cacheSecret, contact.salt));
+            //                                 });
+            //                         }
+            //
+            //                         if (whereClause.hasOwnProperty('email')) {
+            //                             thenAble = db.contacts.where('owner')
+            //                                 .equals(parseInt(userInfo.id))
+            //                                 .filter(function (contact) {
+            //                                     var reg = new RegExp(whereClause.email);
+            //                                     return reg.test(chatDecrypt(contact.email, cacheSecret, contact.salt));
+            //                                 });
+            //                         }
+            //
+            //                         if (whereClause.hasOwnProperty('q')) {
+            //                             thenAble = db.contacts.where('owner')
+            //                                 .equals(parseInt(userInfo.id))
+            //                                 .filter(function (contact) {
+            //                                     var reg = new RegExp(whereClause.q);
+            //                                     return reg.test(chatDecrypt(contact.firstName, cacheSecret, contact.salt) + ' ' +
+            //                                         chatDecrypt(contact.lastName, cacheSecret, contact.salt) + ' ' +
+            //                                         chatDecrypt(contact.email, cacheSecret, contact.salt));
+            //                                 });
+            //                         }
+            //                     }
+            //                 }
+            //
+            //                 thenAble.offset(data.offset)
+            //                     .limit(data.size)
+            //                     .toArray()
+            //                     .then(function (contacts) {
+            //                         db.contacts.where('owner')
+            //                             .equals(parseInt(userInfo.id))
+            //                             .count()
+            //                             .then(function (contactsCount) {
+            //                                 var cacheData = [];
+            //
+            //                                 for (var i = 0; i < contacts.length; i++) {
+            //                                     try {
+            //                                         var tempData = {},
+            //                                             salt = contacts[i].salt;
+            //
+            //                                         cacheData.push(formatDataToMakeContact(JSON.parse(chatDecrypt(contacts[i].data, cacheSecret, ontacts[i].salt))));
+            //                                     } catch (error) {
+            //                                         fireEvent('error', {
+            //                                             code: error.code,
+            //                                             message: error.message,
+            //                                             error: error
+            //                                         });
+            //                                     }
+            //                                 }
+            //
+            //                                 var returnData = {
+            //                                     hasError: false,
+            //                                     cache: true,
+            //                                     errorCode: 0,
+            //                                     errorMessage: '',
+            //                                     result: {
+            //                                         contacts: cacheData,
+            //                                         contentCount: contactsCount,
+            //                                         hasNext: !(contacts.length < data.size),
+            //                                         nextOffset: data.offset + contacts.length
+            //                                     }
+            //                                 };
+            //
+            //                                 if (cacheData.length > 0) {
+            //                                     callback && callback(returnData);
+            //                                     callback = undefined;
+            //                                     returnCache = true;
+            //                                 }
+            //                             })
+            //                             .catch(function (error) {
+            //                                 fireEvent('error', {
+            //                                     code: error.code,
+            //                                     message: error.message,
+            //                                     error: error
+            //                                 });
+            //                             });
+            //                     })
+            //                     .catch(function (error) {
+            //                         fireEvent('error', {
+            //                             code: error.code,
+            //                             message: error.message,
+            //                             error: error
+            //                         });
+            //                     });
+            //             })
+            //             .catch(function (error) {
+            //                 fireEvent('error', {
+            //                     code: error.code,
+            //                     message: error.message,
+            //                     error: error
+            //                 });
+            //             });
+            //     } else {
+            //         fireEvent('error', {
+            //             code: 6601,
+            //             message: CHAT_ERRORS[6601],
+            //             error: null
+            //         });
+            //     }
+            // }
 
             /**
              * Get Search Contacts Result From Server
@@ -12493,53 +12497,53 @@
                         /**
                          * Add Contacts into cache database #cache
                          */
-                        if (canUseCache && cacheSecret.length > 0) {
-                            if (db) {
-                                var cacheData = [];
-
-                                for (var i = 0; i < resultData.contacts.length; i++) {
-                                    try {
-                                        var tempData = {},
-                                            salt = Utility.generateUUID();
-
-                                        tempData.id = resultData.contacts[i].id;
-                                        tempData.owner = userInfo.id;
-                                        tempData.uniqueId = resultData.contacts[i].uniqueId;
-                                        tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
-                                        tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
-                                        tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
-                                        tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
-                                        tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
-                                        tempData.expireTime = new Date().getTime() + cacheExpireTime;
-                                        tempData.data = crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
-                                        tempData.salt = salt;
-
-                                        cacheData.push(tempData);
-                                    } catch (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    }
-                                }
-
-                                db.contacts.bulkPut(cacheData)
-                                    .catch(function (error) {
-                                        fireEvent('error', {
-                                            code: error.code,
-                                            message: error.message,
-                                            error: error
-                                        });
-                                    });
-                            } else {
-                                fireEvent('error', {
-                                    code: 6601,
-                                    message: CHAT_ERRORS[6601],
-                                    error: null
-                                });
-                            }
-                        }
+                        // if (canUseCache && cacheSecret.length > 0) {
+                        //     if (db) {
+                        //         var cacheData = [];
+                        //
+                        //         for (var i = 0; i < resultData.contacts.length; i++) {
+                        //             try {
+                        //                 var tempData = {},
+                        //                     salt = Utility.generateUUID();
+                        //
+                        //                 tempData.id = resultData.contacts[i].id;
+                        //                 tempData.owner = userInfo.id;
+                        //                 tempData.uniqueId = resultData.contacts[i].uniqueId;
+                        //                 tempData.userId = Utility.crypt(resultData.contacts[i].userId, cacheSecret, salt);
+                        //                 tempData.cellphoneNumber = Utility.crypt(resultData.contacts[i].cellphoneNumber, cacheSecret, salt);
+                        //                 tempData.email = Utility.crypt(resultData.contacts[i].email, cacheSecret, salt);
+                        //                 tempData.firstName = Utility.crypt(resultData.contacts[i].firstName, cacheSecret, salt);
+                        //                 tempData.lastName = Utility.crypt(resultData.contacts[i].lastName, cacheSecret, salt);
+                        //                 tempData.expireTime = new Date().getTime() + cacheExpireTime;
+                        //                 tempData.data = crypt(JSON.stringify(unsetNotSeenDuration(resultData.contacts[i])), cacheSecret, salt);
+                        //                 tempData.salt = salt;
+                        //
+                        //                 cacheData.push(tempData);
+                        //             } catch (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             }
+                        //         }
+                        //
+                        //         db.contacts.bulkPut(cacheData)
+                        //             .catch(function (error) {
+                        //                 fireEvent('error', {
+                        //                     code: error.code,
+                        //                     message: error.message,
+                        //                     error: error
+                        //                 });
+                        //             });
+                        //     } else {
+                        //         fireEvent('error', {
+                        //             code: 6601,
+                        //             message: CHAT_ERRORS[6601],
+                        //             error: null
+                        //         });
+                        //     }
+                        // }
                     }
 
                     callback && callback(returnData);
@@ -13173,9 +13177,9 @@
 
         this.clearChatServerCaches = clearChatServerCaches;
 
-        this.deleteCacheDatabases = deleteCacheDatabases;
+        // this.deleteCacheDatabases = deleteCacheDatabases;
 
-        this.clearCacheDatabasesOfUser = clearCacheDatabasesOfUser;
+        // this.clearCacheDatabasesOfUser = clearCacheDatabasesOfUser;
 
         this.getChatState = function () {
             return chatFullStateObject;
