@@ -1,6 +1,6 @@
 {
   "name": "podchat",
-  "version": "12.5.5",
+  "version": "12.6.0",
   "description": "Javascript SDK to use POD's Chat Service",
   "main": "./dist/node/chat.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "publish:snapshot": "npm run version:snapshot && npm publish --tag snapshot",
     "version:snapshot": "npm version prerelease --preid snapshot",
     "publish:release": "npm run version:release && npm publish",
-    "version:release": "npm version 12.5.5",
+    "version:release": "npm version 12.6.0",
     "build:npm": "babel src -d dist/node --copy-files",
     "build": "npm run build:npm",
     "watch": "npm-watch build"
