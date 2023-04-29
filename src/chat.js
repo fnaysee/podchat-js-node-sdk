@@ -594,16 +594,22 @@ import Mime from 'mime';
                         case 1: // CONNECTED
                             if (state.deviceRegister && state.serverRegister) {
                                 chatState = true;
-                                ping();
+                                startChatPing();
                             }
                             break;
                         case 0: // CONNECTING
+                            chatState = false;
+                            stopChatPing();
+                            break;
                         case 2: // CLOSING
+                            chatState = false;
+                            stopChatPing();
+                            break;
                         case 3: // CLOSED
                             chatState = false;
-
+                            stopChatPing();
                             // TODO: Check if this is OK or not?!
-                            sendPingTimeout && clearTimeout(sendPingTimeout);
+                            //chatMessaging.sendPingTimeout && clearTimeout(chatMessaging.sendPingTimeout);
                             break;
                     }
                 });
@@ -646,6 +652,20 @@ import Mime from 'mime';
                         });
                     }
                 });
+            },
+            /**
+             * sendPingTimeout removed,
+             *
+             * TODO: remove the interval when socket statet changes to closed
+             */
+            startChatPing = function () {
+                chatPingMessageInterval && clearInterval(chatPingMessageInterval);
+                chatPingMessageInterval = setInterval(() => {
+                    currentModuleInstance.ping();
+                }, 20000);//TODO: chatPingMessageInterval
+            },
+            stopChatPing = function() {
+                clearInterval(chatPingMessageInterval);
             },
 
             /**
@@ -14060,6 +14080,7 @@ import Mime from 'mime';
             messagesCallbacks = {};
             sendMessageCallbacks = {};
             threadCallbacks = {};
+            stopChatPing();
 
             asyncClient.logout();
         };
