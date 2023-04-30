@@ -138,9 +138,8 @@ if(grantDeviceIdFromSSO){var getDeviceIdWithTokenTime=new Date().getTime();getDe
 chatState=true;_events.chatEvents.fireEvent('chatReady');chatSendQueueHandler();}});}else if(userInfo.id>0){chatState=true;_events.chatEvents.fireEvent('chatReady');chatSendQueueHandler();}});asyncClient.on('stateChange',function(state){_events.chatEvents.fireEvent('chatState',state);chatFullStateObject=state;switch(state.socketState){case 1:// CONNECTED
 if(state.deviceRegister&&state.serverRegister){chatState=true;startChatPing();}break;case 0:// CONNECTING
 chatState=false;stopChatPing();break;case 2:// CLOSING
-chatState=false;stopChatPing();break;case 3:// CLOSED
-chatState=false;stopChatPing();// TODO: Check if this is OK or not?!
-//chatMessaging.sendPingTimeout && clearTimeout(chatMessaging.sendPingTimeout);
+case 3:// CLOSED
+chatState=false;stopChatPing();//chatMessaging.sendPingTimeout && clearTimeout(chatMessaging.sendPingTimeout);
 break;}});asyncClient.on('connect',function(newPeerId){asyncGetReadyTime=new Date().getTime();peerId=newPeerId;_events.chatEvents.fireEvent('connect');ping();});asyncClient.on('disconnect',function(event){oldPeerId=peerId;peerId=undefined;_events.chatEvents.fireEvent('disconnect',event);});asyncClient.on('reconnect',function(newPeerId){peerId=newPeerId;_events.chatEvents.fireEvent('reconnect');});asyncClient.on('message',function(params,ack){receivedAsyncMessageHandler(params);ack&&ack();});asyncClient.on('error',function(error){if(error.errorCode){_events.chatEvents.fireEvent('error',{code:error.errorCode,message:error.errorMessage,error:error.errorEvent});}else{_events.chatEvents.fireEvent('error',{code:12003,message:CHAT_ERRORS[12003],error:error.errorEvent});}});},/**
              * sendPingTimeout removed,
              *

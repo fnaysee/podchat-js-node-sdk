@@ -602,13 +602,9 @@ import Mime from 'mime';
                             stopChatPing();
                             break;
                         case 2: // CLOSING
-                            chatState = false;
-                            stopChatPing();
-                            break;
                         case 3: // CLOSED
                             chatState = false;
                             stopChatPing();
-                            // TODO: Check if this is OK or not?!
                             //chatMessaging.sendPingTimeout && clearTimeout(chatMessaging.sendPingTimeout);
                             break;
                     }
