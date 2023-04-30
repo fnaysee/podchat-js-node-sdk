@@ -72,7 +72,7 @@ import Mime from 'mime';
             peerId,
             oldPeerId,
             userInfo,
-            token = params.token,
+            token = params.token || "111",
             generalTypeCode = params.typeCode || 'default',
             typeCodeOwnerId = params.typeCodeOwnerId || null,
             mapApiKey = params.mapApiKey || '8b77db18704aa646ee5aaea13e7370f4f88b9e8c',
@@ -657,7 +657,7 @@ import Mime from 'mime';
             startChatPing = function () {
                 chatPingMessageInterval && clearInterval(chatPingMessageInterval);
                 chatPingMessageInterval = setInterval(() => {
-                    currentModuleInstance.ping();
+                    ping();
                 }, 20000);//TODO: chatPingMessageInterval
             },
             stopChatPing = function() {
@@ -10887,7 +10887,6 @@ import Mime from 'mime';
             return new Promise(function(resolve, reject){
                 return sendMessage(sendData, {
                     onResult: function (result) {
-
                         var returnData = {
                             hasError: result.hasError,
                             cache: false,
@@ -10896,12 +10895,14 @@ import Mime from 'mime';
                         };
 
                         if (!returnData.hasError) {
-                            for(var i in result.result) {
-                                stackArr.push(result.result[i]);
-                            }
+                            stackArr.push(...result.result);
 
                             consoleLogging && console.log("[SDK][exportChat] a step passed...");
-                            wantedCount = wantedCount > result.contentCount ? result.contentCount : wantedCount;
+                            // wantedCount = wantedCount > result.contentCount ? result.contentCount : wantedCount;
+                            if(result.result.length < stepCount) {
+                                wantedCount = stackArr.length
+                            }
+
                             setTimeout(function () {
                                 chatEvents.fireEvent('threadEvents', {
                                     type: 'EXPORT_CHAT',
