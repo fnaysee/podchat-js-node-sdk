@@ -491,94 +491,7 @@ import Mime from 'mime';
                     peerId = asyncClient.getPeerId();
 
                     if (!userInfo) {
-                        var getUserInfoTime = new Date().getTime();
-
-                        getUserInfo(function (userInfoResult) {
-                            if (actualTimingLog) {
-                                Utility.chatStepLogger('Get User Info ', new Date().getTime() - getUserInfoTime);
-                            }
-                            if (!userInfoResult.hasError) {
-                                userInfo = userInfoResult.result.user;
-
-                                // getAllThreads({
-                                //     summary: true,
-                                //     cache: false
-                                // });
-
-                                /**
-                                 * Check if user has KeyId stored in their cache or not?
-                                 */
-                                // if (canUseCache) {
-                                //     if (db) {
-                                //         db.users
-                                //             .where('id')
-                                //             .equals(parseInt(userInfo.id))
-                                //             .toArray()
-                                //             .then(function (users) {
-                                //                 if (users.length > 0 && typeof users[0].keyId != 'undefined') {
-                                //                     var user = users[0];
-                                //
-                                //                     getEncryptionKey({
-                                //                         keyId: user.keyId
-                                //                     }, function (result) {
-                                //                         if (!result.hasError) {
-                                //                             cacheSecret = result.secretKey;
-                                //
-                                //                             chatState = true;
-                                //                             fireEvent('chatReady');
-                                //                             chatSendQueueHandler();
-                                //                         } else {
-                                //                             if (result.message != '') {
-                                //                                 try {
-                                //                                     var response = JSON.parse(result.message);
-                                //                                     if (response.error == 'invalid_param') {
-                                //                                         generateEncryptionKey({
-                                //                                             keyAlgorithm: 'AES',
-                                //                                             keySize: 256
-                                //                                         });
-                                //                                     }
-                                //                                 } catch (e) {
-                                //                                     console.log(e);
-                                //                                 }
-                                //                             }
-                                //                         }
-                                //                     });
-                                //                 } else {
-                                //                     generateEncryptionKey({
-                                //                         keyAlgorithm: 'AES',
-                                //                         keySize: 256
-                                //                     }, function () {
-                                //                         chatState = true;
-                                //                         fireEvent('chatReady');
-                                //                         chatSendQueueHandler();
-                                //                     });
-                                //                 }
-                                //             })
-                                //             .catch(function (error) {
-                                //                 fireEvent('error', {
-                                //                     code: error.errorCode,
-                                //                     message: error.errorMessage,
-                                //                     error: error
-                                //                 });
-                                //             });
-                                //     } else {
-                                //         fireEvent('error', {
-                                //             code: 6601,
-                                //             message: CHAT_ERRORS[6601],
-                                //             error: null
-                                //         });
-                                //     }
-                                // } else {
-                                //     chatState = true;
-                                //     fireEvent('chatReady');
-                                //     chatSendQueueHandler();
-                                // }
-
-                                    chatState = true;
-                                    chatEvents.fireEvent('chatReady');
-                                    chatSendQueueHandler();
-                            }
-                        });
+                        getUserAndUpdateSDKState();
                     } else if (userInfo.id > 0) {
                         chatState = true;
                         chatEvents.fireEvent('chatReady');
@@ -646,6 +559,26 @@ import Mime from 'mime';
                             message: CHAT_ERRORS[12003],
                             error: error.errorEvent
                         });
+                    }
+                });
+            },
+            getUserAndUpdateSDKState = function () {
+                var getUserInfoTime = new Date().getTime();
+                getUserInfo(function (userInfoResult) {
+                    if (actualTimingLog) {
+                        Utility.chatStepLogger('Get User Info ', new Date().getTime() - getUserInfoTime);
+                    }
+                    if (!userInfoResult.hasError) {
+                        userInfo = userInfoResult.result.user;
+
+                        // getAllThreads({
+                        //     summary: true,
+                        //     cache: false
+                        // });
+
+                        chatState = true;
+                        chatEvents.fireEvent('chatReady');
+                        chatSendQueueHandler();
                     }
                 });
             },
@@ -1442,7 +1375,6 @@ import Mime from 'mime';
                     getUserInfoTimeout = setTimeout(function () {
                         getUserInfoRecursive(callback);
                     }, getUserInfoRetryCount * 10000);
-
                     return sendMessage({
                         chatMessageVOType: chatMessageVOTypes.USER_INFO,
                         typeCode: params.typeCode
@@ -10887,6 +10819,7 @@ import Mime from 'mime';
             return new Promise(function(resolve, reject){
                 return sendMessage(sendData, {
                     onResult: function (result) {
+
                         var returnData = {
                             hasError: result.hasError,
                             cache: false,
@@ -13224,6 +13157,10 @@ import Mime from 'mime';
         this.setToken = function (newToken) {
             if (typeof newToken != 'undefined') {
                 token = newToken;
+                chatEvents.updateToken(token);
+                if(!userInfo || !userInfo.id) {
+                    getUserAndUpdateSDKState();
+                }
             }
         };
 
