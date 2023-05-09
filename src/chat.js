@@ -385,7 +385,7 @@ import Mime from 'mime';
             chatUploadQueue = [],
             chatSendQueueHandlerTimeout,
             fullResponseObject = params.fullResponseObject || false,
-
+            webrtcConfig = (params.webrtcConfig ? params.webrtcConfig : null),
             consoleLogging = (params.asyncLogging.consoleLogging && typeof params.asyncLogging.consoleLogging === 'boolean')
                 ? params.asyncLogging.consoleLogging
                 : false,
@@ -480,7 +480,8 @@ import Mime from 'mime';
                     messageTtl: messageTtl,
                     reconnectOnClose: reconnectOnClose,
                     asyncLogging: asyncLogging,
-                    logLevel: (consoleLogging ? 3 : 1)
+                    logLevel: (consoleLogging ? 3 : 1),
+                    webrtcConfig: webrtcConfig
                 });
 
                 asyncClient.on('asyncReady', function () {
@@ -9647,7 +9648,20 @@ import Mime from 'mime';
                     }
                 });
             },
-
+            changeProtocol = function (proto = "websocket") {
+                console.log("1111")
+            if(["webrtc", "websocket"].includes(proto)) {
+                if (proto != protocol) {
+                    protocol = proto.toLowerCase();
+                    asyncClient.logout();
+                    initAsync();
+                } else {
+                    console.warn(`SDK is currently using the ${proto} protocol. Nothing to do.`)
+                }
+            } else {
+                console.error(`Protocol ${proto} is not supported in SDK. Valid protocols: "webrtc", "websocket"`)
+            }
+        },
             endCall = function (params, callback) {
                 consoleLogging && console.log('[SDK][endCall] called...');
 
