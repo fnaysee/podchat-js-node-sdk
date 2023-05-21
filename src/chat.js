@@ -169,9 +169,10 @@ import Mime from 'mime';
                 DEFINE_BOT_COMMAND: 63,
                 START_BOT: 64,
                 STOP_BOT: 65,
+                LAST_MESSAGE_DELETED: 66,
+                LAST_MESSAGE_EDITED: 67,
                 BOT_COMMANDS: 68,
                 THREAD_ALL_BOTS: 69,
-
                 CALL_REQUEST: 70,
                 ACCEPT_CALL: 71,
                 REJECT_CALL: 72,
@@ -3126,7 +3127,34 @@ import Mime from 'mime';
                             messagesCallbacks[uniqueId](Utility.createReturnData(false, '', 0, messageContent, contentCount));
                         }
                         break;
-
+                    /**
+                     * Type 66    Last Message Deleted
+                     */
+                    case chatMessageVOTypes.LAST_MESSAGE_DELETED:
+                        delete messageContent.unreadCount;
+                        let threadOfDeletedMessage = formatDataToMakeConversation(messageContent);
+                        chatEvents.fireEvent('threadEvents', {
+                            type: 'THREAD_INFO_UPDATED',
+                            result: {
+                                threadId,
+                                thread: threadOfDeletedMessage
+                            }
+                        });
+                        break;
+                    /**
+                     * Type 67    Last Message Edited
+                     */
+                    case chatMessageVOTypes.LAST_MESSAGE_EDITED:
+                        delete messageContent.unreadCount;
+                        let threadOfEditedMessage = formatDataToMakeConversation(messageContent);
+                        chatEvents.fireEvent('threadEvents', {
+                            type: 'THREAD_INFO_UPDATED',
+                            result: {
+                                threadId,
+                                thread: threadOfEditedMessage
+                            }
+                        });
+                        break;
                     /**
                      * Type 68    Get Bot Commands List
                      */
