@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = exports.chatEvents = void 0;
 exports.initEventHandler = initEventHandler;
+var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 var _utility = _interopRequireDefault(require("./utility/utility.js"));
 var chatEvents = null;
 exports.chatEvents = chatEvents;
@@ -32,12 +33,30 @@ function ChatEvents(params) {
       error: {},
       chatState: {}
     };
+  function censor(censor) {
+    var i = 0;
+    return function (key, value) {
+      if (i !== 0 && (0, _typeof2["default"])(censor) === 'object' && (0, _typeof2["default"])(value) == 'object' && censor == value) return '[Circular]';
+      if (i >= 29)
+        // seems to be a harded maximum of 30 serialized objects?
+        return '[Unknown]';
+      ++i; // so we know we aren't using the original object anymore
+
+      return value;
+    };
+  }
   var PodChatErrorException = function PodChatErrorException(error) {
-    this.code = error.error ? error.error.code : error.code;
-    this.message = error.error ? error.error.message : error.message;
+    var er = error.error ? error.error : error;
+    this.code = er.code;
+    this.message = er.message;
     this.uniqueId = error.uniqueId ? error.uniqueId : '';
     this.token = token;
-    this.error = JSON.stringify(error.error ? error.error : error);
+    try {
+      this.error = JSON.stringify(er, censor(er));
+    } catch (error) {
+      this.error = er;
+      console.log(er);
+    }
     this.environmentDetails = error.environmentDetails;
   };
   this.updateToken = function (newToken) {

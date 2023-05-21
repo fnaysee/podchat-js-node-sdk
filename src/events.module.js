@@ -26,12 +26,36 @@ function ChatEvents(params) {
             chatState: {}
         };
 
+    function censor(censor) {
+        var i = 0;
+
+        return function(key, value) {
+            if(i !== 0 && typeof(censor) === 'object' && typeof(value) == 'object' && censor == value)
+                return '[Circular]';
+
+            if(i >= 29) // seems to be a harded maximum of 30 serialized objects?
+                return '[Unknown]';
+
+            ++i; // so we know we aren't using the original object anymore
+
+            return value;
+        }
+    }
+
+
     var PodChatErrorException = function (error) {
-        this.code = error.error ? error.error.code : error.code;
-        this.message = error.error ? error.error.message : error.message;
+        let er = error.error ? error.error : error;
+        this.code = er.code;
+        this.message = er.message;
         this.uniqueId = error.uniqueId ? error.uniqueId : '';
         this.token = token;
-        this.error =  JSON.stringify((error.error ? error.error : error));
+        try{
+            this.error =  JSON.stringify(er, censor(er));
+        } catch (error) {
+            this.error =  er;
+            console.log(er)
+        }
+
         this.environmentDetails = error.environmentDetails
     };
 
