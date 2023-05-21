@@ -3,39 +3,11 @@
      * @module chat
      *
      * @param {Object} params
-     */ //var
-//ChatUtility,
-//FormData,
-//Request,
-// Dexie,
-//JSDOM,
-//DOMPurify;
-function Chat(params){//FormData = require('form-data');
-//Request = require('request');
-// Dexie = require('dexie').default || require('dexie');
-//DOMPurify = require('dompurify');
-// JSDOM = require('jsdom').JSDOM;
-var DOMPurify=(0,_dompurify["default"])(new _jsdom.JSDOM('').window);//var QueryString = require('querystring'),
-//FS = require('fs'),
-//SizeOf = require('image-size'),
-//Mime = require('mime');
-/**
-             * Defining global variables for Dexie to work in Node ENV
-             */ // if (typeof global !== 'undefined' && ({}).toString.call(global) === '[object global]') {
-// var setGlobalVars = require('indexeddbshim'),
-//     shim = {};
-// setGlobalVars(shim, {
-//     checkOrigin: false
-// });
-// var indexedDB = shim.indexedDB,
-//     IDBKeyRange = shim.IDBKeyRange;
-// Dexie.dependencies.indexedDB = indexedDB;
-// Dexie.dependencies.IDBKeyRange = IDBKeyRange;
-// }
-/*******************************************************
+     */function Chat(params){var DOMPurify=(0,_dompurify["default"])(new _jsdom.JSDOM('').window);/**
+         * Defining global variables for Dexie to work in Node ENV
+         */ /*******************************************************
          *          P R I V A T E   V A R I A B L E S          *
-         *******************************************************/ //var Utility = new ChatUtility();
-var asyncClient,currentModuleInstance=this,peerId,oldPeerId,userInfo,token=params.token||"111",generalTypeCode=params.typeCode||'default',typeCodeOwnerId=params.typeCodeOwnerId||null,mapApiKey=params.mapApiKey||'8b77db18704aa646ee5aaea13e7370f4f88b9e8c',deviceId,isNode=_utility["default"].isNode(),productEnv=typeof navigator!='undefined'?navigator.product:'undefined',db,queueDb,// hasCache = productEnv != 'ReactNative' && typeof Dexie != 'undefined',
+         *******************************************************/var asyncClient,currentModuleInstance=this,peerId,oldPeerId,userInfo,token=params.token||"111",generalTypeCode=params.typeCode||'default',typeCodeOwnerId=params.typeCodeOwnerId||null,mapApiKey=params.mapApiKey||'8b77db18704aa646ee5aaea13e7370f4f88b9e8c',deviceId,isNode=_utility["default"].isNode(),productEnv=typeof navigator!='undefined'?navigator.product:'undefined',db,queueDb,// hasCache = productEnv != 'ReactNative' && typeof Dexie != 'undefined',
 // enableCache = (params.enableCache && typeof params.enableCache === 'boolean') ? params.enableCache : false,
 // canUseCache = hasCache && enableCache,
 isCacheReady=false,cacheDeletingInProgress=false,cacheExpireTime=params.cacheExpireTime||2*24*60*60*1000,cacheSecret='',cacheSyncWorker,grantDeviceIdFromSSO=params.grantDeviceIdFromSSO&&typeof params.grantDeviceIdFromSSO==='boolean'?params.grantDeviceIdFromSSO:false,eventCallbacks={connect:{},disconnect:{},reconnect:{},messageEvents:{},threadEvents:{},contactEvents:{},botEvents:{},userEvents:{},fileUploadEvents:{},systemEvents:{},chatReady:{},error:{},chatState:{},callEvents:{}},messagesCallbacks={},sendMessageCallbacks={},threadCallbacks={},systemMessageIntervalPitch=params.systemMessageIntervalPitch||1000,isTypingInterval,recordingVoiceInterval,upoadingInterval,protocol=params.protocol||'websocket',queueServers=params.queueServers||[],queueReceive=params.queueReceive,queueSend=params.queueSend,queueConnectionTimeout=params.queueConnectionTimeout,socketAddress=params.socketAddress,serverName=params.serverName||'',wsConnectionWaitTime=params.wsConnectionWaitTime,connectionRetryInterval=params.connectionRetryInterval,msgPriority=params.msgPriority||1,messageTtl=params.messageTtl||10000,reconnectOnClose=params.reconnectOnClose,asyncLogging=params.asyncLogging,chatPingMessageInterval=20000,sendPingTimeout,getUserInfoTimeout,config={getHistoryCount:50},getUserInfoRetry=5,getUserInfoRetryCount=0,asyncStateTypes={0:'CONNECTING',1:'CONNECTED',2:'CLOSING',3:'CLOSED'},SERVICE_ADDRESSES={SSO_ADDRESS:params.ssoHost||'https://accounts.pod.ir',PLATFORM_ADDRESS:params.platformHost||'https://api.pod.ir/srv/core',FILESERVER_ADDRESS:params.fileServer||'https://core.pod.ir',PODSPACE_FILESERVER_ADDRESS:params.podSpaceFileServer||'https://podspace.pod.ir',MAP_ADDRESS:params.mapServer||'https://api.neshan.org/v2'},chatState=false,chatFullStateObject={},httpRequestObject={},connectionCheckTimeout=params.connectionCheckTimeout,connectionCheckTimeoutThreshold=params.connectionCheckTimeoutThreshold,httpRequestTimeout=params.httpRequestTimeout>=0?params.httpRequestTimeout:30000,httpUploadRequestTimeout=params.httpUploadRequestTimeout>=0?params.httpUploadRequestTimeout:0,actualTimingLog=params.asyncLogging.actualTiming&&typeof params.asyncLogging.actualTiming==='boolean'?params.asyncLogging.actualTiming:false,minIntegerValue=Number.MAX_SAFE_INTEGER*-1,maxIntegerValue=Number.MAX_SAFE_INTEGER*1,chatSendQueue=[],chatWaitQueue=[],chatUploadQueue=[],chatSendQueueHandlerTimeout,fullResponseObject=params.fullResponseObject||false,webrtcConfig=params.webrtcConfig?params.webrtcConfig:null,consoleLogging=params.asyncLogging.consoleLogging&&typeof params.asyncLogging.consoleLogging==='boolean'?params.asyncLogging.consoleLogging:false,/** call variables */callTypes={'VOICE':0x0,'VIDEO':0x1},currentCallParams={},currentCallId=null,newCallId=null,callClientType={WEB:1,ANDROID:2,DESKTOP:3,NODE:4},callRequestController={callRequestReceived:false,callEstablishedInMySide:false,iCanAcceptTheCall:function iCanAcceptTheCall(){return callRequestController.callRequestReceived&&callRequestController.callEstablishedInMySide;}},callStopQueue={callStarted:false},callRequestTimeout=typeof params.callRequestTimeout==='number'&&params.callRequestTimeout>=0?params.callRequestTimeout:10000,callNoAnswerTimeout=params.callOptions&&params.callOptions.callNoAnswerTimeout?params.callOptions.callNoAnswerTimeout:0;(0,_events.initEventHandler)(Object.assign(params,{consoleLogging:consoleLogging}));/*******************************************************

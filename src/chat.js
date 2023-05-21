@@ -30,52 +30,16 @@ import Mime from 'mime';
      * @param {Object} params
      */
 
-
-//var
-        //ChatUtility,
-        //FormData,
-        //Request,
-        // Dexie,
-        //JSDOM,
-        //DOMPurify;
-
     function Chat(params) {
-                //FormData = require('form-data');
-                //Request = require('request');
-                // Dexie = require('dexie').default || require('dexie');
-                //DOMPurify = require('dompurify');
-                // JSDOM = require('jsdom').JSDOM;
-                let DOMPurify = DMPRFY(new JSDOM('').window);
+        let DOMPurify = DMPRFY(new JSDOM('').window);
 
-
-            //var QueryString = require('querystring'),
-                //FS = require('fs'),
-                //SizeOf = require('image-size'),
-                //Mime = require('mime');
-
-            /**
-             * Defining global variables for Dexie to work in Node ENV
-             */
-            // if (typeof global !== 'undefined' && ({}).toString.call(global) === '[object global]') {
-                // var setGlobalVars = require('indexeddbshim'),
-                //     shim = {};
-                // setGlobalVars(shim, {
-                //     checkOrigin: false
-                // });
-
-                // var indexedDB = shim.indexedDB,
-                //     IDBKeyRange = shim.IDBKeyRange;
-
-                // Dexie.dependencies.indexedDB = indexedDB;
-                // Dexie.dependencies.IDBKeyRange = IDBKeyRange;
-            // }
-
+        /**
+         * Defining global variables for Dexie to work in Node ENV
+         */
 
         /*******************************************************
          *          P R I V A T E   V A R I A B L E S          *
          *******************************************************/
-
-        //var Utility = new ChatUtility();
 
         var asyncClient,
             currentModuleInstance = this,
