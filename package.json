@@ -44,6 +44,7 @@
     "image-size": "^0.8.3",
     "jsdom": "^18.0.0",
     "mime": "^2.4.4",
+    "node-fetch": "^2.6.11",
     "podasync": "^2.8.4-snapshot.1",
     "query-string": "^6.8.1",
     "request": "^2.88.0"

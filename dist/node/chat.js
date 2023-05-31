@@ -1,31 +1,31 @@
-'use strict';var _interopRequireDefault=require("@babel/runtime/helpers/interopRequireDefault");Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _toConsumableArray2=_interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));var _typeof2=_interopRequireDefault(require("@babel/runtime/helpers/typeof"));var _events=require("./events.module");var _errorHandler=require("./lib/errorHandler");var _constants=require("./lib/constants");var _podasync=_interopRequireDefault(require("podasync"));var _utility=_interopRequireDefault(require("./utility/utility.js"));var _formData=_interopRequireDefault(require("form-data"));var _request=_interopRequireDefault(require("request"));var _dompurify=_interopRequireDefault(require("dompurify"));var _jsdom=require("jsdom");var _querystring=_interopRequireDefault(require("querystring"));var _fs=_interopRequireDefault(require("fs"));var _imageSize=_interopRequireDefault(require("image-size"));var _mime=_interopRequireDefault(require("mime"));/*
+'use strict';var _interopRequireDefault=require("@babel/runtime/helpers/interopRequireDefault");Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _regenerator=_interopRequireDefault(require("@babel/runtime/regenerator"));var _toConsumableArray2=_interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));var _typeof2=_interopRequireDefault(require("@babel/runtime/helpers/typeof"));var _asyncToGenerator2=_interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));var _events=require("./events.module");var _errorHandler=require("./lib/errorHandler");var _constants=require("./lib/constants");var _podasync=_interopRequireDefault(require("podasync"));var _utility=_interopRequireDefault(require("./utility/utility.js"));var _formData=_interopRequireDefault(require("form-data"));var _request=_interopRequireDefault(require("request"));var _dompurify=_interopRequireDefault(require("dompurify"));var _jsdom=require("jsdom");var _querystring=_interopRequireDefault(require("querystring"));var _fs=_interopRequireDefault(require("fs"));var _imageSize=_interopRequireDefault(require("image-size"));var _mime=_interopRequireDefault(require("mime"));var _nodeFetch=_interopRequireDefault(require("node-fetch"));/*
      * Pod Chat Module
      * @module chat
      *
      * @param {Object} params
      */function Chat(params){var DOMPurify=(0,_dompurify["default"])(new _jsdom.JSDOM('').window);/**
-         * Defining global variables for Dexie to work in Node ENV
-         */ /*******************************************************
-         *          P R I V A T E   V A R I A B L E S          *
-         *******************************************************/var asyncClient,currentModuleInstance=this,peerId,oldPeerId,userInfo,token=params.token||"111",generalTypeCode=params.typeCode||'default',typeCodeOwnerId=params.typeCodeOwnerId||null,mapApiKey=params.mapApiKey||'8b77db18704aa646ee5aaea13e7370f4f88b9e8c',deviceId,isNode=_utility["default"].isNode(),productEnv=typeof navigator!='undefined'?navigator.product:'undefined',db,queueDb,// hasCache = productEnv != 'ReactNative' && typeof Dexie != 'undefined',
+     * Defining global variables for Dexie to work in Node ENV
+     */ /*******************************************************
+     *          P R I V A T E   V A R I A B L E S          *
+     *******************************************************/var asyncClient,currentModuleInstance=this,peerId,oldPeerId,userInfo,token=params.token||"111",generalTypeCode=params.typeCode||'default',typeCodeOwnerId=params.typeCodeOwnerId||null,mapApiKey=params.mapApiKey||'8b77db18704aa646ee5aaea13e7370f4f88b9e8c',deviceId,isNode=_utility["default"].isNode(),productEnv=typeof navigator!='undefined'?navigator.product:'undefined',db,queueDb,// hasCache = productEnv != 'ReactNative' && typeof Dexie != 'undefined',
 // enableCache = (params.enableCache && typeof params.enableCache === 'boolean') ? params.enableCache : false,
 // canUseCache = hasCache && enableCache,
 isCacheReady=false,cacheDeletingInProgress=false,cacheExpireTime=params.cacheExpireTime||2*24*60*60*1000,cacheSecret='',cacheSyncWorker,grantDeviceIdFromSSO=params.grantDeviceIdFromSSO&&typeof params.grantDeviceIdFromSSO==='boolean'?params.grantDeviceIdFromSSO:false,eventCallbacks={connect:{},disconnect:{},reconnect:{},messageEvents:{},threadEvents:{},contactEvents:{},botEvents:{},userEvents:{},fileUploadEvents:{},systemEvents:{},chatReady:{},error:{},chatState:{},callEvents:{}},messagesCallbacks={},sendMessageCallbacks={},threadCallbacks={},systemMessageIntervalPitch=params.systemMessageIntervalPitch||1000,isTypingInterval,recordingVoiceInterval,upoadingInterval,protocol=params.protocol||'websocket',queueServers=params.queueServers||[],queueReceive=params.queueReceive,queueSend=params.queueSend,queueConnectionTimeout=params.queueConnectionTimeout,socketAddress=params.socketAddress,serverName=params.serverName||'',wsConnectionWaitTime=params.wsConnectionWaitTime,connectionRetryInterval=params.connectionRetryInterval,msgPriority=params.msgPriority||1,messageTtl=params.messageTtl||10000,reconnectOnClose=params.reconnectOnClose,asyncLogging=params.asyncLogging,chatPingMessageInterval=20000,sendPingTimeout,getUserInfoTimeout,config={getHistoryCount:50},getUserInfoRetry=5,getUserInfoRetryCount=0,asyncStateTypes={0:'CONNECTING',1:'CONNECTED',2:'CLOSING',3:'CLOSED'},SERVICE_ADDRESSES={SSO_ADDRESS:params.ssoHost||'https://accounts.pod.ir',PLATFORM_ADDRESS:params.platformHost||'https://api.pod.ir/srv/core',FILESERVER_ADDRESS:params.fileServer||'https://core.pod.ir',PODSPACE_FILESERVER_ADDRESS:params.podSpaceFileServer||'https://podspace.pod.ir',MAP_ADDRESS:params.mapServer||'https://api.neshan.org/v2'},chatState=false,chatFullStateObject={},httpRequestObject={},connectionCheckTimeout=params.connectionCheckTimeout,connectionCheckTimeoutThreshold=params.connectionCheckTimeoutThreshold,httpRequestTimeout=params.httpRequestTimeout>=0?params.httpRequestTimeout:30000,httpUploadRequestTimeout=params.httpUploadRequestTimeout>=0?params.httpUploadRequestTimeout:0,actualTimingLog=params.asyncLogging.actualTiming&&typeof params.asyncLogging.actualTiming==='boolean'?params.asyncLogging.actualTiming:false,minIntegerValue=Number.MAX_SAFE_INTEGER*-1,maxIntegerValue=Number.MAX_SAFE_INTEGER*1,chatSendQueue=[],chatWaitQueue=[],chatUploadQueue=[],chatSendQueueHandlerTimeout,fullResponseObject=params.fullResponseObject||false,consoleLogging=params.asyncLogging.consoleLogging&&typeof params.asyncLogging.consoleLogging==='boolean'?params.asyncLogging.consoleLogging:false,/** call variables */callTypes={'VOICE':0x0,'VIDEO':0x1},currentCallParams={},currentCallId=null,newCallId=null,callClientType={WEB:1,ANDROID:2,DESKTOP:3,NODE:4},callRequestController={callRequestReceived:false,callEstablishedInMySide:false,iCanAcceptTheCall:function iCanAcceptTheCall(){return callRequestController.callRequestReceived&&callRequestController.callEstablishedInMySide;}},callStopQueue={callStarted:false},callRequestTimeout=typeof params.callRequestTimeout==='number'&&params.callRequestTimeout>=0?params.callRequestTimeout:10000,callNoAnswerTimeout=params.callOptions&&params.callOptions.callNoAnswerTimeout?params.callOptions.callNoAnswerTimeout:0;(0,_events.initEventHandler)(Object.assign(params,{consoleLogging:consoleLogging}));/*******************************************************
-         *            P R I V A T E   M E T H O D S            *
-         *******************************************************/var init=function init(){/**
-                 * Initialize Cache Databases
-                 */ // startCacheDatabases(function () {
+     *            P R I V A T E   M E T H O D S            *
+     *******************************************************/var init=function init(){/**
+             * Initialize Cache Databases
+             */ // startCacheDatabases(function () {
 if(grantDeviceIdFromSSO){var getDeviceIdWithTokenTime=new Date().getTime();getDeviceIdWithToken(function(retrievedDeviceId){if(actualTimingLog){_utility["default"].chatStepLogger('Get Device ID ',new Date().getTime()-getDeviceIdWithTokenTime);}deviceId=retrievedDeviceId;initAsync();});}else{initAsync();}// });
 },/**
-             * Initialize Async
-             *
-             * Initializes Async module and sets proper callbacks
-             *
-             * @access private
-             *
-             * @return {undefined}
-             * @return {undefined}
-             */initAsync=function initAsync(){if(protocol==='queue'&&(!Array.isArray(queueServers)||queueServers.length==0)){console.log('Queue Servers are invalid!',queueServers);return;}var asyncGetReadyTime=new Date().getTime();asyncClient=new _podasync["default"]({protocol:protocol,servers:queueServers,queueReceive:queueReceive,queueSend:queueSend,queueConnectionTimeout:queueConnectionTimeout,socketAddress:socketAddress,serverName:serverName,deviceId:deviceId,wsConnectionWaitTime:wsConnectionWaitTime,connectionRetryInterval:connectionRetryInterval,connectionCheckTimeout:connectionCheckTimeout,connectionCheckTimeoutThreshold:connectionCheckTimeoutThreshold,messageTtl:messageTtl,reconnectOnClose:reconnectOnClose,asyncLogging:asyncLogging,logLevel:consoleLogging?3:1});asyncClient.on('asyncReady',function(){if(actualTimingLog){_utility["default"].chatStepLogger('Async Connection ',new Date().getTime()-asyncGetReadyTime);}peerId=asyncClient.getPeerId();if(!userInfo){getUserAndUpdateSDKState();}else if(userInfo.id>0){chatState=true;_events.chatEvents.fireEvent('chatReady');chatSendQueueHandler();}});asyncClient.on('stateChange',function(state){_events.chatEvents.fireEvent('chatState',state);chatFullStateObject=state;switch(state.socketState){case 1:// CONNECTED
+         * Initialize Async
+         *
+         * Initializes Async module and sets proper callbacks
+         *
+         * @access private
+         *
+         * @return {undefined}
+         * @return {undefined}
+         */initAsync=function initAsync(){if(protocol==='queue'&&(!Array.isArray(queueServers)||queueServers.length==0)){console.log('Queue Servers are invalid!',queueServers);return;}var asyncGetReadyTime=new Date().getTime();asyncClient=new _podasync["default"]({protocol:protocol,servers:queueServers,queueReceive:queueReceive,queueSend:queueSend,queueConnectionTimeout:queueConnectionTimeout,socketAddress:socketAddress,serverName:serverName,deviceId:deviceId,wsConnectionWaitTime:wsConnectionWaitTime,connectionRetryInterval:connectionRetryInterval,connectionCheckTimeout:connectionCheckTimeout,connectionCheckTimeoutThreshold:connectionCheckTimeoutThreshold,messageTtl:messageTtl,reconnectOnClose:reconnectOnClose,asyncLogging:asyncLogging,logLevel:consoleLogging?3:1});asyncClient.on('asyncReady',function(){if(actualTimingLog){_utility["default"].chatStepLogger('Async Connection ',new Date().getTime()-asyncGetReadyTime);}peerId=asyncClient.getPeerId();if(!userInfo){getUserAndUpdateSDKState();}else if(userInfo.id>0){chatState=true;_events.chatEvents.fireEvent('chatReady');chatSendQueueHandler();}});asyncClient.on('stateChange',function(state){_events.chatEvents.fireEvent('chatState',state);chatFullStateObject=state;switch(state.socketState){case 1:// CONNECTED
 if(state.deviceRegister&&state.serverRegister){chatState=true;startChatPing();}break;case 0:// CONNECTING
 chatState=false;stopChatPing();break;case 2:// CLOSING
 case 3:// CLOSED
@@ -35,38 +35,38 @@ break;}});asyncClient.on('connect',function(newPeerId){asyncGetReadyTime=new Dat
 //     cache: false
 // });
 chatState=true;_events.chatEvents.fireEvent('chatReady');chatSendQueueHandler();}});},/**
-             * sendPingTimeout removed,
-             *
-             * TODO: remove the interval when socket statet changes to closed
-             */startChatPing=function startChatPing(){chatPingMessageInterval&&clearInterval(chatPingMessageInterval);chatPingMessageInterval=setInterval(function(){ping();},20000);//TODO: chatPingMessageInterval
+         * sendPingTimeout removed,
+         *
+         * TODO: remove the interval when socket statet changes to closed
+         */startChatPing=function startChatPing(){chatPingMessageInterval&&clearInterval(chatPingMessageInterval);chatPingMessageInterval=setInterval(function(){ping();},20000);//TODO: chatPingMessageInterval
 },stopChatPing=function stopChatPing(){clearInterval(chatPingMessageInterval);},/**
-             * Get Device Id With Token
-             *
-             * If ssoGrantDevicesAddress set as TRUE, chat agent gets Device ID
-             * from SSO server and passes it to Async Module
-             *
-             * @access private
-             *
-             * @param {function}  callback    The callback function to run after getting Device Id
-             *
-             * @return {undefined}
-             */getDeviceIdWithToken=function getDeviceIdWithToken(callback){var deviceId;var params={url:SERVICE_ADDRESSES.SSO_ADDRESS+_constants.SERVICES_PATH.SSO_DEVICES,method:'GET',headers:{'Authorization':'Bearer '+token}};httpRequest(params,function(result){if(!result.hasError){var devices=JSON.parse(result.result.responseText).devices;if(devices&&devices.length>0){for(var i=0;i<devices.length;i++){if(devices[i].current){deviceId=devices[i].uid;break;}}if(!deviceId){_events.chatEvents.fireEvent('error',{code:6000,message:_constants.CHAT_ERRORS[6000],error:null});}else{callback(deviceId);}}else{_events.chatEvents.fireEvent('error',{code:6001,message:_constants.CHAT_ERRORS[6001],error:null});}}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});},/**
-             * Handshake with SSO to get user's keys
-             *
-             * In order to Encrypt and Decrypt cache we need a key.
-             * We can retrieve encryption keys from SSO, all we
-             * need to do is to do a handshake with SSO and
-             * get the keys.
-             *
-             * @access private
-             *
-             * @param {function}  callback    The callback function to run after Generating Keys
-             *
-             * @return {undefined}
-             */generateEncryptionKey=function generateEncryptionKey(params,callback){var data={validity:10*365*24*60*60,// 10 Years
+         * Get Device Id With Token
+         *
+         * If ssoGrantDevicesAddress set as TRUE, chat agent gets Device ID
+         * from SSO server and passes it to Async Module
+         *
+         * @access private
+         *
+         * @param {function}  callback    The callback function to run after getting Device Id
+         *
+         * @return {undefined}
+         */getDeviceIdWithToken=function getDeviceIdWithToken(callback){var deviceId;var params={url:SERVICE_ADDRESSES.SSO_ADDRESS+_constants.SERVICES_PATH.SSO_DEVICES,method:'GET',headers:{'Authorization':'Bearer '+token}};httpRequest(params,function(result){if(!result.hasError){var devices=JSON.parse(result.result.responseText).devices;if(devices&&devices.length>0){for(var i=0;i<devices.length;i++){if(devices[i].current){deviceId=devices[i].uid;break;}}if(!deviceId){_events.chatEvents.fireEvent('error',{code:6000,message:_constants.CHAT_ERRORS[6000],error:null});}else{callback(deviceId);}}else{_events.chatEvents.fireEvent('error',{code:6001,message:_constants.CHAT_ERRORS[6001],error:null});}}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});},/**
+         * Handshake with SSO to get user's keys
+         *
+         * In order to Encrypt and Decrypt cache we need a key.
+         * We can retrieve encryption keys from SSO, all we
+         * need to do is to do a handshake with SSO and
+         * get the keys.
+         *
+         * @access private
+         *
+         * @param {function}  callback    The callback function to run after Generating Keys
+         *
+         * @return {undefined}
+         */generateEncryptionKey=function generateEncryptionKey(params,callback){var data={validity:10*365*24*60*60,// 10 Years
 renew:false,keyAlgorithm:'aes',keySize:256};if(params){if(params.keyAlgorithm!='undefined'){data.keyAlgorithm=params.keyAlgorithm;}if(parseInt(params.keySize)>0){data.keySize=params.keySize;}}var httpRequestParams={url:SERVICE_ADDRESSES.SSO_ADDRESS+_constants.SERVICES_PATH.SSO_GENERATE_KEY,method:'POST',data:data,headers:{'Authorization':'Bearer '+token}};httpRequest(httpRequestParams,function(result){if(!result.hasError){try{var response=JSON.parse(result.result.responseText);}catch(e){console.log(e);}/**
-                         * Save new Key Id in cache and update cacheSecret
-                         */ // if (canUseCache) {
+                     * Save new Key Id in cache and update cacheSecret
+                     */ // if (canUseCache) {
 //     if (db) {
 //         db.users
 //             .update(userInfo.id, {keyId: response.keyId})
@@ -96,48 +96,311 @@ renew:false,keyAlgorithm:'aes',keySize:256};if(params){if(params.keyAlgorithm!='
 //     }
 // }
 }else{_events.chatEvents.fireEvent('error',{code:result.error,message:result.error_description,error:result});}});},/**
-             * Get Encryption Keys by KeyId
-             *
-             * In order to Encrypt and Decrypt cache we need a key.
-             * We can retrieve encryption keys from SSO by sending
-             * KeyId to SSO and get related keys
-             *
-             * @access private
-             *
-             * @param {function}  callback    The callback function to run after getting Keys
-             *
-             * @return {undefined}
-             */getEncryptionKey=function getEncryptionKey(params,callback){var keyId;if(params){if(params.keyId!='undefined'){keyId=params.keyId;var httpRequestParams={url:SERVICE_ADDRESSES.SSO_ADDRESS+_constants.SERVICES_PATH.SSO_GET_KEY+keyId,method:'GET',headers:{'Authorization':'Bearer '+token}};httpRequest(httpRequestParams,function(result){if(!result.hasError){try{var response=JSON.parse(result.result.responseText);}catch(e){console.log(e);}callback&&callback({hasError:false,secretKey:response.secretKey});}else{callback&&callback({hasError:true,code:result.errorCode,message:result.errorMessage});_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});}}},/**
-             * HTTP Request class
-             *
-             * Manages all HTTP Requests
-             *
-             * @access private
-             *
-             * @param {object}    params      Given parameters including (Headers, ...)
-             * @param {function}  callback    The callback function to run after
-             *
-             * @return {undefined}
-             */httpRequest=function httpRequest(params,callback){var url=params.url,xhrResponseType=params.responseType||'text',fileSize,originalFileName,threadId,fileUniqueId,fileObject,data=params.data,method=typeof params.method=='string'?params.method:'GET',fileUploadUniqueId=typeof params.uniqueId=='string'?params.uniqueId:'uniqueId',settings,hasError=false;if(!url){callback({hasError:true,errorCode:6201,errorMessage:_constants.CHAT_ERRORS[6201]});return;}if(isNode&&_request["default"]){var headers=params.headers;if(params.method=='POST'&&data){if(data.hasOwnProperty('image')||data.hasOwnProperty('file')){headers['Content-Type']='multipart/form-data';var postFormData={};for(var i in data){if(i=='image'||i=='file'){fileSize=data.fileSize;originalFileName=data.originalFileName;threadId=data.threadId;fileUniqueId=data.uniqueId;fileObject=data[i];postFormData[i]=_fs["default"].createReadStream(data[i]);}else{postFormData[i]=data[i];}}var r=httpRequestObject[eval('fileUploadUniqueId')]=_request["default"].post({url:url,formData:postFormData,headers:headers},function(error,response,body){if(!error){if(response.statusCode==200){var body=JSON.parse(body);if(typeof body.hasError!=='undefined'&&body.hasError){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file,errorCode:body.errorCode,errorMessage:body.message,errorEvent:body});callback&&callback({hasError:true,errorCode:body.errorCode,errorMessage:body.message,errorEvent:body});}else{hasError=false;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADED',progress:100,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file});callback&&callback({hasError:false,cache:false,result:{responseText:body}});}}else{hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file,errorCode:response.statusCode,errorMessage:body});callback&&callback({hasError:true,errorCode:response.statusCode,errorMessage:body});}}else{hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});callback&&callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});}}).on('abort',function(){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_CANCELED',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});callback({hasError:true,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});});var oldPercent=0;var q=setInterval(function(){if(r.req&&r.req.connection){var dispatched=r.req.connection._bytesDispatched;var percent=Math.round(dispatched*100/fileSize);if(percent<100&&!hasError){oldPercent=percent;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADING',progress:percent,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file});}else{clearInterval(q);}}},10);}else{headers['Content-Type']='application/x-www-form-urlencoded';data=_querystring["default"].stringify(data);_request["default"].post({url:url,body:data,headers:headers},function(error,response,body){if(!error){if(response.statusCode==200){callback&&callback({hasError:false,cache:false,result:{responseText:body}});}else{callback&&callback({hasError:true,errorCode:response.statusCode,errorMessage:body});}}else{callback&&callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});}});}}else if(params.method=='GET'){if((0,_typeof2["default"])(data)==='object'){data=_querystring["default"].stringify(data);url+='?'+data;}else if(typeof data==='string'){url+='?'+data;}_request["default"].get({url:url,headers:headers},function(error,response,body){if(!error){if(response.statusCode==200){callback&&callback({hasError:false,cache:false,result:{responseText:body}});}else{callback&&callback({hasError:true,errorCode:response.statusCode,errorMessage:body});}}else{callback&&callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});}});}}else{var hasFile=false;httpRequestObject[eval('fileUploadUniqueId')]=new XMLHttpRequest(),settings=params.settings;httpRequestObject[eval('fileUploadUniqueId')].responseType=xhrResponseType;if(data&&(0,_typeof2["default"])(data)==='object'&&(data.hasOwnProperty('image')||data.hasOwnProperty('file'))){httpRequestObject[eval('fileUploadUniqueId')].timeout=settings&&(0,_typeof2["default"])(parseInt(settings.timeout))>0&&settings.timeout>0?settings.timeout:httpUploadRequestTimeout;}else{httpRequestObject[eval('fileUploadUniqueId')].timeout=settings&&(0,_typeof2["default"])(parseInt(settings.uploadTimeout))>0&&settings.uploadTimeout>0?settings.uploadTimeout:httpRequestTimeout;}httpRequestObject[eval('fileUploadUniqueId')].addEventListener('error',function(event){if(callback){if(hasFile){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (XMLHttpRequest Error Event Listener)'});}callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (XMLHttpRequest Error Event Listener)'});}},false);httpRequestObject[eval('fileUploadUniqueId')].addEventListener('abort',function(event){if(callback){if(hasFile){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_CANCELED',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});}callback({hasError:true,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});}},false);try{if(method=='GET'){if((0,_typeof2["default"])(data)==='object'&&data!==null){var keys=Object.keys(data);if(keys.length>0){url+='?';for(var i=0;i<keys.length;i++){var key=keys[i];url+=key+'='+data[key];if(i<keys.length-1){url+='&';}}}}else if(typeof data==='string'&&data!==null){url+='?'+data;}httpRequestObject[eval('fileUploadUniqueId')].open(method,url,true);if((0,_typeof2["default"])(params.headers)==='object'){for(var key in params.headers){httpRequestObject[eval('fileUploadUniqueId')].setRequestHeader(key,params.headers[key]);}}httpRequestObject[eval('fileUploadUniqueId')].onprogress=function(event){if(event.lengthComputable&&!hasError){// console.log('total bytes', event.total);
+         * Get Encryption Keys by KeyId
+         *
+         * In order to Encrypt and Decrypt cache we need a key.
+         * We can retrieve encryption keys from SSO by sending
+         * KeyId to SSO and get related keys
+         *
+         * @access private
+         *
+         * @param {function}  callback    The callback function to run after getting Keys
+         *
+         * @return {undefined}
+         */getEncryptionKey=function getEncryptionKey(params,callback){var keyId;if(params){if(params.keyId!='undefined'){keyId=params.keyId;var httpRequestParams={url:SERVICE_ADDRESSES.SSO_ADDRESS+_constants.SERVICES_PATH.SSO_GET_KEY+keyId,method:'GET',headers:{'Authorization':'Bearer '+token}};httpRequest(httpRequestParams,function(result){if(!result.hasError){try{var response=JSON.parse(result.result.responseText);}catch(e){console.log(e);}callback&&callback({hasError:false,secretKey:response.secretKey});}else{callback&&callback({hasError:true,code:result.errorCode,message:result.errorMessage});_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});}}},/**
+         * HTTP Request class
+         *
+         * Manages all HTTP Requests
+         *
+         * @access private
+         *
+         * @param {object}    params      Given parameters including (Headers, ...)
+         * @param {function}  callback    The callback function to run after
+         *
+         * @return {undefined}
+         */httpRequest=/*#__PURE__*/function(){var _ref=(0,_asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee2(params,callback){var url,xhrResponseType,fileSize,originalFileName,threadId,fileUniqueId,fileObject,data,method,fileUploadUniqueId,settings,hasError,headers,postFormData,i,r,oldPercent,q,Progress,hasFile,keys,key,formData,sendData;return _regenerator["default"].wrap(function _callee2$(_context2){while(1)switch(_context2.prev=_context2.next){case 0:url=params.url,xhrResponseType=params.responseType||'text',data=params.data,method=typeof params.method=='string'?params.method:'GET',fileUploadUniqueId=typeof params.uniqueId=='string'?params.uniqueId:'uniqueId',hasError=false;if(url){_context2.next=4;break;}callback({hasError:true,errorCode:6201,errorMessage:_constants.CHAT_ERRORS[6201]});return _context2.abrupt("return");case 4:if(isNode&&_request["default"]){headers=params.headers;if(params.method=='POST'&&data){if(data.hasOwnProperty('image')||data.hasOwnProperty('file')){headers['Content-Type']='multipart/form-data';postFormData={};for(i in data){if(i=='image'||i=='file'){fileSize=data.fileSize;originalFileName=data.originalFileName;threadId=data.threadId;fileUniqueId=data.uniqueId;fileObject=data[i];postFormData[i]=_fs["default"].createReadStream(data[i]);}else{postFormData[i]=data[i];}}// var r = httpRequestObject[eval('fileUploadUniqueId')] = fetch(url,{
+//     formData: postFormData,
+//     headers: headers
+// }).then(res => {
+//     if (res.statusCode == 200) {
+//         var body = JSON.parse(res);
+//         if (typeof body.hasError !== 'undefined' && body.hasError) {
+//             hasError = true;
+//             chatEvents.fireEvent('fileUploadEvents', {
+//                 threadId: threadId,
+//                 uniqueId: fileUniqueId,
+//                 state: 'UPLOAD_ERROR',
+//                 progress: 0,
+//                 fileInfo: {
+//                     fileName: originalFileName,
+//                     fileSize: fileSize
+//                 },
+//                 fileObject: params.file,
+//                 errorCode: body.errorCode,
+//                 errorMessage: body.message,
+//                 errorEvent: body
+//             });
+//
+//             callback && callback({
+//                 hasError: true,
+//                 errorCode: body.errorCode,
+//                 errorMessage: body.message,
+//                 errorEvent: body
+//             });
+//         } else {
+//             hasError = false;
+//             chatEvents.fireEvent('fileUploadEvents', {
+//                 threadId: threadId,
+//                 uniqueId: fileUniqueId,
+//                 state: 'UPLOADED',
+//                 progress: 100,
+//                 fileInfo: {
+//                     fileName: originalFileName,
+//                     fileSize: fileSize
+//                 },
+//                 fileObject: params.file
+//             });
+//
+//             callback && callback({
+//                 hasError: false,
+//                 cache: false,
+//                 result: {
+//                     responseText: body
+//                 }
+//             });
+//         }
+//     }else {
+//         hasError = true;
+//         chatEvents.fireEvent('fileUploadEvents', {
+//             threadId: threadId,
+//             uniqueId: fileUniqueId,
+//             state: 'UPLOAD_ERROR',
+//             progress: 0,
+//             fileInfo: {
+//                 fileName: originalFileName,
+//                 fileSize: fileSize
+//             },
+//             fileObject: params.file,
+//             errorCode: response.statusCode,
+//             errorMessage: body
+//         });
+//
+//         callback && callback({
+//             hasError: true,
+//             errorCode: response.statusCode,
+//             errorMessage: body
+//         });
+//     }
+//
+// }).catch(error=>{
+//     hasError = true;
+//     chatEvents.fireEvent('fileUploadEvents', {
+//         threadId: threadId,
+//         uniqueId: fileUniqueId,
+//         state: 'UPLOAD_ERROR',
+//         progress: 0,
+//         fileInfo: {
+//             fileName: originalFileName,
+//             fileSize: fileSize
+//         },
+//         fileObject: params.file,
+//         errorCode: 6200,
+//         errorMessage: CHAT_ERRORS[6200] + ' (Request Error)',
+//         errorEvent: error
+//     });
+//
+//     callback && callback({
+//         hasError: true,
+//         errorCode: 6200,
+//         errorMessage: CHAT_ERRORS[6200] + ' (Request Error)',
+//         errorEvent: error
+//     });
+// }).on('abort', function () {
+//     hasError = true;
+//     chatEvents.fireEvent('fileUploadEvents', {
+//         threadId: threadId,
+//         uniqueId: fileUniqueId,
+//         state: 'UPLOAD_CANCELED',
+//         progress: 0,
+//         fileInfo: {
+//             fileName: originalFileName,
+//             fileSize: fileSize
+//         },
+//         fileObject: fileObject,
+//         errorCode: 6303,
+//         errorMessage: CHAT_ERRORS[6303]
+//     });
+//     callback({
+//         hasError: true,
+//         errorCode: 6303,
+//         errorMessage: CHAT_ERRORS[6303]
+//     });
+// });
+r=httpRequestObject[eval('fileUploadUniqueId')]=_request["default"].post({url:url,formData:postFormData,headers:headers},function(error,response,body){if(!error){if(response.statusCode==200){var body=JSON.parse(body);if(typeof body.hasError!=='undefined'&&body.hasError){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file,errorCode:body.errorCode,errorMessage:body.message,errorEvent:body});callback&&callback({hasError:true,errorCode:body.errorCode,errorMessage:body.message,errorEvent:body});}else{hasError=false;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADED',progress:100,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file});callback&&callback({hasError:false,cache:false,result:{responseText:body}});}}else{hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file,errorCode:response.statusCode,errorMessage:body});callback&&callback({hasError:true,errorCode:response.statusCode,errorMessage:body});}}else{hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});callback&&callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});}}).on('abort',function(){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_CANCELED',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});callback({hasError:true,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});});oldPercent=0;q=setInterval(function(){if(r.req&&r.req.connection){var dispatched=r.req.connection._bytesDispatched;var percent=Math.round(dispatched*100/fileSize);if(percent<100&&!hasError){oldPercent=percent;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADING',progress:percent,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:params.file});}else{clearInterval(q);}}},10);}else{headers['Content-Type']='application/x-www-form-urlencoded';data=_querystring["default"].stringify(data);// fetch(url, {
+//      method: 'POST',
+//      body: data,
+//      headers: headers
+//  }).then(res => {
+//      if (res.statusCode == 200) {
+//          callback && callback({
+//              hasError: false,
+//              cache: false,
+//              result: {
+//                  responseText: res.json()
+//              }
+//          });
+//      } else {
+//          callback && callback({
+//              hasError: true,
+//              errorCode: response.statusCode,
+//              errorMessage: res.json()
+//          });
+//      }
+//  }).catch(error => {
+//      callback && callback({
+//          hasError: true,
+//          errorCode: 6200,
+//          errorMessage: CHAT_ERRORS[6200] + ' (Request Error)',
+//          errorEvent: error
+//      });
+//  })
+_request["default"].post({url:url,body:data,headers:headers},function(error,response,body){if(!error){if(response.statusCode==200){callback&&callback({hasError:false,cache:false,result:{responseText:body}});}else{callback&&callback({hasError:true,errorCode:response.statusCode,errorMessage:body});}}else{callback&&callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Error)',errorEvent:error});}});}}else if(params.method=='GET'){Progress=/*#__PURE__*/function(){var _ref2=(0,_asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee(res){var _yield$res$read,done,value;return _regenerator["default"].wrap(function _callee$(_context){while(1)switch(_context.prev=_context.next){case 0:if(!true){_context.next=19;break;}_context.t0=console;_context.next=4;return res.read();case 4:_context.t1=_context.sent;_context.t0.log.call(_context.t0,"---------",_context.t1);_context.next=8;return res.read();case 8:_yield$res$read=_context.sent;done=_yield$res$read.done;value=_yield$res$read.value;console.log("----",done,value);if(!done){_context.next=14;break;}return _context.abrupt("break",19);case 14:chunks.push(value);receivedLength+=value.length;console.log("Received ".concat(receivedLength));_context.next=0;break;case 19:case"end":return _context.stop();}},_callee);}));return function Progress(_x3){return _ref2.apply(this,arguments);};}();// let responseFetch = await fetch(url, {
+//     headers: headers
+// }).then(res => {
+//     if (res.status == 200) {
+//         if(res.body){
+//             res.body.on('readable', () => {
+//                 Progress();
+//             })
+//             }
+//
+//         //console.log("llll", res.body.getReader())
+//         //const reader = res.body.getReader();
+//        // console.log("rrrrr", reader)
+//         const contentLength = +res.headers.get('Content-Length');
+//        // console.log("cccccc", contentLength)
+//         let receivedLength = 0;
+//         let chunks = [];
+//         let loaded = Progress();
+//
+//         async function Progress() {
+//             while (true) {
+//                 let response = res.body;
+//                 console.log("responseee", response.json())
+//               //  const {done, value} = await response.arrayBuffer().read();
+//                 //console.log("vvvvv", done,"-------", value)
+//                     break;
+//                 if (done) {
+//                     break;
+//                 }
+//                 // chunks.push(value);
+//                 // receivedLength += value.length;
+//                 // console.log(`Received ${receivedLength} of ${contentLength}`);
+//             }
+//             return receivedLength;
+//         }
+//
+//         chatEvents.fireEvent('fileDownloadEvents', {
+//             threadId: threadId,
+//             uniqueId: fileUniqueId,
+//             state: 'DOWNLOADING',
+//             progress: Math.round((event.loaded / event.contentLength) * 100),
+//             // fileInfo: {
+//             //     fileName: originalFileName,
+//             //     fileSize: fileSize
+//             // },
+//             // fileObject: fileObject
+//         });
+//         callback && callback({
+//             hasError: false,
+//             cache: false,
+//             result: {
+//                 responseText: res.body
+//             }
+//         });
+//         // httpRequestObject[eval('fileUploadUniqueId')].onprogress = function (event) {
+//         //     if (event.lengthComputable && !hasError) {
+//         //         // console.log('total bytes', event.total);
+//         //         // console.log('loaded bytes', event.loaded);
+//         //         chatEvents.fireEvent('fileDownloadEvents', {
+//         //             threadId: threadId,
+//         //             uniqueId: fileUniqueId,
+//         //             state: 'DOWNLOADING',
+//         //             progress: Math.round((event.loaded / event.total) * 100),
+//         //             fileInfo: {
+//         //                 fileName: originalFileName,
+//         //                 fileSize: fileSize
+//         //             },
+//         //             fileObject: fileObject
+//         //         });
+//         //     }
+//         // };
+//     } else {
+//         callback && callback({
+//             hasError: true,
+//             errorCode: res.status,
+//             errorMessage: res.arrayBuffer()
+//         });
+//     }
+// })
+//     .catch(error => {
+//         callback && callback({
+//             hasError: true,
+//             errorCode: 6200,
+//             errorMessage: CHAT_ERRORS[6200] + ' (Request Error)',
+//             errorEvent: error
+//         })
+//     })
+// Request.get({
+//     url: url,
+//     headers: headers
+// }, function (error, response, body) {
+//     if (!error) {
+//         if (response.statusCode == 200) {
+//             callback && callback({
+//                 hasError: false,
+//                 cache: false,
+//                 result: {
+//                     responseText: body
+//                 }
+//             });
+//         } else {
+//             callback && callback({
+//                 hasError: true,
+//                 errorCode: response.statusCode,
+//                 errorMessage: body
+//             });
+//         }
+//     } else {
+//         callback && callback({
+//             hasError: true,
+//             errorCode: 6200,
+//             errorMessage: CHAT_ERRORS[6200] + ' (Request Error)',
+//             errorEvent: error
+//         });
+//     }
+// });
+if((0,_typeof2["default"])(data)==='object'){data=_querystring["default"].stringify(data);url+='?'+data;}else if(typeof data==='string'){url+='?'+data;}(0,_nodeFetch["default"])(url,{headers:headers}).then(function(response){return response.body;}).then(function(res){return res.on('readable',function(){var chunk;var receivedLength=0;//Progress(res);
+while(null!==(chunk=res.read())){receivedLength=chunk.length;console.log("Received ".concat(receivedLength));}});})["catch"](function(err){return console.log(err);});}}else{hasFile=false;httpRequestObject[eval('fileUploadUniqueId')]=new XMLHttpRequest(),settings=params.settings;httpRequestObject[eval('fileUploadUniqueId')].responseType=xhrResponseType;if(data&&(0,_typeof2["default"])(data)==='object'&&(data.hasOwnProperty('image')||data.hasOwnProperty('file'))){httpRequestObject[eval('fileUploadUniqueId')].timeout=settings&&(0,_typeof2["default"])(parseInt(settings.timeout))>0&&settings.timeout>0?settings.timeout:httpUploadRequestTimeout;}else{httpRequestObject[eval('fileUploadUniqueId')].timeout=settings&&(0,_typeof2["default"])(parseInt(settings.uploadTimeout))>0&&settings.uploadTimeout>0?settings.uploadTimeout:httpRequestTimeout;}httpRequestObject[eval('fileUploadUniqueId')].addEventListener('error',function(event){if(callback){if(hasFile){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (XMLHttpRequest Error Event Listener)'});}callback({hasError:true,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (XMLHttpRequest Error Event Listener)'});}},false);httpRequestObject[eval('fileUploadUniqueId')].addEventListener('abort',function(event){if(callback){if(hasFile){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_CANCELED',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});}callback({hasError:true,errorCode:6303,errorMessage:_constants.CHAT_ERRORS[6303]});}},false);try{if(method=='GET'){if((0,_typeof2["default"])(data)==='object'&&data!==null){keys=Object.keys(data);if(keys.length>0){url+='?';for(i=0;i<keys.length;i++){key=keys[i];url+=key+'='+data[key];if(i<keys.length-1){url+='&';}}}}else if(typeof data==='string'&&data!==null){url+='?'+data;}httpRequestObject[eval('fileUploadUniqueId')].open(method,url,true);if((0,_typeof2["default"])(params.headers)==='object'){for(key in params.headers){httpRequestObject[eval('fileUploadUniqueId')].setRequestHeader(key,params.headers[key]);}}httpRequestObject[eval('fileUploadUniqueId')].onprogress=function(event){if(event.lengthComputable&&!hasError){// console.log('total bytes', event.total);
 // console.log('loaded bytes', event.loaded);
-_events.chatEvents.fireEvent('fileDownloadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'DOWNLOADING',progress:Math.round(event.loaded/event.total*100),fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject});}};httpRequestObject[eval('fileUploadUniqueId')].send();}if(method==='POST'&&data){httpRequestObject[eval('fileUploadUniqueId')].open(method,url,true);if((0,_typeof2["default"])(params.headers)==='object'){for(var key in params.headers){httpRequestObject[eval('fileUploadUniqueId')].setRequestHeader(key,params.headers[key]);}}if((0,_typeof2["default"])(data)=='object'){if(data.hasOwnProperty('image')||data.hasOwnProperty('file')){hasFile=true;var formData=new _formData["default"]();for(var key in data){formData.append(key,data[key]);}fileSize=data.fileSize;originalFileName=data.originalFileName;threadId=data.threadId;fileUniqueId=data.uniqueId;fileObject=data['image']?data['image']:data['file'];httpRequestObject[eval('fileUploadUniqueId')].upload.onprogress=function(event){if(event.lengthComputable&&!hasError){// console.log('total bytes', event.total);
+_events.chatEvents.fireEvent('fileDownloadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'DOWNLOADING',progress:Math.round(event.loaded/event.total*100),fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject});}};httpRequestObject[eval('fileUploadUniqueId')].send();}if(method==='POST'&&data){httpRequestObject[eval('fileUploadUniqueId')].open(method,url,true);if((0,_typeof2["default"])(params.headers)==='object'){for(key in params.headers){httpRequestObject[eval('fileUploadUniqueId')].setRequestHeader(key,params.headers[key]);}}if((0,_typeof2["default"])(data)=='object'){if(data.hasOwnProperty('image')||data.hasOwnProperty('file')){hasFile=true;formData=new _formData["default"]();for(key in data){formData.append(key,data[key]);}fileSize=data.fileSize;originalFileName=data.originalFileName;threadId=data.threadId;fileUniqueId=data.uniqueId;fileObject=data['image']?data['image']:data['file'];httpRequestObject[eval('fileUploadUniqueId')].upload.onprogress=function(event){if(event.lengthComputable&&!hasError){// console.log('total bytes', event.total);
 // console.log('loaded bytes', event.loaded);
-_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADING',progress:Math.round(event.loaded/event.total*100),fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject});}};httpRequestObject[eval('fileUploadUniqueId')].send(formData);}else{httpRequestObject[eval('fileUploadUniqueId')].setRequestHeader('Content-Type','application/x-www-form-urlencoded');var keys=Object.keys(data);var sendData;if(keys.length>0){sendData='';for(var i=0;i<keys.length;i++){var key=keys[i];sendData+=key+'='+data[key];if(i<keys.length-1){sendData+='&';}}}httpRequestObject[eval('fileUploadUniqueId')].send(sendData);}}else{httpRequestObject[eval('fileUploadUniqueId')].send(data);}}}catch(e){callback&&callback({hasError:true,cache:false,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Catch Error)'+e});}httpRequestObject[eval('fileUploadUniqueId')].onreadystatechange=function(){if(httpRequestObject[eval('fileUploadUniqueId')].readyState==4){if(httpRequestObject[eval('fileUploadUniqueId')].status==200){if(hasFile){hasError=false;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADED',progress:100,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject});}callback&&callback({hasError:false,cache:false,result:{response:httpRequestObject[eval('fileUploadUniqueId')].response,responseText:xhrResponseType==='text'?httpRequestObject[eval('fileUploadUniqueId')].responseText:'',responseHeaders:httpRequestObject[eval('fileUploadUniqueId')].getAllResponseHeaders()}});}else{if(hasFile){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Status != 200)',statusCode:httpRequestObject[eval('fileUploadUniqueId')].status});}callback&&callback({hasError:true,errorMessage:xhrResponseType==='text'?httpRequestObject[eval('fileUploadUniqueId')].responseText:'',errorCode:httpRequestObject[eval('fileUploadUniqueId')].status,responseHeaders:httpRequestObject[eval('fileUploadUniqueId')].getAllResponseHeaders()});}}};}},/**
-             * Get User Info
-             *
-             * This functions gets user info from chat serverName.
-             * If info is not retrived the function will attemp
-             * 5 more times to get info from erver
-             *
-             * @recursive
-             * @access private
-             *
-             * @param {function}    callback    The callback function to call after
-             *
-             * @return {object} Instant function return
-             */getUserInfo=function getUserInfoRecursive(callback){getUserInfoRetryCount++;if(getUserInfoRetryCount>getUserInfoRetry){getUserInfoTimeout&&clearTimeout(getUserInfoTimeout);getUserInfoRetryCount=0;_events.chatEvents.fireEvent('error',{code:6101,message:_constants.CHAT_ERRORS[6101],error:null});}else{getUserInfoTimeout&&clearTimeout(getUserInfoTimeout);getUserInfoTimeout=setTimeout(function(){getUserInfoRecursive(callback);},getUserInfoRetryCount*10000);return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.USER_INFO,typeCode:params.typeCode},{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){getUserInfoTimeout&&clearTimeout(getUserInfoTimeout);var messageContent=result.result;var currentUser=formatDataToMakeUser(messageContent);/**
-                                 * Add current user into cache database #cache
-                                 */ // if (canUseCache) {
+_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADING',progress:Math.round(event.loaded/event.total*100),fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject});}};httpRequestObject[eval('fileUploadUniqueId')].send(formData);}else{httpRequestObject[eval('fileUploadUniqueId')].setRequestHeader('Content-Type','application/x-www-form-urlencoded');keys=Object.keys(data);if(keys.length>0){sendData='';for(i=0;i<keys.length;i++){key=keys[i];sendData+=key+'='+data[key];if(i<keys.length-1){sendData+='&';}}}httpRequestObject[eval('fileUploadUniqueId')].send(sendData);}}else{httpRequestObject[eval('fileUploadUniqueId')].send(data);}}}catch(e){callback&&callback({hasError:true,cache:false,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Catch Error)'+e});}httpRequestObject[eval('fileUploadUniqueId')].onreadystatechange=function(){if(httpRequestObject[eval('fileUploadUniqueId')].readyState==4){if(httpRequestObject[eval('fileUploadUniqueId')].status==200){if(hasFile){hasError=false;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOADED',progress:100,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject});}callback&&callback({hasError:false,cache:false,result:{response:httpRequestObject[eval('fileUploadUniqueId')].response,responseText:xhrResponseType==='text'?httpRequestObject[eval('fileUploadUniqueId')].responseText:'',responseHeaders:httpRequestObject[eval('fileUploadUniqueId')].getAllResponseHeaders()}});}else{if(hasFile){hasError=true;_events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:fileUniqueId,state:'UPLOAD_ERROR',progress:0,fileInfo:{fileName:originalFileName,fileSize:fileSize},fileObject:fileObject,errorCode:6200,errorMessage:_constants.CHAT_ERRORS[6200]+' (Request Status != 200)',statusCode:httpRequestObject[eval('fileUploadUniqueId')].status});}callback&&callback({hasError:true,errorMessage:xhrResponseType==='text'?httpRequestObject[eval('fileUploadUniqueId')].responseText:'',errorCode:httpRequestObject[eval('fileUploadUniqueId')].status,responseHeaders:httpRequestObject[eval('fileUploadUniqueId')].getAllResponseHeaders()});}}};}case 5:case"end":return _context2.stop();}},_callee2);}));return function httpRequest(_x,_x2){return _ref.apply(this,arguments);};}(),/**
+         * Get User Info
+         *
+         * This functions gets user info from chat serverName.
+         * If info is not retrived the function will attemp
+         * 5 more times to get info from erver
+         *
+         * @recursive
+         * @access private
+         *
+         * @param {function}    callback    The callback function to call after
+         *
+         * @return {object} Instant function return
+         */getUserInfo=function getUserInfoRecursive(callback){getUserInfoRetryCount++;if(getUserInfoRetryCount>getUserInfoRetry){getUserInfoTimeout&&clearTimeout(getUserInfoTimeout);getUserInfoRetryCount=0;_events.chatEvents.fireEvent('error',{code:6101,message:_constants.CHAT_ERRORS[6101],error:null});}else{getUserInfoTimeout&&clearTimeout(getUserInfoTimeout);getUserInfoTimeout=setTimeout(function(){getUserInfoRecursive(callback);},getUserInfoRetryCount*10000);return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.USER_INFO,typeCode:params.typeCode},{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){getUserInfoTimeout&&clearTimeout(getUserInfoTimeout);var messageContent=result.result;var currentUser=formatDataToMakeUser(messageContent);/**
+                             * Add current user into cache database #cache
+                             */ // if (canUseCache) {
 //     if (db) {
 //         db.users
 //             .where('id')
@@ -179,169 +442,169 @@ _events.chatEvents.fireEvent('fileUploadEvents',{threadId:threadId,uniqueId:file
 //     }
 // }
 var resultData={user:currentUser};returnData.result=resultData;getUserInfoRetryCount=0;callback&&callback(returnData);/**
-                                 * Delete callback so if server pushes response
-                                 * before cache, cache won't send data again
-                                 */callback=undefined;}}});}},/**
-             * Send Message
-             *
-             * All socket messages go through this function
-             *
-             * @access private
-             *
-             * @param {string}    params.token           SSO Token of current user
-             * @param {string}    params.tokenIssuer     Issuer of token (default : 1)
-             * @param {int}       params.type            Type of message (object : chatMessageVOTypes)
-             * @param {string}    params.typeCode        Type of contact who is going to receive the message
-             * @param {int}       params.messageType     Type of Message, in order to filter messages
-             * @param {long}      params.subjectId       Id of chat thread
-             * @param {string}    params.uniqueId        Tracker id for client
-             * @param {string}    params.content         Content of message
-             * @param {long}      params.time            Time of message, filled by chat server
-             * @param {string}    params.medadata        Metadata for message (Will use when needed)
-             * @param {string}    params.systemMedadata  Metadata for message (To be Set by client)
-             * @param {long}      params.repliedTo       Id of message to reply to (Should be filled by client)
-             * @param {function}  params.callback        The callback function to run after
-             *
-             * @return {object} Instant Function Return
-             */sendMessage=function sendMessage(params,callbacks,recursiveCallback){/**
-                 * + ChatMessage        {object}
-                 *    - token           {string}
-                 *    - tokenIssuer     {string}
-                 *    - type            {int}
-                 *    - typeCode        {string}
-                 *    - messageType     {int}
-                 *    - subjectId       {long}
-                 *    - uniqueId        {string}
-                 *    - content         {string}
-                 *    - time            {long}
-                 *    - medadata        {string}
-                 *    - systemMedadata  {string}
-                 *    - repliedTo       {long}
-                 */var threadId=null;var asyncPriority=params.asyncPriority>0?params.asyncPriority:msgPriority;var messageVO={type:params.chatMessageVOType,token:token,tokenIssuer:1};if(params.typeCode||generalTypeCode){messageVO.typeCode=generalTypeCode;//params.typeCode;
+                             * Delete callback so if server pushes response
+                             * before cache, cache won't send data again
+                             */callback=undefined;}}});}},/**
+         * Send Message
+         *
+         * All socket messages go through this function
+         *
+         * @access private
+         *
+         * @param {string}    params.token           SSO Token of current user
+         * @param {string}    params.tokenIssuer     Issuer of token (default : 1)
+         * @param {int}       params.type            Type of message (object : chatMessageVOTypes)
+         * @param {string}    params.typeCode        Type of contact who is going to receive the message
+         * @param {int}       params.messageType     Type of Message, in order to filter messages
+         * @param {long}      params.subjectId       Id of chat thread
+         * @param {string}    params.uniqueId        Tracker id for client
+         * @param {string}    params.content         Content of message
+         * @param {long}      params.time            Time of message, filled by chat server
+         * @param {string}    params.medadata        Metadata for message (Will use when needed)
+         * @param {string}    params.systemMedadata  Metadata for message (To be Set by client)
+         * @param {long}      params.repliedTo       Id of message to reply to (Should be filled by client)
+         * @param {function}  params.callback        The callback function to run after
+         *
+         * @return {object} Instant Function Return
+         */sendMessage=function sendMessage(params,callbacks,recursiveCallback){/**
+             * + ChatMessage        {object}
+             *    - token           {string}
+             *    - tokenIssuer     {string}
+             *    - type            {int}
+             *    - typeCode        {string}
+             *    - messageType     {int}
+             *    - subjectId       {long}
+             *    - uniqueId        {string}
+             *    - content         {string}
+             *    - time            {long}
+             *    - medadata        {string}
+             *    - systemMedadata  {string}
+             *    - repliedTo       {long}
+             */var threadId=null;var asyncPriority=params.asyncPriority>0?params.asyncPriority:msgPriority;var messageVO={type:params.chatMessageVOType,token:token,tokenIssuer:1};if(params.typeCode||generalTypeCode){messageVO.typeCode=generalTypeCode;//params.typeCode;
 }/* else if (generalTypeCode) {
                     messageVO.typeCode = generalTypeCode;
                 }*/if(typeCodeOwnerId){messageVO.ownerId=typeCodeOwnerId;}if(params.messageType){messageVO.messageType=params.messageType;}if(params.subjectId){threadId=params.subjectId;messageVO.subjectId=params.subjectId;}if(params.content){if((0,_typeof2["default"])(params.content)=='object'){messageVO.content=JSON.stringify(params.content);}else{messageVO.content=params.content;if(DOMPurify.isSupported){messageVO.content=DOMPurify.sanitize(messageVO.content,{ALLOWED_TAGS:[]});}}}if(params.metadata){messageVO.metadata=params.metadata;}if(params.systemMetadata){messageVO.systemMetadata=params.systemMetadata;}if(params.repliedTo){messageVO.repliedTo=params.repliedTo;}var uniqueId;if(typeof params.uniqueId!='undefined'){uniqueId=params.uniqueId;}else if(params.chatMessageVOType!==_constants.chatMessageVOTypes.PING){uniqueId=_utility["default"].generateUUID();}if(Array.isArray(uniqueId)){messageVO.uniqueId=JSON.stringify(uniqueId);}else{messageVO.uniqueId=uniqueId;}if((0,_typeof2["default"])(callbacks)=='object'){if(callbacks.onSeen||callbacks.onDeliver||callbacks.onSent){if(!threadCallbacks[threadId]){threadCallbacks[threadId]={};}threadCallbacks[threadId][uniqueId]={};sendMessageCallbacks[uniqueId]={};if(callbacks.onSent){sendMessageCallbacks[uniqueId].onSent=callbacks.onSent;threadCallbacks[threadId][uniqueId].onSent=false;threadCallbacks[threadId][uniqueId].uniqueId=uniqueId;}if(callbacks.onSeen){sendMessageCallbacks[uniqueId].onSeen=callbacks.onSeen;threadCallbacks[threadId][uniqueId].onSeen=false;}if(callbacks.onDeliver){sendMessageCallbacks[uniqueId].onDeliver=callbacks.onDeliver;threadCallbacks[threadId][uniqueId].onDeliver=false;}}else if(callbacks.onResult){messagesCallbacks[uniqueId]=callbacks.onResult;}}else if(typeof callbacks=='function'){messagesCallbacks[uniqueId]=callbacks;}/**
-                 * Message to send through async SDK
+             * Message to send through async SDK
+             *
+             * + MessageWrapperVO  {object}
+             *    - type           {int}       Type of ASYNC message based on content
+             *    + content        {string}
+             *       -peerName     {string}    Name of receiver Peer
+             *       -receivers[]  {long}      Array of receiver peer ids (if you use this, peerName will be ignored)
+             *       -priority     {int}       Priority of message 1-10, lower has more priority
+             *       -messageId    {long}      Id of message on your side, not required
+             *       -ttl          {long}      Time to live for message in milliseconds
+             *       -content      {string}    Chat Message goes here after stringifying
+             *    - trackId        {long}      Tracker id of message that you receive from DIRANA previously (if you are replying a sync message)
+             */var data={type:parseInt(params.pushMsgType)>0?params.pushMsgType:3,content:{peerName:serverName,priority:asyncPriority,content:JSON.stringify(messageVO),ttl:params.messageTtl>0?params.messageTtl:messageTtl}};asyncClient.send(data,function(res){if(res.hasError&&callbacks){if(typeof callbacks=='function'){callbacks(res);}else if((0,_typeof2["default"])(callbacks)=='object'&&typeof callbacks.onResult=='function'){callbacks.onResult(res);}if(messagesCallbacks[uniqueId]){delete messagesCallbacks[uniqueId];}}});sendPingTimeout&&clearTimeout(sendPingTimeout);sendPingTimeout=setTimeout(function(){ping();},chatPingMessageInterval);recursiveCallback&&recursiveCallback();return{uniqueId:uniqueId,threadId:threadId,participant:userInfo,content:params.content};},sendSystemMessage=function sendSystemMessage(params){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.SYSTEM_MESSAGE,subjectId:params.threadId,content:params.content,uniqueId:params.uniqueId,pushMsgType:3});},/**
+         * Chat Send Message Queue Handler
+         *
+         * Whenever something pushes into cahtSendQueue
+         * this function invokes and does the message
+         * sending progress throught async
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */chatSendQueueHandler=function chatSendQueueHandler(){chatSendQueueHandlerTimeout&&clearTimeout(chatSendQueueHandlerTimeout);if(chatSendQueue.length){var messageToBeSend=chatSendQueue[0];/**
+                 * Getting chatSendQueue from either cache or
+                 * memory and scrolling through the send queue
+                 * to send all the messages which are waiting
+                 * for chatState to become TRUE
                  *
-                 * + MessageWrapperVO  {object}
-                 *    - type           {int}       Type of ASYNC message based on content
-                 *    + content        {string}
-                 *       -peerName     {string}    Name of receiver Peer
-                 *       -receivers[]  {long}      Array of receiver peer ids (if you use this, peerName will be ignored)
-                 *       -priority     {int}       Priority of message 1-10, lower has more priority
-                 *       -messageId    {long}      Id of message on your side, not required
-                 *       -ttl          {long}      Time to live for message in milliseconds
-                 *       -content      {string}    Chat Message goes here after stringifying
-                 *    - trackId        {long}      Tracker id of message that you receive from DIRANA previously (if you are replying a sync message)
-                 */var data={type:parseInt(params.pushMsgType)>0?params.pushMsgType:3,content:{peerName:serverName,priority:asyncPriority,content:JSON.stringify(messageVO),ttl:params.messageTtl>0?params.messageTtl:messageTtl}};asyncClient.send(data,function(res){if(res.hasError&&callbacks){if(typeof callbacks=='function'){callbacks(res);}else if((0,_typeof2["default"])(callbacks)=='object'&&typeof callbacks.onResult=='function'){callbacks.onResult(res);}if(messagesCallbacks[uniqueId]){delete messagesCallbacks[uniqueId];}}});sendPingTimeout&&clearTimeout(sendPingTimeout);sendPingTimeout=setTimeout(function(){ping();},chatPingMessageInterval);recursiveCallback&&recursiveCallback();return{uniqueId:uniqueId,threadId:threadId,participant:userInfo,content:params.content};},sendSystemMessage=function sendSystemMessage(params){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.SYSTEM_MESSAGE,subjectId:params.threadId,content:params.content,uniqueId:params.uniqueId,pushMsgType:3});},/**
-             * Chat Send Message Queue Handler
-             *
-             * Whenever something pushes into cahtSendQueue
-             * this function invokes and does the message
-             * sending progress throught async
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */chatSendQueueHandler=function chatSendQueueHandler(){chatSendQueueHandlerTimeout&&clearTimeout(chatSendQueueHandlerTimeout);if(chatSendQueue.length){var messageToBeSend=chatSendQueue[0];/**
-                     * Getting chatSendQueue from either cache or
-                     * memory and scrolling through the send queue
-                     * to send all the messages which are waiting
-                     * for chatState to become TRUE
-                     *
-                     * There is a small possibility that a Message
-                     * wouldn't make it through network, so it Will
-                     * not reach chat server. To avoid losing those
-                     * messages, we put a clone of every message
-                     * in waitQ, and when ack of the message comes,
-                     * we delete that message from waitQ. otherwise
-                     * we assume that these messages have been failed to
-                     * send and keep them to be either canceled or resent
-                     * by user later. When user calls getHistory(), they
-                     * will have failed messages alongside with typical
-                     * messages history.
-                     */if(chatState){getChatSendQueue(0,function(chatSendQueue){deleteFromChatSentQueue(messageToBeSend,function(){sendMessage(messageToBeSend.message,messageToBeSend.callbacks,function(){if(chatSendQueue.length){chatSendQueueHandler();}});});});}}},/**
-             * Ping
-             *
-             * This Function sends ping message to keep user connected to
-             * chat server and updates its status
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */ping=function ping(){if(chatState&&userInfo!==undefined){/**
-                     * Ping messages should be sent ASAP, because
-                     * we don't want to wait for send queue, we send them
-                     * right through async from here
-                     */sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.PING,pushMsgType:3});}else{sendPingTimeout&&clearTimeout(sendPingTimeout);}},/**
-             * Clear Cache
-             *
-             * Clears Async queue so that all the remained messages will be
-             * ignored
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */clearChatServerCaches=function clearChatServerCaches(){sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.LOGOUT,pushMsgType:3});},/**
-             * Received Async Message Handler
-             *
-             * This functions parses received message from async
-             *
-             * @access private
-             *
-             * @param {object}    asyncMessage    Received Message from Async
-             *
-             * @return {undefined}
-             */receivedAsyncMessageHandler=function receivedAsyncMessageHandler(asyncMessage){/**
-                 * + Message Received From Async      {object}
-                 *    - id                            {long}
-                 *    - senderMessageId               {long}
-                 *    - senderName                    {string}
-                 *    - senderId                      {long}
-                 *    - type                          {int}
-                 *    - content                       {string}
-                 */var content=JSON.parse(asyncMessage.content);chatMessageHandler(content);},/**
-             * is Valid Json
-             *
-             * This functions checks if a string is valid json or not?
-             *
-             * @access private
-             *
-             * @param {string}  jsonString   Json String to be checked
-             *
-             * @return {boolean}
-             */isValidJson=function isValidJson(jsonString){try{JSON.parse(jsonString);}catch(e){return false;}return true;},/**
-             * Chat Message Handler
-             *
-             * Manages received chat messages and do the job
-             *
-             * @access private
-             *
-             * @param {object}    chatMessage     Content of Async Message which is considered as Chat Message
-             *
-             * @return {undefined}
-             */chatMessageHandler=function chatMessageHandler(chatMessage){if(chatMessage.typeCode&&chatMessage.typeCode!==generalTypeCode){return;}var threadId=chatMessage.subjectId,type=chatMessage.type,// TODO Check this again
+                 * There is a small possibility that a Message
+                 * wouldn't make it through network, so it Will
+                 * not reach chat server. To avoid losing those
+                 * messages, we put a clone of every message
+                 * in waitQ, and when ack of the message comes,
+                 * we delete that message from waitQ. otherwise
+                 * we assume that these messages have been failed to
+                 * send and keep them to be either canceled or resent
+                 * by user later. When user calls getHistory(), they
+                 * will have failed messages alongside with typical
+                 * messages history.
+                 */if(chatState){getChatSendQueue(0,function(chatSendQueue){deleteFromChatSentQueue(messageToBeSend,function(){sendMessage(messageToBeSend.message,messageToBeSend.callbacks,function(){if(chatSendQueue.length){chatSendQueueHandler();}});});});}}},/**
+         * Ping
+         *
+         * This Function sends ping message to keep user connected to
+         * chat server and updates its status
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */ping=function ping(){if(chatState&&userInfo!==undefined){/**
+                 * Ping messages should be sent ASAP, because
+                 * we don't want to wait for send queue, we send them
+                 * right through async from here
+                 */sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.PING,pushMsgType:3});}else{sendPingTimeout&&clearTimeout(sendPingTimeout);}},/**
+         * Clear Cache
+         *
+         * Clears Async queue so that all the remained messages will be
+         * ignored
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */clearChatServerCaches=function clearChatServerCaches(){sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.LOGOUT,pushMsgType:3});},/**
+         * Received Async Message Handler
+         *
+         * This functions parses received message from async
+         *
+         * @access private
+         *
+         * @param {object}    asyncMessage    Received Message from Async
+         *
+         * @return {undefined}
+         */receivedAsyncMessageHandler=function receivedAsyncMessageHandler(asyncMessage){/**
+             * + Message Received From Async      {object}
+             *    - id                            {long}
+             *    - senderMessageId               {long}
+             *    - senderName                    {string}
+             *    - senderId                      {long}
+             *    - type                          {int}
+             *    - content                       {string}
+             */var content=JSON.parse(asyncMessage.content);chatMessageHandler(content);},/**
+         * is Valid Json
+         *
+         * This functions checks if a string is valid json or not?
+         *
+         * @access private
+         *
+         * @param {string}  jsonString   Json String to be checked
+         *
+         * @return {boolean}
+         */isValidJson=function isValidJson(jsonString){try{JSON.parse(jsonString);}catch(e){return false;}return true;},/**
+         * Chat Message Handler
+         *
+         * Manages received chat messages and do the job
+         *
+         * @access private
+         *
+         * @param {object}    chatMessage     Content of Async Message which is considered as Chat Message
+         *
+         * @return {undefined}
+         */chatMessageHandler=function chatMessageHandler(chatMessage){if(chatMessage.typeCode&&chatMessage.typeCode!==generalTypeCode){return;}var threadId=chatMessage.subjectId,type=chatMessage.type,// TODO Check this again
 messageContent=typeof chatMessage.content==='string'&&isValidJson(chatMessage.content)?JSON.parse(chatMessage.content):chatMessage.content,contentCount=chatMessage.contentCount,uniqueId=chatMessage.uniqueId,time=chatMessage.time;switch(type){/**
-                     * Type 1    Get Threads
-                     */case _constants.chatMessageVOTypes.CREATE_THREAD:messageContent.uniqueId=uniqueId;if(messagesCallbacks[uniqueId]){createThread(messageContent,true,true);messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}else{createThread(messageContent,true,false);}break;/**
-                     * Type 2    Message
-                     */case _constants.chatMessageVOTypes.MESSAGE:newMessageHandler(threadId,messageContent);break;/**
-                     * Type 3    Message Sent
-                     */case _constants.chatMessageVOTypes.SENT:if(sendMessageCallbacks[uniqueId]&&sendMessageCallbacks[uniqueId].onSent){sendMessageCallbacks[uniqueId].onSent({uniqueId:uniqueId});delete sendMessageCallbacks[uniqueId].onSent;threadCallbacks[threadId][uniqueId].onSent=true;}break;/**
-                     * Type 4    Message Delivery
-                     */case _constants.chatMessageVOTypes.DELIVERY:if(fullResponseObject){getHistory({offset:0,threadId:threadId,id:messageContent.messageId,cache:false},function(result){if(!result.hasError){_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_DELIVERY',result:{message:result.result.history[0],threadId:threadId,senderId:messageContent.participantId}});}});}else{_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_DELIVERY',result:{message:messageContent.messageId,threadId:threadId,senderId:messageContent.participantId}});}sendMessageCallbacksHandler(_constants.chatMessageVOTypes.DELIVERY,threadId,uniqueId);break;/**
-                     * Type 5    Message Seen
-                     */case _constants.chatMessageVOTypes.SEEN:if(fullResponseObject){getHistory({offset:0,threadId:threadId,id:messageContent.messageId,cache:false},function(result){if(!result.hasError){_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_SEEN',result:{message:result.result.history[0],threadId:threadId,senderId:messageContent.participantId}});}});}else{_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_SEEN',result:{message:messageContent.messageId,threadId:threadId,senderId:messageContent.participantId}});}sendMessageCallbacksHandler(_constants.chatMessageVOTypes.SEEN,threadId,uniqueId);break;/**
-                     * Type 6    Chat Ping
-                     */case _constants.chatMessageVOTypes.PING:break;/**
-                     * Type 7    Block Contact
-                     */case _constants.chatMessageVOTypes.BLOCK:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
-                     * Type 8    Unblock Blocked User
-                     */case _constants.chatMessageVOTypes.UNBLOCK:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
-                     * Type 9   Leave Thread
-                     */case _constants.chatMessageVOTypes.LEAVE_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}/**
-                         * Remove the participant from cache
-                         */ // if (canUseCache) {
+                 * Type 1    Get Threads
+                 */case _constants.chatMessageVOTypes.CREATE_THREAD:messageContent.uniqueId=uniqueId;if(messagesCallbacks[uniqueId]){createThread(messageContent,true,true);messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}else{createThread(messageContent,true,false);}break;/**
+                 * Type 2    Message
+                 */case _constants.chatMessageVOTypes.MESSAGE:newMessageHandler(threadId,messageContent);break;/**
+                 * Type 3    Message Sent
+                 */case _constants.chatMessageVOTypes.SENT:if(sendMessageCallbacks[uniqueId]&&sendMessageCallbacks[uniqueId].onSent){sendMessageCallbacks[uniqueId].onSent({uniqueId:uniqueId});delete sendMessageCallbacks[uniqueId].onSent;threadCallbacks[threadId][uniqueId].onSent=true;}break;/**
+                 * Type 4    Message Delivery
+                 */case _constants.chatMessageVOTypes.DELIVERY:if(fullResponseObject){getHistory({offset:0,threadId:threadId,id:messageContent.messageId,cache:false},function(result){if(!result.hasError){_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_DELIVERY',result:{message:result.result.history[0],threadId:threadId,senderId:messageContent.participantId}});}});}else{_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_DELIVERY',result:{message:messageContent.messageId,threadId:threadId,senderId:messageContent.participantId}});}sendMessageCallbacksHandler(_constants.chatMessageVOTypes.DELIVERY,threadId,uniqueId);break;/**
+                 * Type 5    Message Seen
+                 */case _constants.chatMessageVOTypes.SEEN:if(fullResponseObject){getHistory({offset:0,threadId:threadId,id:messageContent.messageId,cache:false},function(result){if(!result.hasError){_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_SEEN',result:{message:result.result.history[0],threadId:threadId,senderId:messageContent.participantId}});}});}else{_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_SEEN',result:{message:messageContent.messageId,threadId:threadId,senderId:messageContent.participantId}});}sendMessageCallbacksHandler(_constants.chatMessageVOTypes.SEEN,threadId,uniqueId);break;/**
+                 * Type 6    Chat Ping
+                 */case _constants.chatMessageVOTypes.PING:break;/**
+                 * Type 7    Block Contact
+                 */case _constants.chatMessageVOTypes.BLOCK:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
+                 * Type 8    Unblock Blocked User
+                 */case _constants.chatMessageVOTypes.UNBLOCK:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
+                 * Type 9   Leave Thread
+                 */case _constants.chatMessageVOTypes.LEAVE_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}/**
+                     * Remove the participant from cache
+                     */ // if (canUseCache) {
 //     if (db) {
 //         /**
 //          * Remove the participant from participants
@@ -410,10 +673,10 @@ messageContent=typeof chatMessage.content==='string'&&isValidJson(chatMessage.co
 //     }
 // }
 if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){if(!threadsResult.cache){var threads=threadsResult.result.threads;if(threads.length>0){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LEAVE_PARTICIPANT',result:{thread:threads[0],participant:formatDataToMakeParticipant(messageContent,threadId)}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0]}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LEAVE_PARTICIPANT',result:{threadId:threadId,participant:formatDataToMakeParticipant(messageContent,threadId)}});}}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LEAVE_PARTICIPANT',result:{thread:threadId,participant:formatDataToMakeParticipant(messageContent,threadId)}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId}});}break;/**
-                     * Type 11    Add Participant to Thread
-                     */case _constants.chatMessageVOTypes.ADD_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}/**
-                         * Add participants into cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+                 * Type 11    Add Participant to Thread
+                 */case _constants.chatMessageVOTypes.ADD_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}/**
+                     * Add participants into cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var cacheData = [];
 //
@@ -462,18 +725,18 @@ if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult)
 //     }
 // }
 if(fullResponseObject){getThreads({threadIds:[messageContent.id]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_ADD_PARTICIPANTS',result:{thread:threads[0]}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0]}});}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_ADD_PARTICIPANTS',result:{thread:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:messageContent}});}break;/**
-                     * Type 13    Get Contacts List
-                     */case _constants.chatMessageVOTypes.GET_CONTACTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 14    Get Threads List
-                     */case _constants.chatMessageVOTypes.GET_THREADS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 15    Get Message History of an Thread
-                     */case _constants.chatMessageVOTypes.GET_HISTORY:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 17    Remove sb from thread
-                     */case _constants.chatMessageVOTypes.REMOVED_FROM_THREAD:_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVED_FROM',result:{thread:threadId}});/**
-                         * This user has been removed from a thread
-                         * So we should delete thread, its participants
-                         * and it's messages from this users cache
-                         */ // if (canUseCache) {
+                 * Type 13    Get Contacts List
+                 */case _constants.chatMessageVOTypes.GET_CONTACTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 14    Get Threads List
+                 */case _constants.chatMessageVOTypes.GET_THREADS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 15    Get Message History of an Thread
+                 */case _constants.chatMessageVOTypes.GET_HISTORY:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 17    Remove sb from thread
+                 */case _constants.chatMessageVOTypes.REMOVED_FROM_THREAD:_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVED_FROM',result:{thread:threadId}});/**
+                     * This user has been removed from a thread
+                     * So we should delete thread, its participants
+                     * and it's messages from this users cache
+                     */ // if (canUseCache) {
 //     if (db) {
 //         /**
 //          * Remove Thread from this users cache
@@ -534,10 +797,10 @@ if(fullResponseObject){getThreads({threadIds:[messageContent.id]},function(threa
 //     }
 // }
 break;/**
-                     * Type 18    Remove a participant from Thread
-                     */case _constants.chatMessageVOTypes.REMOVE_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}/**
-                         * Remove the participant from cache
-                         */ // if (canUseCache) {
+                 * Type 18    Remove a participant from Thread
+                 */case _constants.chatMessageVOTypes.REMOVE_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}/**
+                     * Remove the participant from cache
+                     */ // if (canUseCache) {
 //     if (db) {
 //         for (var i = 0; i < messageContent.length; i++) {
 //             db.participants.where('id')
@@ -563,14 +826,14 @@ break;/**
 //     }
 // }
 if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVE_PARTICIPANTS',result:{thread:threads[0]}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0]}});}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVE_PARTICIPANTS',result:{thread:threadId}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId}});}break;/**
-                     * Type 19    Mute Thread
-                     */case _constants.chatMessageVOTypes.MUTE_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];thread.mute=true;_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_MUTE',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_MUTE',result:{thread:threadId}});}break;/**
-                     * Type 20    Unmute muted Thread
-                     */case _constants.chatMessageVOTypes.UNMUTE_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];thread.mute=false;_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNMUTE',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNMUTE',result:{thread:threadId}});}break;/**
-                     * Type 21    Update Thread Info
-                     */case _constants.chatMessageVOTypes.UPDATE_THREAD_INFO:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[messageContent.id],cache:false},function(threadsResult){var thread=formatDataToMakeConversation(threadsResult.result.threads[0]);/**
-                                 * Add Updated Thread into cache database #cache
-                                 */ // if (canUseCache && cacheSecret.length > 0) {
+                 * Type 19    Mute Thread
+                 */case _constants.chatMessageVOTypes.MUTE_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];thread.mute=true;_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_MUTE',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_MUTE',result:{thread:threadId}});}break;/**
+                 * Type 20    Unmute muted Thread
+                 */case _constants.chatMessageVOTypes.UNMUTE_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];thread.mute=false;_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNMUTE',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNMUTE',result:{thread:threadId}});}break;/**
+                 * Type 21    Update Thread Info
+                 */case _constants.chatMessageVOTypes.UPDATE_THREAD_INFO:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[messageContent.id],cache:false},function(threadsResult){var thread=formatDataToMakeConversation(threadsResult.result.threads[0]);/**
+                             * Add Updated Thread into cache database #cache
+                             */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var tempData = {};
 //
@@ -608,20 +871,20 @@ if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult)
 //     }
 // }
 _events.chatEvents.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{thread:messageContent}});}break;/**
-                     * Type 22    Forward Multiple Messages
-                     */case _constants.chatMessageVOTypes.FORWARD_MESSAGE:newMessageHandler(threadId,messageContent);break;/**
-                     * Type 23    User Info
-                     */case _constants.chatMessageVOTypes.USER_INFO:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('systemEvents',{type:'SERVER_TIME',result:{time:time}});break;/**
-                     * Type 25    Get Blocked List
-                     */case _constants.chatMessageVOTypes.GET_BLOCKED:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 27    Thread Participants List
-                     */case _constants.chatMessageVOTypes.THREAD_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 28    Edit Message
-                     */case _constants.chatMessageVOTypes.EDIT_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}chatEditMessageHandler(threadId,messageContent);break;/**
-                     * Type 29    Delete Message
-                     */case _constants.chatMessageVOTypes.DELETE_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}if(messageContent.pinned){unPinMessage({messageId:messageContent.id,notifyAll:true});}/**
-                         * Remove Message from cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+                 * Type 22    Forward Multiple Messages
+                 */case _constants.chatMessageVOTypes.FORWARD_MESSAGE:newMessageHandler(threadId,messageContent);break;/**
+                 * Type 23    User Info
+                 */case _constants.chatMessageVOTypes.USER_INFO:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('systemEvents',{type:'SERVER_TIME',result:{time:time}});break;/**
+                 * Type 25    Get Blocked List
+                 */case _constants.chatMessageVOTypes.GET_BLOCKED:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 27    Thread Participants List
+                 */case _constants.chatMessageVOTypes.THREAD_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 28    Edit Message
+                 */case _constants.chatMessageVOTypes.EDIT_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}chatEditMessageHandler(threadId,messageContent);break;/**
+                 * Type 29    Delete Message
+                 */case _constants.chatMessageVOTypes.DELETE_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}if(messageContent.pinned){unPinMessage({messageId:messageContent.id,notifyAll:true});}/**
+                     * Remove Message from cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         db.messages.where('id')
 //             .equals(messageContent)
@@ -645,16 +908,16 @@ _events.chatEvents.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATE
 //     }
 // }
 if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_DELETE',result:{message:{id:messageContent.id,pinned:messageContent.pinned,threadId:threadId}}});if(messageContent.pinned){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0]}});}}});}else{_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_DELETE',result:{message:{id:messageContent.id,pinned:messageContent.pinned,threadId:threadId}}});if(messageContent.pinned){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId}});}}break;/**
-                     * Type 30    Thread Info Updated
-                     */case _constants.chatMessageVOTypes.THREAD_INFO_UPDATED:// TODO: Check this line again
+                 * Type 30    Thread Info Updated
+                 */case _constants.chatMessageVOTypes.THREAD_INFO_UPDATED:// TODO: Check this line again
 // if (!messageContent.conversation && !messageContent.conversation.id) {
 //     messageContent.conversation.id = threadId;
 // }
 //
 // var thread = formatDataToMakeConversation(messageContent.conversation);
 var thread=formatDataToMakeConversation(messageContent);/**
-                         * Add Updated Thread into cache database #cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+                     * Add Updated Thread into cache database #cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var tempData = {};
 //
@@ -694,168 +957,168 @@ var thread=formatDataToMakeConversation(messageContent);/**
 //     }
 // }
 _events.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{thread:thread}});break;/**
-                     * Type 31    Thread Last Seen Updated
-                     */case _constants.chatMessageVOTypes.LAST_SEEN_UPDATED:var threadObject=messageContent;threadObject.unreadCount=messageContent.unreadCount?messageContent.unreadCount:0;_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNREAD_COUNT_UPDATED',result:{thread:fullResponseObject?threadObject:messageContent.id,unreadCount:messageContent.unreadCount?messageContent.unreadCount:0}});break;/**
-                     * Type 32    Get Message Delivered List
-                     */case _constants.chatMessageVOTypes.GET_MESSAGE_DELEVERY_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 33    Get Message Seen List
-                     */case _constants.chatMessageVOTypes.GET_MESSAGE_SEEN_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 34    Is Public Group Name Available?
-                     */case _constants.chatMessageVOTypes.IS_NAME_AVAILABLE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 39    Join Public Group or Channel
-                     */case _constants.chatMessageVOTypes.JOIN_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 40    Bot Messages
-                     */case _constants.chatMessageVOTypes.BOT_MESSAGE:_events.chatEvents.fireEvent('botEvents',{type:'BOT_MESSAGE',result:{bot:messageContent}});break;/**
-                     * Type 41    Spam P2P Thread
-                     */case _constants.chatMessageVOTypes.SPAM_PV_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
-                     * Type 42    Set Role To User
-                     */case _constants.chatMessageVOTypes.SET_ROLE_TO_USER:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[messageContent.id]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_ADD_ADMIN',result:{thread:threads[0],admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0],admin:messageContent}});}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_ADD_ADMIN',result:{thread:threadId,admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId,admin:messageContent}});}break;/**
-                     * Type 43    Remove Role From User
-                     */case _constants.chatMessageVOTypes.REMOVE_ROLE_FROM_USER:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[messageContent.id]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVE_ADMIN',result:{thread:threads[0],admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0],admin:messageContent}});}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVE_ADMIN',result:{thread:threadId,admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId,admin:messageContent}});}break;/**
-                     * Type 44    Clear History
-                     */case _constants.chatMessageVOTypes.CLEAR_HISTORY:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
-                     * Type 46    System Messages
-                     */case _constants.chatMessageVOTypes.SYSTEM_MESSAGE:_events.chatEvents.fireEvent('systemEvents',{type:'IS_TYPING',result:{thread:threadId,user:messageContent}});break;/**
-                     * Type 47    Get Not Seen Duration
-                     */case _constants.chatMessageVOTypes.GET_NOT_SEEN_DURATION:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
-                     * Type 48    Pin Thread
-                     */case _constants.chatMessageVOTypes.PIN_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_PIN',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_PIN',result:{thread:threadId}});}break;/**
-                     * Type 49    UnPin Thread
-                     */case _constants.chatMessageVOTypes.UNPIN_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNPIN',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNPIN',result:{thread:threadId}});}break;/**
-                     * Type 50    Pin Message
-                     */case _constants.chatMessageVOTypes.PIN_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('threadEvents',{type:'MESSAGE_PIN',result:{thread:threadId,pinMessage:formatDataToMakePinMessage(threadId,messageContent)}});break;/**
-                     * Type 51    UnPin Message
-                     */case _constants.chatMessageVOTypes.UNPIN_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('threadEvents',{type:'MESSAGE_UNPIN',result:{thread:threadId,pinMessage:formatDataToMakePinMessage(threadId,messageContent)}});break;/**
-                     * Type 52    Update Chat Profile
-                     */case _constants.chatMessageVOTypes.UPDATE_CHAT_PROFILE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('userEvents',{type:'CHAT_PROFILE_UPDATED',result:{user:messageContent}});break;/**
-                     * Type 54    Get Participant Roles
-                     */case _constants.chatMessageVOTypes.GET_PARTICIPANT_ROLES:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('userEvents',{type:'GET_PARTICIPANT_ROLES',result:{roles:messageContent}});break;/**
-                     * Type 60    Get Contact Not Seen Duration
-                     */case _constants.chatMessageVOTypes.GET_CONTACT_NOT_SEEN_DURATION:_events.chatEvents.fireEvent('contactEvents',{type:'CONTACTS_LAST_SEEN',result:messageContent});break;/**
-                     * Type 61      Get All Unread Message Count
-                     */case _constants.chatMessageVOTypes.ALL_UNREAD_MESSAGE_COUNT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('systemEvents',{type:'ALL_UNREAD_MESSAGES_COUNT',result:messageContent});break;/**
-                     * Type 62    Create Bot
-                     */case _constants.chatMessageVOTypes.CREATE_BOT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 63    Define Bot Commands
-                     */case _constants.chatMessageVOTypes.DEFINE_BOT_COMMAND:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 64    Start Bot
-                     */case _constants.chatMessageVOTypes.START_BOT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 65    Stop Bot
-                     */case _constants.chatMessageVOTypes.STOP_BOT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 66    Last Message Deleted
-                     */case _constants.chatMessageVOTypes.LAST_MESSAGE_DELETED:delete messageContent.unreadCount;var threadOfDeletedMessage=formatDataToMakeConversation(messageContent);_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{threadId:threadId,thread:threadOfDeletedMessage}});break;/**
-                     * Type 67    Last Message Edited
-                     */case _constants.chatMessageVOTypes.LAST_MESSAGE_EDITED:delete messageContent.unreadCount;var threadOfEditedMessage=formatDataToMakeConversation(messageContent);_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{threadId:threadId,thread:threadOfEditedMessage}});break;/**
-                     * Type 68    Get Bot Commands List
-                     */case _constants.chatMessageVOTypes.BOT_COMMANDS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 69    Get Thread All Bots
-                     */case _constants.chatMessageVOTypes.THREAD_ALL_BOTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 70    Send Call Request
-                     */case _constants.chatMessageVOTypes.CALL_REQUEST:callRequestController.callRequestReceived=true;callReceived({callId:messageContent.callId},function(r){});if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'RECEIVE_CALL',result:messageContent});if(messageContent.callId>0){if(!currentCallId){currentCallId=messageContent.callId;}else newCallId=messageContent.callId;}else{_events.chatEvents.fireEvent('callEvents',{type:'PARTNER_RECEIVED_YOUR_CALL',result:messageContent});}currentCallId=messageContent.callId;break;/**
-                     * Type 71    Accept Call Request
-                     */case _constants.chatMessageVOTypes.ACCEPT_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'ACCEPT_CALL',result:messageContent});break;/**
-                     * Type 72    Reject Call Request
-                     */case _constants.chatMessageVOTypes.REJECT_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'REJECT_CALL',result:messageContent});break;/**
-                     * Type 73    Receive Call Request
-                     */case _constants.chatMessageVOTypes.RECEIVE_CALL_REQUEST:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}if(messageContent.callId>0){_events.chatEvents.fireEvent('callEvents',{type:'RECEIVE_CALL',result:messageContent});if(!currentCallId){currentCallId=messageContent.callId;}else newCallId=messageContent.callId;}else{_events.chatEvents.fireEvent('callEvents',{type:'PARTNER_RECEIVED_YOUR_CALL',result:messageContent});}// currentCallId = messageContent.callId;
+                 * Type 31    Thread Last Seen Updated
+                 */case _constants.chatMessageVOTypes.LAST_SEEN_UPDATED:var threadObject=messageContent;threadObject.unreadCount=messageContent.unreadCount?messageContent.unreadCount:0;_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNREAD_COUNT_UPDATED',result:{thread:fullResponseObject?threadObject:messageContent.id,unreadCount:messageContent.unreadCount?messageContent.unreadCount:0}});break;/**
+                 * Type 32    Get Message Delivered List
+                 */case _constants.chatMessageVOTypes.GET_MESSAGE_DELEVERY_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 33    Get Message Seen List
+                 */case _constants.chatMessageVOTypes.GET_MESSAGE_SEEN_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 34    Is Public Group Name Available?
+                 */case _constants.chatMessageVOTypes.IS_NAME_AVAILABLE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 39    Join Public Group or Channel
+                 */case _constants.chatMessageVOTypes.JOIN_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 40    Bot Messages
+                 */case _constants.chatMessageVOTypes.BOT_MESSAGE:_events.chatEvents.fireEvent('botEvents',{type:'BOT_MESSAGE',result:{bot:messageContent}});break;/**
+                 * Type 41    Spam P2P Thread
+                 */case _constants.chatMessageVOTypes.SPAM_PV_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
+                 * Type 42    Set Role To User
+                 */case _constants.chatMessageVOTypes.SET_ROLE_TO_USER:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[messageContent.id]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_ADD_ADMIN',result:{thread:threads[0],admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0],admin:messageContent}});}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_ADD_ADMIN',result:{thread:threadId,admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId,admin:messageContent}});}break;/**
+                 * Type 43    Remove Role From User
+                 */case _constants.chatMessageVOTypes.REMOVE_ROLE_FROM_USER:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[messageContent.id]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVE_ADMIN',result:{thread:threads[0],admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0],admin:messageContent}});}});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_REMOVE_ADMIN',result:{thread:threadId,admin:messageContent}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId,admin:messageContent}});}break;/**
+                 * Type 44    Clear History
+                 */case _constants.chatMessageVOTypes.CLEAR_HISTORY:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
+                 * Type 46    System Messages
+                 */case _constants.chatMessageVOTypes.SYSTEM_MESSAGE:_events.chatEvents.fireEvent('systemEvents',{type:'IS_TYPING',result:{thread:threadId,user:messageContent}});break;/**
+                 * Type 47    Get Not Seen Duration
+                 */case _constants.chatMessageVOTypes.GET_NOT_SEEN_DURATION:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}break;/**
+                 * Type 48    Pin Thread
+                 */case _constants.chatMessageVOTypes.PIN_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_PIN',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_PIN',result:{thread:threadId}});}break;/**
+                 * Type 49    UnPin Thread
+                 */case _constants.chatMessageVOTypes.UNPIN_THREAD:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var thread=threadsResult.result.threads[0];_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNPIN',result:{thread:thread}});});}else{_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNPIN',result:{thread:threadId}});}break;/**
+                 * Type 50    Pin Message
+                 */case _constants.chatMessageVOTypes.PIN_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('threadEvents',{type:'MESSAGE_PIN',result:{thread:threadId,pinMessage:formatDataToMakePinMessage(threadId,messageContent)}});break;/**
+                 * Type 51    UnPin Message
+                 */case _constants.chatMessageVOTypes.UNPIN_MESSAGE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('threadEvents',{type:'MESSAGE_UNPIN',result:{thread:threadId,pinMessage:formatDataToMakePinMessage(threadId,messageContent)}});break;/**
+                 * Type 52    Update Chat Profile
+                 */case _constants.chatMessageVOTypes.UPDATE_CHAT_PROFILE:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('userEvents',{type:'CHAT_PROFILE_UPDATED',result:{user:messageContent}});break;/**
+                 * Type 54    Get Participant Roles
+                 */case _constants.chatMessageVOTypes.GET_PARTICIPANT_ROLES:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('userEvents',{type:'GET_PARTICIPANT_ROLES',result:{roles:messageContent}});break;/**
+                 * Type 60    Get Contact Not Seen Duration
+                 */case _constants.chatMessageVOTypes.GET_CONTACT_NOT_SEEN_DURATION:_events.chatEvents.fireEvent('contactEvents',{type:'CONTACTS_LAST_SEEN',result:messageContent});break;/**
+                 * Type 61      Get All Unread Message Count
+                 */case _constants.chatMessageVOTypes.ALL_UNREAD_MESSAGE_COUNT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent));}_events.chatEvents.fireEvent('systemEvents',{type:'ALL_UNREAD_MESSAGES_COUNT',result:messageContent});break;/**
+                 * Type 62    Create Bot
+                 */case _constants.chatMessageVOTypes.CREATE_BOT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 63    Define Bot Commands
+                 */case _constants.chatMessageVOTypes.DEFINE_BOT_COMMAND:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 64    Start Bot
+                 */case _constants.chatMessageVOTypes.START_BOT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 65    Stop Bot
+                 */case _constants.chatMessageVOTypes.STOP_BOT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 66    Last Message Deleted
+                 */case _constants.chatMessageVOTypes.LAST_MESSAGE_DELETED:delete messageContent.unreadCount;var threadOfDeletedMessage=formatDataToMakeConversation(messageContent);_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{threadId:threadId,thread:threadOfDeletedMessage}});break;/**
+                 * Type 67    Last Message Edited
+                 */case _constants.chatMessageVOTypes.LAST_MESSAGE_EDITED:delete messageContent.unreadCount;var threadOfEditedMessage=formatDataToMakeConversation(messageContent);_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_INFO_UPDATED',result:{threadId:threadId,thread:threadOfEditedMessage}});break;/**
+                 * Type 68    Get Bot Commands List
+                 */case _constants.chatMessageVOTypes.BOT_COMMANDS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 69    Get Thread All Bots
+                 */case _constants.chatMessageVOTypes.THREAD_ALL_BOTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 70    Send Call Request
+                 */case _constants.chatMessageVOTypes.CALL_REQUEST:callRequestController.callRequestReceived=true;callReceived({callId:messageContent.callId},function(r){});if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'RECEIVE_CALL',result:messageContent});if(messageContent.callId>0){if(!currentCallId){currentCallId=messageContent.callId;}else newCallId=messageContent.callId;}else{_events.chatEvents.fireEvent('callEvents',{type:'PARTNER_RECEIVED_YOUR_CALL',result:messageContent});}currentCallId=messageContent.callId;break;/**
+                 * Type 71    Accept Call Request
+                 */case _constants.chatMessageVOTypes.ACCEPT_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'ACCEPT_CALL',result:messageContent});break;/**
+                 * Type 72    Reject Call Request
+                 */case _constants.chatMessageVOTypes.REJECT_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'REJECT_CALL',result:messageContent});break;/**
+                 * Type 73    Receive Call Request
+                 */case _constants.chatMessageVOTypes.RECEIVE_CALL_REQUEST:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}if(messageContent.callId>0){_events.chatEvents.fireEvent('callEvents',{type:'RECEIVE_CALL',result:messageContent});if(!currentCallId){currentCallId=messageContent.callId;}else newCallId=messageContent.callId;}else{_events.chatEvents.fireEvent('callEvents',{type:'PARTNER_RECEIVED_YOUR_CALL',result:messageContent});}// currentCallId = messageContent.callId;
 break;/**
-                     * Type 74    Start Call Request
-                     */case _constants.chatMessageVOTypes.START_CALL:if(!callRequestController.iCanAcceptTheCall()){//Do not handle the call if it is already started elsewhere for the same user
+                 * Type 74    Start Call Request
+                 */case _constants.chatMessageVOTypes.START_CALL:if(!callRequestController.iCanAcceptTheCall()){//Do not handle the call if it is already started elsewhere for the same user
 _events.chatEvents.fireEvent('callEvents',{type:'CALL_STARTED_ELSEWHERE',message:'Call already started somewhere else..., aborting...'});return;}if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}messageContent.callId=threadId;_events.chatEvents.fireEvent('callEvents',{type:'CALL_STARTED',result:messageContent});if((0,_typeof2["default"])(messageContent)==='object'&&messageContent.hasOwnProperty('chatDataDto')&&!!messageContent.chatDataDto.kurentoAddress){}else{_events.chatEvents.fireEvent('callEvents',{type:'CALL_ERROR',message:'Chat Data DTO is not present!'});}break;/**
-                     * Type 75    End Call Request
-                     */case _constants.chatMessageVOTypes.END_CALL_REQUEST:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'END_CALL',result:messageContent});callStop();break;/**
-                     * Type 76   Call Ended
-                     */case _constants.chatMessageVOTypes.END_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_ENDED',callId:threadId});callStop();break;/**
-                     * Type 77    Get Calls History
-                     */case _constants.chatMessageVOTypes.GET_CALLS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 90    Contacts Synced
-                     */case _constants.chatMessageVOTypes.CONTACT_SYNCED:_events.chatEvents.fireEvent('contactEvents',{type:'CONTACTS_SYNCED',result:messageContent});break;/**
-                     * Type 91    Send Group Call Request
-                     */case _constants.chatMessageVOTypes.GROUP_CALL_REQUEST:callRequestController.callRequestReceived=true;callReceived({callId:messageContent.callId},function(r){});if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}if(messageContent.callId>0){if(!currentCallId)currentCallId=messageContent.callId;else newCallId=messageContent.callId;}_events.chatEvents.fireEvent('callEvents',{type:'RECEIVE_CALL',result:messageContent});// currentCallId = messageContent.callId;
+                 * Type 75    End Call Request
+                 */case _constants.chatMessageVOTypes.END_CALL_REQUEST:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'END_CALL',result:messageContent});callStop();break;/**
+                 * Type 76   Call Ended
+                 */case _constants.chatMessageVOTypes.END_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_ENDED',callId:threadId});callStop();break;/**
+                 * Type 77    Get Calls History
+                 */case _constants.chatMessageVOTypes.GET_CALLS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 90    Contacts Synced
+                 */case _constants.chatMessageVOTypes.CONTACT_SYNCED:_events.chatEvents.fireEvent('contactEvents',{type:'CONTACTS_SYNCED',result:messageContent});break;/**
+                 * Type 91    Send Group Call Request
+                 */case _constants.chatMessageVOTypes.GROUP_CALL_REQUEST:callRequestController.callRequestReceived=true;callReceived({callId:messageContent.callId},function(r){});if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}if(messageContent.callId>0){if(!currentCallId)currentCallId=messageContent.callId;else newCallId=messageContent.callId;}_events.chatEvents.fireEvent('callEvents',{type:'RECEIVE_CALL',result:messageContent});// currentCallId = messageContent.callId;
 break;/**
-                     * Type 92    Call Partner Leave
-                     */case _constants.chatMessageVOTypes.LEAVE_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_LEFT',result:messageContent});break;/**
-                     * Type 93    Add Call Participant
-                     */case _constants.chatMessageVOTypes.ADD_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 94    Call Participant Joined
-                     */case _constants.chatMessageVOTypes.CALL_PARTICIPANT_JOINED:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_JOINED',result:messageContent});break;/**
-                     * Type 95    Remove Call Participant
-                     */case _constants.chatMessageVOTypes.REMOVE_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_REMOVED',result:messageContent});break;/**
-                     * Type 96    Terminate Call
-                     */case _constants.chatMessageVOTypes.TERMINATE_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'TERMINATE_CALL',result:messageContent});callStop();break;/**
-                     * Type 97    Mute Call Participant
-                     */case _constants.chatMessageVOTypes.MUTE_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_MUTE',result:messageContent});break;/**
-                     * Type 98    UnMute Call Participant
-                     */case _constants.chatMessageVOTypes.UNMUTE_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}else{}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_UNMUTE',result:messageContent});break;/**
-                     * Type 110    Active Call Participants List
-                     */case _constants.chatMessageVOTypes.ACTIVE_CALL_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 111    Kafka Call Session Created
-                     */case _constants.chatMessageVOTypes.CALL_SESSION_CREATED:if(!callRequestController.callEstablishedInMySide)return;_events.chatEvents.fireEvent('callEvents',{type:'CALL_SESSION_CREATED',result:messageContent});if(!currentCallId)currentCallId=messageContent.callId;else newCallId=messageContent.callId;// currentCallId = messageContent.callId;
+                 * Type 92    Call Partner Leave
+                 */case _constants.chatMessageVOTypes.LEAVE_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_LEFT',result:messageContent});break;/**
+                 * Type 93    Add Call Participant
+                 */case _constants.chatMessageVOTypes.ADD_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 94    Call Participant Joined
+                 */case _constants.chatMessageVOTypes.CALL_PARTICIPANT_JOINED:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_JOINED',result:messageContent});break;/**
+                 * Type 95    Remove Call Participant
+                 */case _constants.chatMessageVOTypes.REMOVE_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_REMOVED',result:messageContent});break;/**
+                 * Type 96    Terminate Call
+                 */case _constants.chatMessageVOTypes.TERMINATE_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'TERMINATE_CALL',result:messageContent});callStop();break;/**
+                 * Type 97    Mute Call Participant
+                 */case _constants.chatMessageVOTypes.MUTE_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_MUTE',result:messageContent});break;/**
+                 * Type 98    UnMute Call Participant
+                 */case _constants.chatMessageVOTypes.UNMUTE_CALL_PARTICIPANT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}else{}_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANT_UNMUTE',result:messageContent});break;/**
+                 * Type 110    Active Call Participants List
+                 */case _constants.chatMessageVOTypes.ACTIVE_CALL_PARTICIPANTS:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 111    Kafka Call Session Created
+                 */case _constants.chatMessageVOTypes.CALL_SESSION_CREATED:if(!callRequestController.callEstablishedInMySide)return;_events.chatEvents.fireEvent('callEvents',{type:'CALL_SESSION_CREATED',result:messageContent});if(!currentCallId)currentCallId=messageContent.callId;else newCallId=messageContent.callId;// currentCallId = messageContent.callId;
 break;/**
-                     * Type 113    Turn On Video Call
-                     */case _constants.chatMessageVOTypes.TURN_ON_VIDEO_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'TURN_ON_VIDEO_CALL',result:messageContent});break;/**
-                     * Type 114    Turn Off Video Call
-                     */case _constants.chatMessageVOTypes.TURN_OFF_VIDEO_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'TURN_OFF_VIDEO_CALL',result:messageContent});break;/**
-                     * Type 121    Record Call Request
-                     */case _constants.chatMessageVOTypes.RECORD_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'START_RECORDING_CALL',result:messageContent});break;/**
-                     * Type 122   End Record Call Request
-                     */case _constants.chatMessageVOTypes.END_RECORD_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'STOP_RECORDING_CALL',result:messageContent});break;/**
-                     * Type 126   Destined Record Call Request
-                     */case _constants.chatMessageVOTypes.DESTINATED_RECORD_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'START_RECORDING_CALL',result:messageContent});break;/**
-                     * Type 127   Assistant call started
-                     *
-                     * Tells the assistant that a call started
-                     */case _constants.chatMessageVOTypes.ASSISTANT_CALL_STARTED:_events.chatEvents.fireEvent('callEvents',{type:'ASSISTANT_CALL_STARTED',result:{callId:threadId}});break;/**
-                     * Type 128   Assistant call ended
-                     *
-                     * Tells the assistant that a call ended
-                     */case _constants.chatMessageVOTypes.ASSISTANT_CALL_ENDED:_events.chatEvents.fireEvent('callEvents',{type:'ASSISTANT_CALL_ENDED',callId:threadId});break;/**
-                     * Type 129   Get Calls To Join
-                     */case _constants.chatMessageVOTypes.GET_CALLS_TO_JOIN:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
-                     * Type 152    Gives us a json to export for user
-                     */case _constants.chatMessageVOTypes.EXPORT_CHAT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount,uniqueId));}break;/**
-                     * Type 221  Event to tell us p2p call converted to a group call
-                     */case _constants.chatMessageVOTypes.SWITCH_TO_GROUP_CALL_REQUEST:_events.chatEvents.fireEvent('callEvents',{type:'SWITCH_TO_GROUP_CALL',result:messageContent//contains: isGroup, callId, threadId
+                 * Type 113    Turn On Video Call
+                 */case _constants.chatMessageVOTypes.TURN_ON_VIDEO_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'TURN_ON_VIDEO_CALL',result:messageContent});break;/**
+                 * Type 114    Turn Off Video Call
+                 */case _constants.chatMessageVOTypes.TURN_OFF_VIDEO_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'TURN_OFF_VIDEO_CALL',result:messageContent});break;/**
+                 * Type 121    Record Call Request
+                 */case _constants.chatMessageVOTypes.RECORD_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'START_RECORDING_CALL',result:messageContent});break;/**
+                 * Type 122   End Record Call Request
+                 */case _constants.chatMessageVOTypes.END_RECORD_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'STOP_RECORDING_CALL',result:messageContent});break;/**
+                 * Type 126   Destined Record Call Request
+                 */case _constants.chatMessageVOTypes.DESTINATED_RECORD_CALL:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'START_RECORDING_CALL',result:messageContent});break;/**
+                 * Type 127   Assistant call started
+                 *
+                 * Tells the assistant that a call started
+                 */case _constants.chatMessageVOTypes.ASSISTANT_CALL_STARTED:_events.chatEvents.fireEvent('callEvents',{type:'ASSISTANT_CALL_STARTED',result:{callId:threadId}});break;/**
+                 * Type 128   Assistant call ended
+                 *
+                 * Tells the assistant that a call ended
+                 */case _constants.chatMessageVOTypes.ASSISTANT_CALL_ENDED:_events.chatEvents.fireEvent('callEvents',{type:'ASSISTANT_CALL_ENDED',callId:threadId});break;/**
+                 * Type 129   Get Calls To Join
+                 */case _constants.chatMessageVOTypes.GET_CALLS_TO_JOIN:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}break;/**
+                 * Type 152    Gives us a json to export for user
+                 */case _constants.chatMessageVOTypes.EXPORT_CHAT:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount,uniqueId));}break;/**
+                 * Type 221  Event to tell us p2p call converted to a group call
+                 */case _constants.chatMessageVOTypes.SWITCH_TO_GROUP_CALL_REQUEST:_events.chatEvents.fireEvent('callEvents',{type:'SWITCH_TO_GROUP_CALL',result:messageContent//contains: isGroup, callId, threadId
 });break;/**
-                     * Type 222    Call Recording Started
-                     */case _constants.chatMessageVOTypes.RECORD_CALL_STARTED:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_RECORDING_STARTED',result:messageContent});break;/**
-                     * Type 999   All unknown errors
-                     */case _constants.chatMessageVOTypes.ERROR:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(true,messageContent.message,messageContent.code,messageContent,0));}/**
-                         * If error code is 21, Token is invalid &
-                         * user should logged out
-                         */if(messageContent.code==21){// TODO: Temporarily removed due to unknown side-effects
+                 * Type 222    Call Recording Started
+                 */case _constants.chatMessageVOTypes.RECORD_CALL_STARTED:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(false,'',0,messageContent,contentCount));}_events.chatEvents.fireEvent('callEvents',{type:'CALL_RECORDING_STARTED',result:messageContent});break;/**
+                 * Type 999   All unknown errors
+                 */case _constants.chatMessageVOTypes.ERROR:if(messagesCallbacks[uniqueId]){messagesCallbacks[uniqueId](_utility["default"].createReturnData(true,messageContent.message,messageContent.code,messageContent,0));}/**
+                     * If error code is 21, Token is invalid &
+                     * user should logged out
+                     */if(messageContent.code==21){// TODO: Temporarily removed due to unknown side-effects
 // chatState = false;
 // asyncClient.logout();
 // clearChatServerCaches();
 }_events.chatEvents.fireEvent('error',{code:messageContent.code,message:messageContent.message,error:messageContent});break;}},/**
-             * Send Message Callbacks Handler
-             *
-             * When you send Delivery or Seen Acknowledgements of a message
-             * You should send Delivery and Seen for all the Messages before
-             * that message so that you wont have un delivered/unseen messages
-             * after seeing the last message of a thread
-             *
-             * @access private
-             *
-             * @param {int}     actionType      Switch between Delivery or Seen
-             * @param {long}    threadId        Id of thread
-             * @param {string}  uniqueId        uniqueId of message
-             *
-             * @return {undefined}
-             */sendMessageCallbacksHandler=function sendMessageCallbacksHandler(actionType,threadId,uniqueId){switch(actionType){case _constants.chatMessageVOTypes.DELIVERY:if(threadCallbacks[threadId]){var lastThreadCallbackIndex=Object.keys(threadCallbacks[threadId]).indexOf(uniqueId);if(lastThreadCallbackIndex!==undefined){while(lastThreadCallbackIndex>-1){var tempUniqueId=Object.entries(threadCallbacks[threadId])[lastThreadCallbackIndex][0];if(sendMessageCallbacks[tempUniqueId]&&sendMessageCallbacks[tempUniqueId].onDeliver){if(threadCallbacks[threadId][tempUniqueId]&&threadCallbacks[threadId][tempUniqueId].onSent){sendMessageCallbacks[tempUniqueId].onDeliver({uniqueId:tempUniqueId});delete sendMessageCallbacks[tempUniqueId].onDeliver;threadCallbacks[threadId][tempUniqueId].onDeliver=true;}}lastThreadCallbackIndex-=1;}}}break;case _constants.chatMessageVOTypes.SEEN:if(threadCallbacks[threadId]){var lastThreadCallbackIndex=Object.keys(threadCallbacks[threadId]).indexOf(uniqueId);if(lastThreadCallbackIndex!==undefined){while(lastThreadCallbackIndex>-1){var tempUniqueId=Object.entries(threadCallbacks[threadId])[lastThreadCallbackIndex][0];if(sendMessageCallbacks[tempUniqueId]&&sendMessageCallbacks[tempUniqueId].onSeen){if(threadCallbacks[threadId][tempUniqueId]&&threadCallbacks[threadId][tempUniqueId].onSent){if(!threadCallbacks[threadId][tempUniqueId].onDeliver){sendMessageCallbacks[tempUniqueId].onDeliver({uniqueId:tempUniqueId});delete sendMessageCallbacks[tempUniqueId].onDeliver;threadCallbacks[threadId][tempUniqueId].onDeliver=true;}sendMessageCallbacks[tempUniqueId].onSeen({uniqueId:tempUniqueId});delete sendMessageCallbacks[tempUniqueId].onSeen;threadCallbacks[threadId][tempUniqueId].onSeen=true;if(threadCallbacks[threadId][tempUniqueId].onSent&&threadCallbacks[threadId][tempUniqueId].onDeliver&&threadCallbacks[threadId][tempUniqueId].onSeen){delete threadCallbacks[threadId][tempUniqueId];delete sendMessageCallbacks[tempUniqueId];}}}lastThreadCallbackIndex-=1;}}}break;default:break;}},/**
-             * New Message Handler
-             *
-             * Handles Event Emitter of a newly received Chat Message
-             *
-             * @access private
-             *
-             * @param {long}    threadId         ID of image
-             * @param {object}  messageContent   Json Content of the message
-             *
-             * @return {undefined}
-             */newMessageHandler=function newMessageHandler(threadId,messageContent){var message=formatDataToMakeMessage(threadId,messageContent);deliver({messageId:message.id,ownerId:message.participant.id});/**
-                 * Add New Messages into cache database
-                 */ // if (canUseCache && cacheSecret.length > 0) {
+         * Send Message Callbacks Handler
+         *
+         * When you send Delivery or Seen Acknowledgements of a message
+         * You should send Delivery and Seen for all the Messages before
+         * that message so that you wont have un delivered/unseen messages
+         * after seeing the last message of a thread
+         *
+         * @access private
+         *
+         * @param {int}     actionType      Switch between Delivery or Seen
+         * @param {long}    threadId        Id of thread
+         * @param {string}  uniqueId        uniqueId of message
+         *
+         * @return {undefined}
+         */sendMessageCallbacksHandler=function sendMessageCallbacksHandler(actionType,threadId,uniqueId){switch(actionType){case _constants.chatMessageVOTypes.DELIVERY:if(threadCallbacks[threadId]){var lastThreadCallbackIndex=Object.keys(threadCallbacks[threadId]).indexOf(uniqueId);if(lastThreadCallbackIndex!==undefined){while(lastThreadCallbackIndex>-1){var tempUniqueId=Object.entries(threadCallbacks[threadId])[lastThreadCallbackIndex][0];if(sendMessageCallbacks[tempUniqueId]&&sendMessageCallbacks[tempUniqueId].onDeliver){if(threadCallbacks[threadId][tempUniqueId]&&threadCallbacks[threadId][tempUniqueId].onSent){sendMessageCallbacks[tempUniqueId].onDeliver({uniqueId:tempUniqueId});delete sendMessageCallbacks[tempUniqueId].onDeliver;threadCallbacks[threadId][tempUniqueId].onDeliver=true;}}lastThreadCallbackIndex-=1;}}}break;case _constants.chatMessageVOTypes.SEEN:if(threadCallbacks[threadId]){var lastThreadCallbackIndex=Object.keys(threadCallbacks[threadId]).indexOf(uniqueId);if(lastThreadCallbackIndex!==undefined){while(lastThreadCallbackIndex>-1){var tempUniqueId=Object.entries(threadCallbacks[threadId])[lastThreadCallbackIndex][0];if(sendMessageCallbacks[tempUniqueId]&&sendMessageCallbacks[tempUniqueId].onSeen){if(threadCallbacks[threadId][tempUniqueId]&&threadCallbacks[threadId][tempUniqueId].onSent){if(!threadCallbacks[threadId][tempUniqueId].onDeliver){sendMessageCallbacks[tempUniqueId].onDeliver({uniqueId:tempUniqueId});delete sendMessageCallbacks[tempUniqueId].onDeliver;threadCallbacks[threadId][tempUniqueId].onDeliver=true;}sendMessageCallbacks[tempUniqueId].onSeen({uniqueId:tempUniqueId});delete sendMessageCallbacks[tempUniqueId].onSeen;threadCallbacks[threadId][tempUniqueId].onSeen=true;if(threadCallbacks[threadId][tempUniqueId].onSent&&threadCallbacks[threadId][tempUniqueId].onDeliver&&threadCallbacks[threadId][tempUniqueId].onSeen){delete threadCallbacks[threadId][tempUniqueId];delete sendMessageCallbacks[tempUniqueId];}}}lastThreadCallbackIndex-=1;}}}break;default:break;}},/**
+         * New Message Handler
+         *
+         * Handles Event Emitter of a newly received Chat Message
+         *
+         * @access private
+         *
+         * @param {long}    threadId         ID of image
+         * @param {object}  messageContent   Json Content of the message
+         *
+         * @return {undefined}
+         */newMessageHandler=function newMessageHandler(threadId,messageContent){var message=formatDataToMakeMessage(threadId,messageContent);deliver({messageId:message.id,ownerId:message.participant.id});/**
+             * Add New Messages into cache database
+             */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         /**
 //          * Insert new messages into cache database
@@ -899,8 +1162,8 @@ break;/**
 //     }
 // }
 _events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_NEW',cache:false,result:{message:message}});var threadObject=message.conversation;var lastMessageVoCopy=Object.assign({},message);lastMessageVoCopy.conversation&&delete lastMessageVoCopy.conversation;threadObject.lastParticipantImage=!!message.participant&&message.participant.hasOwnProperty('image')?message.participant.image:'';threadObject.lastMessageVO=lastMessageVoCopy;threadObject.lastParticipantName=!!message.participant&&message.participant.hasOwnProperty('name')?message.participant.name:'';threadObject.lastMessage=message.hasOwnProperty('message')?message.message:'';_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_UNREAD_COUNT_UPDATED',result:{thread:fullResponseObject?threadObject:messageContent.id,unreadCount:threadObject.unreadCount?threadObject.unreadCount:0}});_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:fullResponseObject?threadObject:messageContent.id}});/**
-                 * Update waitQ and remove sent messages from it
-                 */ // if (hasCache && typeof queueDb == 'object') {
+             * Update waitQ and remove sent messages from it
+             */ // if (hasCache && typeof queueDb == 'object') {
 //     queueDb.waitQ.where('uniqueId')
 //         .equals(message.uniqueId)
 //         .and(function (item) {
@@ -917,19 +1180,19 @@ _events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_NEW',cache:false,res
 // } else {
 for(var i=0;i<chatSendQueue.length;i++){if(chatSendQueue[i].uniqueId==message.uniqueId){chatSendQueue.splice(i,1);}}// }
 },/**
-             * Chat Edit Message Handler
-             *
-             * Handles Event Emitter of an edited Chat Message
-             *
-             * @access private
-             *
-             * @param {long}    threadId         ID of image
-             * @param {object}  messageContent   Json Content of the message
-             *
-             * @return {undefined}
-             */chatEditMessageHandler=function chatEditMessageHandler(threadId,messageContent){var message=formatDataToMakeMessage(threadId,messageContent);/**
-                 * Update Message on cache
-                 */ // if (canUseCache && cacheSecret.length > 0) {
+         * Chat Edit Message Handler
+         *
+         * Handles Event Emitter of an edited Chat Message
+         *
+         * @access private
+         *
+         * @param {long}    threadId         ID of image
+         * @param {object}  messageContent   Json Content of the message
+         *
+         * @return {undefined}
+         */chatEditMessageHandler=function chatEditMessageHandler(threadId,messageContent){var message=formatDataToMakeMessage(threadId,messageContent);/**
+             * Update Message on cache
+             */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         try {
 //             var tempData = {},
@@ -969,21 +1232,21 @@ for(var i=0;i<chatSendQueue.length;i++){if(chatSendQueue[i].uniqueId==message.un
 //     }
 // }
 if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult){var threads=threadsResult.result.threads;if(!threadsResult.cache){_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_EDIT',result:{message:message}});if(message.pinned){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threads[0]}});}}});}else{_events.chatEvents.fireEvent('messageEvents',{type:'MESSAGE_EDIT',result:{message:message}});if(message.pinned){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_LAST_ACTIVITY_TIME',result:{thread:threadId}});}}},/**
-             * Create Thread
-             *
-             * Makes formatted Thread Object out of given contentCount,
-             * If Thread has been newly created, a THREAD_NEW event
-             * will be emitted
-             *
-             * @access private
-             *
-             * @param {object}    messageContent    Json object of thread taken from chat server
-             * @param {boolean}   addFromService    if this is a newly created Thread, addFromService should be True
-             *
-             * @return {object} Formatted Thread Object
-             */createThread=function createThread(messageContent,addFromService,showThread){var threadData=formatDataToMakeConversation(messageContent);var redirectToThread=showThread===true?showThread:false;if(addFromService){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_NEW',redirectToThread:redirectToThread,result:{thread:threadData}});/**
-                     * Add New Thread into cache database #cache
-                     */ // if (canUseCache && cacheSecret.length > 0) {
+         * Create Thread
+         *
+         * Makes formatted Thread Object out of given contentCount,
+         * If Thread has been newly created, a THREAD_NEW event
+         * will be emitted
+         *
+         * @access private
+         *
+         * @param {object}    messageContent    Json object of thread taken from chat server
+         * @param {boolean}   addFromService    if this is a newly created Thread, addFromService should be True
+         *
+         * @return {object} Formatted Thread Object
+         */createThread=function createThread(messageContent,addFromService,showThread){var threadData=formatDataToMakeConversation(messageContent);var redirectToThread=showThread===true?showThread:false;if(addFromService){_events.chatEvents.fireEvent('threadEvents',{type:'THREAD_NEW',redirectToThread:redirectToThread,result:{thread:threadData}});/**
+                 * Add New Thread into cache database #cache
+                 */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var tempData = {};
 //
@@ -1021,357 +1284,357 @@ if(fullResponseObject){getThreads({threadIds:[threadId]},function(threadsResult)
 //     }
 // }
 }return threadData;},/**
-             * Format Data To Make Linked User
-             *
-             * This functions re-formats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} linkedUser Object
-             */formatDataToMakeLinkedUser=function formatDataToMakeLinkedUser(messageContent){/**
-                 * + RelatedUserVO                 {object}
-                 *   - coreUserId                  {long}
-                 *   - username                    {string}
-                 *   - nickname                    {string}
-                 *   - name                        {string}
-                 *   - image                       {string}
-                 */var linkedUser={coreUserId:messageContent.coreUserId!==undefined?messageContent.coreUserId:messageContent.id,username:messageContent.username,nickname:messageContent.nickname,name:messageContent.name,image:messageContent.image};// return linkedUser;
+         * Format Data To Make Linked User
+         *
+         * This functions re-formats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} linkedUser Object
+         */formatDataToMakeLinkedUser=function formatDataToMakeLinkedUser(messageContent){/**
+             * + RelatedUserVO                 {object}
+             *   - coreUserId                  {long}
+             *   - username                    {string}
+             *   - nickname                    {string}
+             *   - name                        {string}
+             *   - image                       {string}
+             */var linkedUser={coreUserId:messageContent.coreUserId!==undefined?messageContent.coreUserId:messageContent.id,username:messageContent.username,nickname:messageContent.nickname,name:messageContent.name,image:messageContent.image};// return linkedUser;
 return JSON.parse(JSON.stringify(linkedUser));},/**
-             * Format Data To Make Contact
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} contact Object
-             */formatDataToMakeContact=function formatDataToMakeContact(messageContent){/**
-                 * + ContactVO                        {object}
-                 *    - id                            {long}
-                 *    - blocked                       {boolean}
-                 *    - userId                        {long}
-                 *    - firstName                     {string}
-                 *    - lastName                      {string}
-                 *    - image                         {string}
-                 *    - email                         {string}
-                 *    - cellphoneNumber               {string}
-                 *    - uniqueId                      {string}
-                 *    - notSeenDuration               {long}
-                 *    - hasUser                       {boolean}
-                 *    - linkedUser                    {object : RelatedUserVO}
-                 */var contact={id:messageContent.id,blocked:messageContent.blocked!==undefined?messageContent.blocked:false,userId:messageContent.userId,firstName:messageContent.firstName,lastName:messageContent.lastName,image:messageContent.profileImage,email:messageContent.email,cellphoneNumber:messageContent.cellphoneNumber,uniqueId:messageContent.uniqueId,notSeenDuration:messageContent.notSeenDuration,hasUser:messageContent.hasUser,linkedUser:undefined};if(messageContent.linkedUser!==undefined){contact.linkedUser=formatDataToMakeLinkedUser(messageContent.linkedUser);}// return contact;
+         * Format Data To Make Contact
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} contact Object
+         */formatDataToMakeContact=function formatDataToMakeContact(messageContent){/**
+             * + ContactVO                        {object}
+             *    - id                            {long}
+             *    - blocked                       {boolean}
+             *    - userId                        {long}
+             *    - firstName                     {string}
+             *    - lastName                      {string}
+             *    - image                         {string}
+             *    - email                         {string}
+             *    - cellphoneNumber               {string}
+             *    - uniqueId                      {string}
+             *    - notSeenDuration               {long}
+             *    - hasUser                       {boolean}
+             *    - linkedUser                    {object : RelatedUserVO}
+             */var contact={id:messageContent.id,blocked:messageContent.blocked!==undefined?messageContent.blocked:false,userId:messageContent.userId,firstName:messageContent.firstName,lastName:messageContent.lastName,image:messageContent.profileImage,email:messageContent.email,cellphoneNumber:messageContent.cellphoneNumber,uniqueId:messageContent.uniqueId,notSeenDuration:messageContent.notSeenDuration,hasUser:messageContent.hasUser,linkedUser:undefined};if(messageContent.linkedUser!==undefined){contact.linkedUser=formatDataToMakeLinkedUser(messageContent.linkedUser);}// return contact;
 return JSON.parse(JSON.stringify(contact));},/**
-             * Format Data To Make User
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} user Object
-             */formatDataToMakeUser=function formatDataToMakeUser(messageContent){/**
-                 * + User                     {object}
-                 *    - id                    {long}
-                 *    - name                  {string}
-                 *    - email                 {string}
-                 *    - cellphoneNumber       {string}
-                 *    - image                 {string}
-                 *    - lastSeen              {long}
-                 *    - sendEnable            {boolean}
-                 *    - receiveEnable         {boolean}
-                 *    - contactSynced         {boolean}
-                 *    - chatProfileVO         {object:chatProfileVO}
-                 */var user={id:messageContent.id,name:messageContent.name,email:messageContent.email,cellphoneNumber:messageContent.cellphoneNumber,image:messageContent.image,lastSeen:messageContent.lastSeen,sendEnable:messageContent.sendEnable,receiveEnable:messageContent.receiveEnable,contactSynced:messageContent.contactSynced};if(messageContent.contactId){user.contactId=messageContent.contactId;}if(messageContent.contactName){user.contactName=messageContent.contactName;}if(messageContent.contactFirstName){user.contactFirstName=messageContent.contactFirstName;}if(messageContent.contactLastName){user.contactLastName=messageContent.contactLastName;}if(messageContent.blocked){user.blocked=messageContent.blocked;}// Add chatProfileVO if exist
+         * Format Data To Make User
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} user Object
+         */formatDataToMakeUser=function formatDataToMakeUser(messageContent){/**
+             * + User                     {object}
+             *    - id                    {long}
+             *    - name                  {string}
+             *    - email                 {string}
+             *    - cellphoneNumber       {string}
+             *    - image                 {string}
+             *    - lastSeen              {long}
+             *    - sendEnable            {boolean}
+             *    - receiveEnable         {boolean}
+             *    - contactSynced         {boolean}
+             *    - chatProfileVO         {object:chatProfileVO}
+             */var user={id:messageContent.id,name:messageContent.name,email:messageContent.email,cellphoneNumber:messageContent.cellphoneNumber,image:messageContent.image,lastSeen:messageContent.lastSeen,sendEnable:messageContent.sendEnable,receiveEnable:messageContent.receiveEnable,contactSynced:messageContent.contactSynced};if(messageContent.contactId){user.contactId=messageContent.contactId;}if(messageContent.contactName){user.contactName=messageContent.contactName;}if(messageContent.contactFirstName){user.contactFirstName=messageContent.contactFirstName;}if(messageContent.contactLastName){user.contactLastName=messageContent.contactLastName;}if(messageContent.blocked){user.blocked=messageContent.blocked;}// Add chatProfileVO if exist
 if(messageContent.chatProfileVO){user.chatProfileVO=messageContent.chatProfileVO;}// return user;
 return JSON.parse(JSON.stringify(user));},/**
-             * Format Data To Make Blocked User
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} blockedUser Object
-             */formatDataToMakeBlockedUser=function formatDataToMakeBlockedUser(messageContent){/**
-                 * + BlockedUser              {object}
-                 *    - id                    {long}
-                 *    - coreUserId            {long}
-                 *    - firstName             {string}
-                 *    - lastName              {string}
-                 *    - nickName              {string}
-                 *    - profileImage          {string}
-                 *    - contact               {object: contactVO}
-                 */var blockedUser={blockId:messageContent.id,coreUserId:messageContent.coreUserId,firstName:messageContent.firstName,lastName:messageContent.lastName,nickName:messageContent.nickName,profileImage:messageContent.profileImage};// Add contactVO if exist
+         * Format Data To Make Blocked User
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} blockedUser Object
+         */formatDataToMakeBlockedUser=function formatDataToMakeBlockedUser(messageContent){/**
+             * + BlockedUser              {object}
+             *    - id                    {long}
+             *    - coreUserId            {long}
+             *    - firstName             {string}
+             *    - lastName              {string}
+             *    - nickName              {string}
+             *    - profileImage          {string}
+             *    - contact               {object: contactVO}
+             */var blockedUser={blockId:messageContent.id,coreUserId:messageContent.coreUserId,firstName:messageContent.firstName,lastName:messageContent.lastName,nickName:messageContent.nickName,profileImage:messageContent.profileImage};// Add contactVO if exist
 if(messageContent.contactVO){blockedUser.contact=messageContent.contactVO;}// return blockedUser;
 return JSON.parse(JSON.stringify(blockedUser));},/**
-             * Format Data To Make Invitee
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} inviteeData Object
-             */formatDataToMakeInvitee=function formatDataToMakeInvitee(messageContent){/**
-                 * + InviteeVO       {object}
-                 *    - id           {string}
-                 *    - idType       {int}
-                 */var inviteeData={id:messageContent.id,idType:_constants.inviteeVOidTypes[messageContent.idType]};return inviteeData;},/**
-             * Format Data To Make Participant
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} participant Object
-             */formatDataToMakeParticipant=function formatDataToMakeParticipant(messageContent,threadId){/**
-                 * + ParticipantVO                   {object}
-                 *    - id                           {long}
-                 *    - coreUserId                   {long}
-                 *    - threadId                     {long}
-                 *    - sendEnable                   {boolean}
-                 *    - receiveEnable                {boolean}
-                 *    - firstName                    {string}
-                 *    - lastName                     {string}
-                 *    - name                         {string}
-                 *    - cellphoneNumber              {string}
-                 *    - email                        {string}
-                 *    - image                        {string}
-                 *    - chatProfileVO                {object}
-                 *    - myFriend                     {boolean}
-                 *    - online                       {boolean}
-                 *    - notSeenDuration              {long}
-                 *    - contactId                    {long}
-                 *    - contactName                  {string}
-                 *    - contactFirstName             {string}
-                 *    - contactLastName              {string}
-                 *    - blocked                      {boolean}
-                 *    - admin                        {boolean}
-                 *    - auditor                      {boolean}
-                 *    - keyId                        {string}
-                 *    - roles                        {list:string}
-                 *    - username                     {string}
-                 */var participant={id:messageContent.id,coreUserId:messageContent.coreUserId,threadId:threadId,sendEnable:messageContent.sendEnable,receiveEnable:messageContent.receiveEnable,firstName:messageContent.firstName,lastName:messageContent.lastName,name:messageContent.name,cellphoneNumber:messageContent.cellphoneNumber,email:messageContent.email,image:messageContent.image,myFriend:messageContent.myFriend,online:messageContent.online,notSeenDuration:messageContent.notSeenDuration,contactId:messageContent.contactId,contactName:messageContent.contactName,contactFirstName:messageContent.contactFirstName,contactLastName:messageContent.contactLastName,blocked:messageContent.blocked,admin:messageContent.admin,auditor:messageContent.auditor,keyId:messageContent.keyId,roles:messageContent.roles,username:messageContent.username};// Add chatProfileVO if exist
+         * Format Data To Make Invitee
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} inviteeData Object
+         */formatDataToMakeInvitee=function formatDataToMakeInvitee(messageContent){/**
+             * + InviteeVO       {object}
+             *    - id           {string}
+             *    - idType       {int}
+             */var inviteeData={id:messageContent.id,idType:_constants.inviteeVOidTypes[messageContent.idType]};return inviteeData;},/**
+         * Format Data To Make Participant
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} participant Object
+         */formatDataToMakeParticipant=function formatDataToMakeParticipant(messageContent,threadId){/**
+             * + ParticipantVO                   {object}
+             *    - id                           {long}
+             *    - coreUserId                   {long}
+             *    - threadId                     {long}
+             *    - sendEnable                   {boolean}
+             *    - receiveEnable                {boolean}
+             *    - firstName                    {string}
+             *    - lastName                     {string}
+             *    - name                         {string}
+             *    - cellphoneNumber              {string}
+             *    - email                        {string}
+             *    - image                        {string}
+             *    - chatProfileVO                {object}
+             *    - myFriend                     {boolean}
+             *    - online                       {boolean}
+             *    - notSeenDuration              {long}
+             *    - contactId                    {long}
+             *    - contactName                  {string}
+             *    - contactFirstName             {string}
+             *    - contactLastName              {string}
+             *    - blocked                      {boolean}
+             *    - admin                        {boolean}
+             *    - auditor                      {boolean}
+             *    - keyId                        {string}
+             *    - roles                        {list:string}
+             *    - username                     {string}
+             */var participant={id:messageContent.id,coreUserId:messageContent.coreUserId,threadId:threadId,sendEnable:messageContent.sendEnable,receiveEnable:messageContent.receiveEnable,firstName:messageContent.firstName,lastName:messageContent.lastName,name:messageContent.name,cellphoneNumber:messageContent.cellphoneNumber,email:messageContent.email,image:messageContent.image,myFriend:messageContent.myFriend,online:messageContent.online,notSeenDuration:messageContent.notSeenDuration,contactId:messageContent.contactId,contactName:messageContent.contactName,contactFirstName:messageContent.contactFirstName,contactLastName:messageContent.contactLastName,blocked:messageContent.blocked,admin:messageContent.admin,auditor:messageContent.auditor,keyId:messageContent.keyId,roles:messageContent.roles,username:messageContent.username};// Add chatProfileVO if exist
 if(messageContent.chatProfileVO){participant.chatProfileVO=messageContent.chatProfileVO;}// return participant;
 return JSON.parse(JSON.stringify(participant));},/**
-             * Format Data To Make Conversation
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} Conversation Object
-             */formatDataToMakeConversation=function formatDataToMakeConversation(messageContent){/**
-                 * + Conversation                           {object}
-                 *    - id                                  {long}
-                 *    - joinDate                            {long}
-                 *    - title                               {string}
-                 *    - inviter                             {object : ParticipantVO}
-                 *    - participants                        {list : ParticipantVO}
-                 *    - time                                {long}
-                 *    - lastMessage                         {string}
-                 *    - lastParticipantName                 {string}
-                 *    - group                               {boolean}
-                 *    - partner                             {long}
-                 *    - lastParticipantImage                {string}
-                 *    - image                               {string}
-                 *    - description                         {string}
-                 *    - unreadCount                         {long}
-                 *    - lastSeenMessageId                   {long}
-                 *    - lastSeenMessageTime                 {long}
-                 *    - lastSeenMessageNanos                {integer}
-                 *    - lastMessageVO                       {object : ChatMessageVO}
-                 *    - pinMessageVO                        {object : pinMessageVO}
-                 *    - partnerLastSeenMessageId            {long}
-                 *    - partnerLastSeenMessageTime          {long}
-                 *    - partnerLastSeenMessageNanos         {integer}
-                 *    - partnerLastDeliveredMessageId       {long}
-                 *    - partnerLastDeliveredMessageTime     {long}
-                 *    - partnerLastDeliveredMessageNanos    {integer}
-                 *    - type                                {int}
-                 *    - metadata                            {string}
-                 *    - mute                                {boolean}
-                 *    - participantCount                    {long}
-                 *    - canEditInfo                         {boolean}
-                 *    - canSpam                             {boolean}
-                 *    - admin                               {boolean}
-                 *    - mentioned                           {boolean}
-                 *    - pin                                 {boolean}
-                 *    - uniqueName                          {string}
-                 *    - userGroupHash                       {string}
-                 */var conversation={id:messageContent.id,joinDate:messageContent.joinDate,title:messageContent.title,inviter:undefined,participants:undefined,time:messageContent.time,lastMessage:messageContent.lastMessage,lastParticipantName:messageContent.lastParticipantName,group:messageContent.group,partner:messageContent.partner,lastParticipantImage:messageContent.lastParticipantImage,image:messageContent.image,description:messageContent.description,unreadCount:messageContent.unreadCount,lastSeenMessageId:messageContent.lastSeenMessageId,lastSeenMessageTime:messageContent.lastSeenMessageNanos?parseInt(parseInt(messageContent.lastSeenMessageTime)/1000)*1000000000+parseInt(messageContent.lastSeenMessageNanos):parseInt(messageContent.lastSeenMessageTime),lastMessageVO:undefined,pinMessageVO:undefined,partnerLastSeenMessageId:messageContent.partnerLastSeenMessageId,partnerLastSeenMessageTime:messageContent.partnerLastSeenMessageNanos?parseInt(parseInt(messageContent.partnerLastSeenMessageTime)/1000)*1000000000+parseInt(messageContent.partnerLastSeenMessageNanos):parseInt(messageContent.partnerLastSeenMessageTime),partnerLastDeliveredMessageId:messageContent.partnerLastDeliveredMessageId,partnerLastDeliveredMessageTime:messageContent.partnerLastDeliveredMessageNanos?parseInt(parseInt(messageContent.partnerLastDeliveredMessageTime)/1000)*1000000000+parseInt(messageContent.partnerLastDeliveredMessageNanos):parseInt(messageContent.partnerLastDeliveredMessageTime),type:messageContent.type,metadata:messageContent.metadata,mute:messageContent.mute,participantCount:messageContent.participantCount,canEditInfo:messageContent.canEditInfo,canSpam:messageContent.canSpam,admin:messageContent.admin,mentioned:messageContent.mentioned,pin:messageContent.pin,uniqueName:messageContent.uniqueName,userGroupHash:messageContent.userGroupHash};// Add inviter if exist
+         * Format Data To Make Conversation
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} Conversation Object
+         */formatDataToMakeConversation=function formatDataToMakeConversation(messageContent){/**
+             * + Conversation                           {object}
+             *    - id                                  {long}
+             *    - joinDate                            {long}
+             *    - title                               {string}
+             *    - inviter                             {object : ParticipantVO}
+             *    - participants                        {list : ParticipantVO}
+             *    - time                                {long}
+             *    - lastMessage                         {string}
+             *    - lastParticipantName                 {string}
+             *    - group                               {boolean}
+             *    - partner                             {long}
+             *    - lastParticipantImage                {string}
+             *    - image                               {string}
+             *    - description                         {string}
+             *    - unreadCount                         {long}
+             *    - lastSeenMessageId                   {long}
+             *    - lastSeenMessageTime                 {long}
+             *    - lastSeenMessageNanos                {integer}
+             *    - lastMessageVO                       {object : ChatMessageVO}
+             *    - pinMessageVO                        {object : pinMessageVO}
+             *    - partnerLastSeenMessageId            {long}
+             *    - partnerLastSeenMessageTime          {long}
+             *    - partnerLastSeenMessageNanos         {integer}
+             *    - partnerLastDeliveredMessageId       {long}
+             *    - partnerLastDeliveredMessageTime     {long}
+             *    - partnerLastDeliveredMessageNanos    {integer}
+             *    - type                                {int}
+             *    - metadata                            {string}
+             *    - mute                                {boolean}
+             *    - participantCount                    {long}
+             *    - canEditInfo                         {boolean}
+             *    - canSpam                             {boolean}
+             *    - admin                               {boolean}
+             *    - mentioned                           {boolean}
+             *    - pin                                 {boolean}
+             *    - uniqueName                          {string}
+             *    - userGroupHash                       {string}
+             */var conversation={id:messageContent.id,joinDate:messageContent.joinDate,title:messageContent.title,inviter:undefined,participants:undefined,time:messageContent.time,lastMessage:messageContent.lastMessage,lastParticipantName:messageContent.lastParticipantName,group:messageContent.group,partner:messageContent.partner,lastParticipantImage:messageContent.lastParticipantImage,image:messageContent.image,description:messageContent.description,unreadCount:messageContent.unreadCount,lastSeenMessageId:messageContent.lastSeenMessageId,lastSeenMessageTime:messageContent.lastSeenMessageNanos?parseInt(parseInt(messageContent.lastSeenMessageTime)/1000)*1000000000+parseInt(messageContent.lastSeenMessageNanos):parseInt(messageContent.lastSeenMessageTime),lastMessageVO:undefined,pinMessageVO:undefined,partnerLastSeenMessageId:messageContent.partnerLastSeenMessageId,partnerLastSeenMessageTime:messageContent.partnerLastSeenMessageNanos?parseInt(parseInt(messageContent.partnerLastSeenMessageTime)/1000)*1000000000+parseInt(messageContent.partnerLastSeenMessageNanos):parseInt(messageContent.partnerLastSeenMessageTime),partnerLastDeliveredMessageId:messageContent.partnerLastDeliveredMessageId,partnerLastDeliveredMessageTime:messageContent.partnerLastDeliveredMessageNanos?parseInt(parseInt(messageContent.partnerLastDeliveredMessageTime)/1000)*1000000000+parseInt(messageContent.partnerLastDeliveredMessageNanos):parseInt(messageContent.partnerLastDeliveredMessageTime),type:messageContent.type,metadata:messageContent.metadata,mute:messageContent.mute,participantCount:messageContent.participantCount,canEditInfo:messageContent.canEditInfo,canSpam:messageContent.canSpam,admin:messageContent.admin,mentioned:messageContent.mentioned,pin:messageContent.pin,uniqueName:messageContent.uniqueName,userGroupHash:messageContent.userGroupHash};// Add inviter if exist
 if(messageContent.inviter){conversation.inviter=formatDataToMakeParticipant(messageContent.inviter,messageContent.id);}// Add participants list if exist
 if(messageContent.participants&&Array.isArray(messageContent.participants)){conversation.participants=[];for(var i=0;i<messageContent.participants.length;i++){var participantData=formatDataToMakeParticipant(messageContent.participants[i],messageContent.id);if(participantData){conversation.participants.push(participantData);}}}// Add lastMessageVO if exist
 if(messageContent.lastMessageVO){conversation.lastMessageVO=formatDataToMakeMessage(messageContent.id,messageContent.lastMessageVO);}// Add pinMessageVO if exist
 if(messageContent.pinMessageVO){conversation.pinMessageVO=formatDataToMakePinMessage(messageContent.id,messageContent.pinMessageVO);}// return conversation;
 return JSON.parse(JSON.stringify(conversation));},/**
-             * Format Data To Make Reply Info
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} replyInfo Object
-             */formatDataToMakeReplyInfo=function formatDataToMakeReplyInfo(messageContent,threadId){/**
-                 * + replyInfoVO                  {object : replyInfoVO}
-                 *   - participant                {object : ParticipantVO}
-                 *   - repliedToMessageId         {long}
-                 *   - repliedToMessageTime       {long}
-                 *   - repliedToMessageNanos      {int}
-                 *   - message                    {string}
-                 *   - deleted                    {boolean}
-                 *   - messageType                {int}
-                 *   - metadata                   {string}
-                 *   - systemMetadata             {string}
-                 */var replyInfo={participant:undefined,repliedToMessageId:messageContent.repliedToMessageId,repliedToMessageTime:messageContent.repliedToMessageNanos?parseInt(parseInt(messageContent.repliedToMessageTime)/1000)*1000000000+parseInt(messageContent.repliedToMessageNanos):parseInt(messageContent.repliedToMessageTime),repliedToMessageTimeMiliSeconds:parseInt(messageContent.repliedToMessageTime),repliedToMessageTimeNanos:parseInt(messageContent.repliedToMessageNanos),message:messageContent.message,deleted:messageContent.deleted,messageType:messageContent.messageType,metadata:messageContent.metadata,systemMetadata:messageContent.systemMetadata};if(messageContent.participant){replyInfo.participant=formatDataToMakeParticipant(messageContent.participant,threadId);}// return replyInfo;
+         * Format Data To Make Reply Info
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} replyInfo Object
+         */formatDataToMakeReplyInfo=function formatDataToMakeReplyInfo(messageContent,threadId){/**
+             * + replyInfoVO                  {object : replyInfoVO}
+             *   - participant                {object : ParticipantVO}
+             *   - repliedToMessageId         {long}
+             *   - repliedToMessageTime       {long}
+             *   - repliedToMessageNanos      {int}
+             *   - message                    {string}
+             *   - deleted                    {boolean}
+             *   - messageType                {int}
+             *   - metadata                   {string}
+             *   - systemMetadata             {string}
+             */var replyInfo={participant:undefined,repliedToMessageId:messageContent.repliedToMessageId,repliedToMessageTime:messageContent.repliedToMessageNanos?parseInt(parseInt(messageContent.repliedToMessageTime)/1000)*1000000000+parseInt(messageContent.repliedToMessageNanos):parseInt(messageContent.repliedToMessageTime),repliedToMessageTimeMiliSeconds:parseInt(messageContent.repliedToMessageTime),repliedToMessageTimeNanos:parseInt(messageContent.repliedToMessageNanos),message:messageContent.message,deleted:messageContent.deleted,messageType:messageContent.messageType,metadata:messageContent.metadata,systemMetadata:messageContent.systemMetadata};if(messageContent.participant){replyInfo.participant=formatDataToMakeParticipant(messageContent.participant,threadId);}// return replyInfo;
 return JSON.parse(JSON.stringify(replyInfo));},/**
-             * Format Data To Make Forward Info
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} forwardInfo Object
-             */formatDataToMakeForwardInfo=function formatDataToMakeForwardInfo(messageContent,threadId){/**
-                 * + forwardInfo                  {object : forwardInfoVO}
-                 *   - participant                {object : ParticipantVO}
-                 *   - conversation               {object : ConversationSummary}
-                 */var forwardInfo={participant:undefined,conversation:undefined};if(messageContent.conversation){forwardInfo.conversation=formatDataToMakeConversation(messageContent.conversation);}if(messageContent.participant){forwardInfo.participant=formatDataToMakeParticipant(messageContent.participant,threadId);}// return forwardInfo;
+         * Format Data To Make Forward Info
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} forwardInfo Object
+         */formatDataToMakeForwardInfo=function formatDataToMakeForwardInfo(messageContent,threadId){/**
+             * + forwardInfo                  {object : forwardInfoVO}
+             *   - participant                {object : ParticipantVO}
+             *   - conversation               {object : ConversationSummary}
+             */var forwardInfo={participant:undefined,conversation:undefined};if(messageContent.conversation){forwardInfo.conversation=formatDataToMakeConversation(messageContent.conversation);}if(messageContent.participant){forwardInfo.participant=formatDataToMakeParticipant(messageContent.participant,threadId);}// return forwardInfo;
 return JSON.parse(JSON.stringify(forwardInfo));},/**
-             * Format Data To Make Message
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} message Object
-             */formatDataToMakeMessage=function formatDataToMakeMessage(threadId,pushMessageVO,fromCache){/**
-                 * + MessageVO                       {object}
-                 *    - id                           {long}
-                 *    - threadId                     {long}
-                 *    - ownerId                      {long}
-                 *    - uniqueId                     {string}
-                 *    - previousId                   {long}
-                 *    - message                      {string}
-                 *    - messageType                  {int}
-                 *    - edited                       {boolean}
-                 *    - editable                     {boolean}
-                 *    - deletable                    {boolean}
-                 *    - delivered                    {boolean}
-                 *    - seen                         {boolean}
-                 *    - mentioned                    {boolean}
-                 *    - pinned                       {boolean}
-                 *    - participant                  {object : ParticipantVO}
-                 *    - conversation                 {object : ConversationVO}
-                 *    - replyInfo                    {object : replyInfoVO}
-                 *    - forwardInfo                  {object : forwardInfoVO}
-                 *    - metadata                     {string}
-                 *    - systemMetadata               {string}
-                 *    - time                         {long}
-                 *    - timeNanos                    {long}
-                 */if(fromCache||pushMessageVO.time.toString().length>14){var time=pushMessageVO.time,timeMiliSeconds=parseInt(pushMessageVO.time/1000000);}else{var time=pushMessageVO.timeNanos?parseInt(parseInt(pushMessageVO.time)/1000)*1000000000+parseInt(pushMessageVO.timeNanos):parseInt(pushMessageVO.time),timeMiliSeconds=parseInt(pushMessageVO.time);}var message={id:pushMessageVO.id,threadId:threadId,ownerId:pushMessageVO.ownerId?pushMessageVO.ownerId:undefined,uniqueId:pushMessageVO.uniqueId,previousId:pushMessageVO.previousId,message:pushMessageVO.message,messageType:pushMessageVO.messageType,edited:pushMessageVO.edited,editable:pushMessageVO.editable,deletable:pushMessageVO.deletable,delivered:pushMessageVO.delivered,seen:pushMessageVO.seen,mentioned:pushMessageVO.mentioned,pinned:pushMessageVO.pinned,participant:undefined,conversation:undefined,replyInfo:undefined,forwardInfo:undefined,metadata:pushMessageVO.metadata,systemMetadata:pushMessageVO.systemMetadata,time:time,timeMiliSeconds:timeMiliSeconds,timeNanos:parseInt(pushMessageVO.timeNanos)};if(pushMessageVO.participant){message.ownerId=pushMessageVO.participant.id;}if(pushMessageVO.conversation){message.conversation=formatDataToMakeConversation(pushMessageVO.conversation);message.threadId=pushMessageVO.conversation.id;}if(pushMessageVO.replyInfoVO||pushMessageVO.replyInfo){message.replyInfo=pushMessageVO.replyInfoVO?formatDataToMakeReplyInfo(pushMessageVO.replyInfoVO,threadId):formatDataToMakeReplyInfo(pushMessageVO.replyInfo,threadId);}if(pushMessageVO.forwardInfo){message.forwardInfo=formatDataToMakeForwardInfo(pushMessageVO.forwardInfo,threadId);}if(pushMessageVO.participant){message.participant=formatDataToMakeParticipant(pushMessageVO.participant,threadId);}// return message;
+         * Format Data To Make Message
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} message Object
+         */formatDataToMakeMessage=function formatDataToMakeMessage(threadId,pushMessageVO,fromCache){/**
+             * + MessageVO                       {object}
+             *    - id                           {long}
+             *    - threadId                     {long}
+             *    - ownerId                      {long}
+             *    - uniqueId                     {string}
+             *    - previousId                   {long}
+             *    - message                      {string}
+             *    - messageType                  {int}
+             *    - edited                       {boolean}
+             *    - editable                     {boolean}
+             *    - deletable                    {boolean}
+             *    - delivered                    {boolean}
+             *    - seen                         {boolean}
+             *    - mentioned                    {boolean}
+             *    - pinned                       {boolean}
+             *    - participant                  {object : ParticipantVO}
+             *    - conversation                 {object : ConversationVO}
+             *    - replyInfo                    {object : replyInfoVO}
+             *    - forwardInfo                  {object : forwardInfoVO}
+             *    - metadata                     {string}
+             *    - systemMetadata               {string}
+             *    - time                         {long}
+             *    - timeNanos                    {long}
+             */if(fromCache||pushMessageVO.time.toString().length>14){var time=pushMessageVO.time,timeMiliSeconds=parseInt(pushMessageVO.time/1000000);}else{var time=pushMessageVO.timeNanos?parseInt(parseInt(pushMessageVO.time)/1000)*1000000000+parseInt(pushMessageVO.timeNanos):parseInt(pushMessageVO.time),timeMiliSeconds=parseInt(pushMessageVO.time);}var message={id:pushMessageVO.id,threadId:threadId,ownerId:pushMessageVO.ownerId?pushMessageVO.ownerId:undefined,uniqueId:pushMessageVO.uniqueId,previousId:pushMessageVO.previousId,message:pushMessageVO.message,messageType:pushMessageVO.messageType,edited:pushMessageVO.edited,editable:pushMessageVO.editable,deletable:pushMessageVO.deletable,delivered:pushMessageVO.delivered,seen:pushMessageVO.seen,mentioned:pushMessageVO.mentioned,pinned:pushMessageVO.pinned,participant:undefined,conversation:undefined,replyInfo:undefined,forwardInfo:undefined,metadata:pushMessageVO.metadata,systemMetadata:pushMessageVO.systemMetadata,time:time,timeMiliSeconds:timeMiliSeconds,timeNanos:parseInt(pushMessageVO.timeNanos)};if(pushMessageVO.participant){message.ownerId=pushMessageVO.participant.id;}if(pushMessageVO.conversation){message.conversation=formatDataToMakeConversation(pushMessageVO.conversation);message.threadId=pushMessageVO.conversation.id;}if(pushMessageVO.replyInfoVO||pushMessageVO.replyInfo){message.replyInfo=pushMessageVO.replyInfoVO?formatDataToMakeReplyInfo(pushMessageVO.replyInfoVO,threadId):formatDataToMakeReplyInfo(pushMessageVO.replyInfo,threadId);}if(pushMessageVO.forwardInfo){message.forwardInfo=formatDataToMakeForwardInfo(pushMessageVO.forwardInfo,threadId);}if(pushMessageVO.participant){message.participant=formatDataToMakeParticipant(pushMessageVO.participant,threadId);}// return message;
 return JSON.parse(JSON.stringify(message));},/**
-             * Format Data To Make Pin Message
-             *
-             * This functions reformats given JSON to proper Object
-             *
-             * @access private
-             *
-             * @param {object}  messageContent    Json object of thread taken from chat server
-             *
-             * @return {object} pin message Object
-             */formatDataToMakePinMessage=function formatDataToMakePinMessage(threadId,pushMessageVO){/**
-                 * + PinMessageVO                    {object}
-                 *    - messageId                    {long}
-                 *    - time                         {long}
-                 *    - sender                       {long}
-                 *    - text                         {string}
-                 *    - notifyAll                    {boolean}
-                 */var pinMessage={threadId:threadId,time:pushMessageVO.time,sender:pushMessageVO.sender,messageId:pushMessageVO.messageId,text:pushMessageVO.text};if(typeof pushMessageVO.notifyAll==='boolean'){pinMessage.notifyAll=pushMessageVO.notifyAll;}// return pinMessage;
+         * Format Data To Make Pin Message
+         *
+         * This functions reformats given JSON to proper Object
+         *
+         * @access private
+         *
+         * @param {object}  messageContent    Json object of thread taken from chat server
+         *
+         * @return {object} pin message Object
+         */formatDataToMakePinMessage=function formatDataToMakePinMessage(threadId,pushMessageVO){/**
+             * + PinMessageVO                    {object}
+             *    - messageId                    {long}
+             *    - time                         {long}
+             *    - sender                       {long}
+             *    - text                         {string}
+             *    - notifyAll                    {boolean}
+             */var pinMessage={threadId:threadId,time:pushMessageVO.time,sender:pushMessageVO.sender,messageId:pushMessageVO.messageId,text:pushMessageVO.text};if(typeof pushMessageVO.notifyAll==='boolean'){pinMessage.notifyAll=pushMessageVO.notifyAll;}// return pinMessage;
 return JSON.parse(JSON.stringify(pinMessage));},/**
-             * Reformat Thread History
-             *
-             * This functions reformats given Array of thread Messages
-             * into proper chat message object
-             *
-             * @access private
-             *
-             * @param {long}    threadId         Id of Thread
-             * @param {object}  historyContent   Array of Thread History Messages
-             *
-             * @return {object} Formatted Thread History
-             */reformatThreadHistory=function reformatThreadHistory(threadId,historyContent){var returnData=[];for(var i=0;i<historyContent.length;i++){returnData.push(formatDataToMakeMessage(threadId,historyContent[i]));}return returnData;},/**
-             * Reformat Thread Participants
-             *
-             * This functions reformats given Array of thread Participants
-             * into proper thread participant
-             *
-             * @access private
-             *
-             * @param {object}  participantsContent   Array of Thread Participant Objects
-             * @param {long}    threadId              Id of Thread
-             *
-             * @return {object} Formatted Thread Participant Array
-             */reformatThreadParticipants=function reformatThreadParticipants(participantsContent,threadId){var returnData=[];for(var i=0;i<participantsContent.length;i++){returnData.push(formatDataToMakeParticipant(participantsContent[i],threadId));}return returnData;},/**
-             * Unset Not Seen Duration
-             *
-             * This functions unsets notSeenDuration property of cached objects
-             *
-             * @access private
-             *
-             * @param {object}  content   Object or Array to be modified
-             *
-             * @return {object}
-             */unsetNotSeenDuration=function unsetNotSeenDuration(content){/**
-                 * Make a copy from original object to modify it's
-                 * attributes, because we don't want to change
-                 * the original object
-                 */var temp=cloneObject(content);if(temp.hasOwnProperty('notSeenDuration')){temp.notSeenDuration=undefined;}if(temp.hasOwnProperty('inviter')){temp.inviter.notSeenDuration=undefined;}if(temp.hasOwnProperty('participant')){temp.participant.notSeenDuration=undefined;}return temp;},/**
-             * Clone Object/Array
-             *
-             * This functions makes a deep clone of given object or array
-             *
-             * @access private
-             *
-             * @param {object}  original   Object or Array to be cloned
-             *
-             * @return {object} Cloned object
-             */cloneObject=function cloneObject(original){var out,value,key;out=Array.isArray(original)?[]:{};for(key in original){value=original[key];out[key]=(0,_typeof2["default"])(value)==='object'&&value!==null?cloneObject(value):value;}return out;},/**
-             * Get Treads.
-             *
-             * This functions gets threads list
-             *
-             * @access private
-             *
-             * @param {int}       count                 count of threads to be received
-             * @param {int}       offset                offset of select query
-             * @param {array}     threadIds             An array of thread ids to be received
-             * @param {string}    name                  Search term to look up in thread Titles
-             * @param {long}      creatorCoreUserId     SSO User Id of thread creator
-             * @param {long}      partnerCoreUserId     SSO User Id of thread partner
-             * @param {long}      partnerCoreContactId  Contact Id of thread partner
-             * @param {function}  callback              The callback function to call after
-             *
-             * @return {object} Instant sendMessage result
-             */getThreads=function getThreads(params,callback){var count=50,offset=0,content={},whereClause={},returnCache=false;if(params){if(parseInt(params.count)>0){count=params.count;}if(parseInt(params.offset)>0){offset=params.offset;}if(typeof params.threadName==='string'){content.name=whereClause.name=params.threadName;}if(Array.isArray(params.threadIds)){content.threadIds=whereClause.threadIds=params.threadIds;}if(typeof params["new"]==='boolean'){content["new"]=params["new"];}if(parseInt(params.creatorCoreUserId)>0){content.creatorCoreUserId=whereClause.creatorCoreUserId=params.creatorCoreUserId;}if(parseInt(params.partnerCoreUserId)>0){content.partnerCoreUserId=whereClause.partnerCoreUserId=params.partnerCoreUserId;}if(parseInt(params.partnerCoreContactId)>0){content.partnerCoreContactId=whereClause.partnerCoreContactId=params.partnerCoreContactId;}if(typeof params.isGroup==='boolean'){content.isGroup=params.isGroup;}if(typeof params.type==='number'){content.type=params.type;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;}content.count=count;content.offset=offset;var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_THREADS,typeCode:params.typeCode,content:content};/**
-                 * Retrieve threads from cache
-                 */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+         * Reformat Thread History
+         *
+         * This functions reformats given Array of thread Messages
+         * into proper chat message object
+         *
+         * @access private
+         *
+         * @param {long}    threadId         Id of Thread
+         * @param {object}  historyContent   Array of Thread History Messages
+         *
+         * @return {object} Formatted Thread History
+         */reformatThreadHistory=function reformatThreadHistory(threadId,historyContent){var returnData=[];for(var i=0;i<historyContent.length;i++){returnData.push(formatDataToMakeMessage(threadId,historyContent[i]));}return returnData;},/**
+         * Reformat Thread Participants
+         *
+         * This functions reformats given Array of thread Participants
+         * into proper thread participant
+         *
+         * @access private
+         *
+         * @param {object}  participantsContent   Array of Thread Participant Objects
+         * @param {long}    threadId              Id of Thread
+         *
+         * @return {object} Formatted Thread Participant Array
+         */reformatThreadParticipants=function reformatThreadParticipants(participantsContent,threadId){var returnData=[];for(var i=0;i<participantsContent.length;i++){returnData.push(formatDataToMakeParticipant(participantsContent[i],threadId));}return returnData;},/**
+         * Unset Not Seen Duration
+         *
+         * This functions unsets notSeenDuration property of cached objects
+         *
+         * @access private
+         *
+         * @param {object}  content   Object or Array to be modified
+         *
+         * @return {object}
+         */unsetNotSeenDuration=function unsetNotSeenDuration(content){/**
+             * Make a copy from original object to modify it's
+             * attributes, because we don't want to change
+             * the original object
+             */var temp=cloneObject(content);if(temp.hasOwnProperty('notSeenDuration')){temp.notSeenDuration=undefined;}if(temp.hasOwnProperty('inviter')){temp.inviter.notSeenDuration=undefined;}if(temp.hasOwnProperty('participant')){temp.participant.notSeenDuration=undefined;}return temp;},/**
+         * Clone Object/Array
+         *
+         * This functions makes a deep clone of given object or array
+         *
+         * @access private
+         *
+         * @param {object}  original   Object or Array to be cloned
+         *
+         * @return {object} Cloned object
+         */cloneObject=function cloneObject(original){var out,value,key;out=Array.isArray(original)?[]:{};for(key in original){value=original[key];out[key]=(0,_typeof2["default"])(value)==='object'&&value!==null?cloneObject(value):value;}return out;},/**
+         * Get Treads.
+         *
+         * This functions gets threads list
+         *
+         * @access private
+         *
+         * @param {int}       count                 count of threads to be received
+         * @param {int}       offset                offset of select query
+         * @param {array}     threadIds             An array of thread ids to be received
+         * @param {string}    name                  Search term to look up in thread Titles
+         * @param {long}      creatorCoreUserId     SSO User Id of thread creator
+         * @param {long}      partnerCoreUserId     SSO User Id of thread partner
+         * @param {long}      partnerCoreContactId  Contact Id of thread partner
+         * @param {function}  callback              The callback function to call after
+         *
+         * @return {object} Instant sendMessage result
+         */getThreads=function getThreads(params,callback){var count=50,offset=0,content={},whereClause={},returnCache=false;if(params){if(parseInt(params.count)>0){count=params.count;}if(parseInt(params.offset)>0){offset=params.offset;}if(typeof params.threadName==='string'){content.name=whereClause.name=params.threadName;}if(Array.isArray(params.threadIds)){content.threadIds=whereClause.threadIds=params.threadIds;}if(typeof params["new"]==='boolean'){content["new"]=params["new"];}if(parseInt(params.creatorCoreUserId)>0){content.creatorCoreUserId=whereClause.creatorCoreUserId=params.creatorCoreUserId;}if(parseInt(params.partnerCoreUserId)>0){content.partnerCoreUserId=whereClause.partnerCoreUserId=params.partnerCoreUserId;}if(parseInt(params.partnerCoreContactId)>0){content.partnerCoreContactId=whereClause.partnerCoreContactId=params.partnerCoreContactId;}if(typeof params.isGroup==='boolean'){content.isGroup=params.isGroup;}if(typeof params.type==='number'){content.type=params.type;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;}content.count=count;content.offset=offset;var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_THREADS,typeCode:params.typeCode,content:content};/**
+             * Retrieve threads from cache
+             */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var thenAble;
 //
@@ -1468,16 +1731,16 @@ return JSON.parse(JSON.stringify(pinMessage));},/**
 //     }
 // }
 /**
-                 * Retrive get threads response from server
-                 */return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={threads:[],contentCount:result.contentCount,hasNext:messageContent&&!(messageLength<count),//(offset + count < result.contentCount && messageLength > 0),
+             * Retrive get threads response from server
+             */return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={threads:[],contentCount:result.contentCount,hasNext:messageContent&&!(messageLength<count),//(offset + count < result.contentCount && messageLength > 0),
 nextOffset:offset+messageLength},threadData;for(var i=0;i<messageLength;i++){threadData=createThread(messageContent[i],false);if(threadData){resultData.threads.push(threadData);}}returnData.result=resultData;/**
-                             * Updating cache on separated worker to find and
-                             * delete all messages that have been deleted from
-                             * thread's last section
-                             *
-                             * This option works on browser only - no Node support
-                             * TODO: Implement Node Version
-                             */ // if (typeof Worker !== 'undefined' && productEnv != 'ReactNative' && canUseCache && cacheSecret.length > 0) {
+                         * Updating cache on separated worker to find and
+                         * delete all messages that have been deleted from
+                         * thread's last section
+                         *
+                         * This option works on browser only - no Node support
+                         * TODO: Implement Node Version
+                         */ // if (typeof Worker !== 'undefined' && productEnv != 'ReactNative' && canUseCache && cacheSecret.length > 0) {
 //     if (typeof (cacheSyncWorker) == 'undefined') {
 //         var plainWorker = function () {
 //             self.importScripts('https://npmcdn.com/dexie@2.0.4/dist/dexie.min.js');
@@ -1544,8 +1807,8 @@ nextOffset:offset+messageLength},threadData;for(var i=0;i<messageLength;i++){thr
 //     };
 // }
 /**
-                             * Add Threads into cache database #cache
-                             */ // if (canUseCache && cacheSecret.length > 0) {
+                         * Add Threads into cache database #cache
+                         */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var cacheData = [];
 //
@@ -1598,9 +1861,9 @@ nextOffset:offset+messageLength},threadData;for(var i=0;i<messageLength;i++){thr
 //     }
 // }
 }callback&&callback(returnData);/**
-                         * Delete callback so if server pushes response before
-                         * cache, cache won't send data again
-                         */callback=undefined;if(!returnData.hasError&&returnCache){_events.chatEvents.fireEvent('threadEvents',{type:'THREADS_LIST_CHANGE',result:returnData.result});}}});},getAllThreads=function getAllThreads(params,callback){var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_THREADS,typeCode:params.typeCode,content:{}};if(params){if(typeof params.summary=='boolean'){sendMessageParams.content.summary=params.summary;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){if(!result.hasError){// if (canUseCache) {
+                     * Delete callback so if server pushes response before
+                     * cache, cache won't send data again
+                     */callback=undefined;if(!returnData.hasError&&returnCache){_events.chatEvents.fireEvent('threadEvents',{type:'THREADS_LIST_CHANGE',result:returnData.result});}}});},getAllThreads=function getAllThreads(params,callback){var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_THREADS,typeCode:params.typeCode,content:{}};if(params){if(typeof params.summary=='boolean'){sendMessageParams.content.summary=params.summary;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){if(!result.hasError){// if (canUseCache) {
 //     if (db) {
 //         var allThreads = [];
 //         for (var m = 0; m < result.result.length; m++) {
@@ -1629,37 +1892,37 @@ nextOffset:offset+messageLength},threadData;for(var i=0;i<messageLength;i++){thr
 //     }
 // }
 }callback&&callback(result);}});},/**
-             * Get History.
-             *
-             * This functions gets history of a thread
-             *
-             * @access private
-             *
-             * @param {int}       count             Count of threads to be received
-             * @param {int}       offset            Offset of select query
-             * @param {long}      threadId          Id of thread to get its history
-             * @param {long}      id                Id of single message to get
-             * @param {long}      userId            Messages of this SSO User
-             * @param {int}       messageType       Type of messages to get (types should be set by client)
-             * @param {long}      fromTime          Get messages which have bigger time than given fromTime
-             * @param {int}       fromTimeNanos     Get messages which have bigger time than given fromTimeNanos
-             * @param {long}      toTime            Get messages which have smaller time than given toTime
-             * @param {int}       toTimeNanos       Get messages which have smaller time than given toTimeNanos
-             * @param {long}      senderId          Messages of this sender only
-             * @param {string}    uniqueIds         Array of unique ids to retrieve
-             * @param {string}    order             Order of select query (default: DESC)
-             * @param {string}    query             Search term to be looked up in messages content
-             * @param {object}    metadataCriteria  This JSON will be used to search in message metadata with GraphQL
-             * @param {function}  callback          The callback function to call after
-             *
-             * @return {object} Instant result of sendMessage
-             */getHistory=function getHistory(params,callback){if(parseInt(params.threadId)>0){var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_HISTORY,typeCode:params.typeCode,content:{},subjectId:params.threadId},whereClause={},offset=parseInt(params.offset)>0?parseInt(params.offset):0,count=parseInt(params.count)>0?parseInt(params.count):config.getHistoryCount,order=typeof params.order!='undefined'?params.order.toLowerCase():'desc',functionLevelCache=typeof params.cache=='boolean'?params.cache:true,cacheResult={},serverResult={},cacheFirstMessage,cacheLastMessage,messages,returnCache,cacheReady=false,dynamicHistoryCount=params.dynamicHistoryCount&&typeof params.dynamicHistoryCount==='boolean'?params.dynamicHistoryCount:false,sendingQueue=params.queues&&typeof params.queues.sending==='boolean'?params.queues.sending:true,failedQueue=params.queues&&typeof params.queues.failed==='boolean'?params.queues.failed:true,uploadingQueue=params.queues&&typeof params.queues.uploading==='boolean'?params.queues.uploading:true,sendingQueueMessages=[],failedQueueMessages=[],uploadingQueueMessages=[];if(sendingQueue){getChatSendQueue(parseInt(params.threadId),function(sendQueueMessages){for(var i=0;i<sendQueueMessages.length;i++){var time=new Date().getTime();sendingQueueMessages.push(formatDataToMakeMessage(sendQueueMessages[i].threadId,{uniqueId:sendQueueMessages[i].uniqueId,ownerId:userInfo.id,message:sendQueueMessages[i].content,metadata:sendQueueMessages[i].metadata,systemMetadata:sendQueueMessages[i].systemMetadata,replyInfo:sendQueueMessages[i].replyInfo,forwardInfo:sendQueueMessages[i].forwardInfo,time:time,timeNanos:time%1000*1000000}));}});}if(uploadingQueue){getChatUploadQueue(parseInt(params.threadId),function(uploadQueueMessages){for(var i=0;i<uploadQueueMessages.length;i++){uploadQueueMessages[i].message.participant=userInfo;var time=new Date().getTime();uploadQueueMessages[i].message.time=time;uploadQueueMessages[i].message.timeNanos=time%1000*1000000;uploadingQueueMessages.push(formatDataToMakeMessage(params.threadId,uploadQueueMessages[i].message,false));}});}getChatWaitQueue(parseInt(params.threadId),failedQueue,function(waitQueueMessages){if(cacheSecret.length>0){for(var i=0;i<waitQueueMessages.length;i++){var decryptedEnqueuedMessage=_utility["default"].jsonParser(chatDecrypt(waitQueueMessages[i].message,cacheSecret));var time=new Date().getTime();waitQueueMessages[i]=formatDataToMakeMessage(waitQueueMessages[i].threadId,{uniqueId:decryptedEnqueuedMessage.uniqueId,ownerId:userInfo.id,message:decryptedEnqueuedMessage.content,metadata:decryptedEnqueuedMessage.metadata,systemMetadata:decryptedEnqueuedMessage.systemMetadata,replyInfo:decryptedEnqueuedMessage.replyInfo,forwardInfo:decryptedEnqueuedMessage.forwardInfo,participant:userInfo,time:time,timeNanos:time%1000*1000000});}failedQueueMessages=waitQueueMessages;}else{failedQueueMessages=[];}if(dynamicHistoryCount){var tempCount=count-(sendingQueueMessages.length+failedQueueMessages.length+uploadingQueueMessages.length);sendMessageParams.content.count=tempCount>0?tempCount:0;}else{sendMessageParams.content.count=count;}sendMessageParams.content.offset=offset;sendMessageParams.content.order=order;if(parseInt(params.messageId)>0){sendMessageParams.content.id=whereClause.id=params.messageId;}if(Array.isArray(params.uniqueIds)){sendMessageParams.content.uniqueIds=params.uniqueIds;}if(parseInt(params.fromTimeFull)>0&&params.fromTimeFull.toString().length==19){sendMessageParams.content.fromTime=whereClause.fromTime=parseInt(params.fromTimeFull.toString().substring(0,13));sendMessageParams.content.fromTimeNanos=whereClause.fromTimeNanos=parseInt(params.fromTimeFull.toString().substring(10,19));}else{if(parseInt(params.fromTime)>0&&parseInt(params.fromTime)<9999999999999){sendMessageParams.content.fromTime=whereClause.fromTime=parseInt(params.fromTime);}if(parseInt(params.fromTimeNanos)>0&&parseInt(params.fromTimeNanos)<999999999){sendMessageParams.content.fromTimeNanos=whereClause.fromTimeNanos=parseInt(params.fromTimeNanos);}}if(parseInt(params.toTimeFull)>0&&params.toTimeFull.toString().length==19){sendMessageParams.content.toTime=whereClause.toTime=parseInt(params.toTimeFull.toString().substring(0,13));sendMessageParams.content.toTimeNanos=whereClause.toTimeNanos=parseInt(params.toTimeFull.toString().substring(10,19));}else{if(parseInt(params.toTime)>0&&parseInt(params.toTime)<9999999999999){sendMessageParams.content.toTime=whereClause.toTime=parseInt(params.toTime);}if(parseInt(params.toTimeNanos)>0&&parseInt(params.toTimeNanos)<999999999){sendMessageParams.content.toTimeNanos=whereClause.toTimeNanos=parseInt(params.toTimeNanos);}}if(typeof params.query!='undefined'){sendMessageParams.content.query=whereClause.query=params.query;}if(params.allMentioned&&typeof params.allMentioned=='boolean'){sendMessageParams.content.allMentioned=whereClause.allMentioned=params.allMentioned;}if(params.unreadMentioned&&typeof params.unreadMentioned=='boolean'){sendMessageParams.content.unreadMentioned=whereClause.unreadMentioned=params.unreadMentioned;}if(params.messageType&&params.messageType.toUpperCase()!==undefined&&_constants.chatMessageTypes[params.messageType.toUpperCase()]>0){sendMessageParams.content.messageType=whereClause.messageType=_constants.chatMessageTypes[params.messageType.toUpperCase()];}if((0,_typeof2["default"])(params.metadataCriteria)=='object'&&params.metadataCriteria.hasOwnProperty('field')){sendMessageParams.content.metadataCriteria=whereClause.metadataCriteria=params.metadataCriteria;}if(typeof params.onlyNewMessages==="boolean"){sendMessageParams.content.newMessages=params.onlyNewMessages;}/**
-                         * Get Thread Messages from cache
-                         *
-                         * Because we are not applying metadataCriteria search
-                         * on cached data, if this attribute has been set, we
-                         * should not return any results from cache
-                         */ // TODO ASC order?!
+         * Get History.
+         *
+         * This functions gets history of a thread
+         *
+         * @access private
+         *
+         * @param {int}       count             Count of threads to be received
+         * @param {int}       offset            Offset of select query
+         * @param {long}      threadId          Id of thread to get its history
+         * @param {long}      id                Id of single message to get
+         * @param {long}      userId            Messages of this SSO User
+         * @param {int}       messageType       Type of messages to get (types should be set by client)
+         * @param {long}      fromTime          Get messages which have bigger time than given fromTime
+         * @param {int}       fromTimeNanos     Get messages which have bigger time than given fromTimeNanos
+         * @param {long}      toTime            Get messages which have smaller time than given toTime
+         * @param {int}       toTimeNanos       Get messages which have smaller time than given toTimeNanos
+         * @param {long}      senderId          Messages of this sender only
+         * @param {string}    uniqueIds         Array of unique ids to retrieve
+         * @param {string}    order             Order of select query (default: DESC)
+         * @param {string}    query             Search term to be looked up in messages content
+         * @param {object}    metadataCriteria  This JSON will be used to search in message metadata with GraphQL
+         * @param {function}  callback          The callback function to call after
+         *
+         * @return {object} Instant result of sendMessage
+         */getHistory=function getHistory(params,callback){if(parseInt(params.threadId)>0){var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_HISTORY,typeCode:params.typeCode,content:{},subjectId:params.threadId},whereClause={},offset=parseInt(params.offset)>0?parseInt(params.offset):0,count=parseInt(params.count)>0?parseInt(params.count):config.getHistoryCount,order=typeof params.order!='undefined'?params.order.toLowerCase():'desc',functionLevelCache=typeof params.cache=='boolean'?params.cache:true,cacheResult={},serverResult={},cacheFirstMessage,cacheLastMessage,messages,returnCache,cacheReady=false,dynamicHistoryCount=params.dynamicHistoryCount&&typeof params.dynamicHistoryCount==='boolean'?params.dynamicHistoryCount:false,sendingQueue=params.queues&&typeof params.queues.sending==='boolean'?params.queues.sending:true,failedQueue=params.queues&&typeof params.queues.failed==='boolean'?params.queues.failed:true,uploadingQueue=params.queues&&typeof params.queues.uploading==='boolean'?params.queues.uploading:true,sendingQueueMessages=[],failedQueueMessages=[],uploadingQueueMessages=[];if(sendingQueue){getChatSendQueue(parseInt(params.threadId),function(sendQueueMessages){for(var i=0;i<sendQueueMessages.length;i++){var time=new Date().getTime();sendingQueueMessages.push(formatDataToMakeMessage(sendQueueMessages[i].threadId,{uniqueId:sendQueueMessages[i].uniqueId,ownerId:userInfo.id,message:sendQueueMessages[i].content,metadata:sendQueueMessages[i].metadata,systemMetadata:sendQueueMessages[i].systemMetadata,replyInfo:sendQueueMessages[i].replyInfo,forwardInfo:sendQueueMessages[i].forwardInfo,time:time,timeNanos:time%1000*1000000}));}});}if(uploadingQueue){getChatUploadQueue(parseInt(params.threadId),function(uploadQueueMessages){for(var i=0;i<uploadQueueMessages.length;i++){uploadQueueMessages[i].message.participant=userInfo;var time=new Date().getTime();uploadQueueMessages[i].message.time=time;uploadQueueMessages[i].message.timeNanos=time%1000*1000000;uploadingQueueMessages.push(formatDataToMakeMessage(params.threadId,uploadQueueMessages[i].message,false));}});}getChatWaitQueue(parseInt(params.threadId),failedQueue,function(waitQueueMessages){if(cacheSecret.length>0){for(var i=0;i<waitQueueMessages.length;i++){var decryptedEnqueuedMessage=_utility["default"].jsonParser(chatDecrypt(waitQueueMessages[i].message,cacheSecret));var time=new Date().getTime();waitQueueMessages[i]=formatDataToMakeMessage(waitQueueMessages[i].threadId,{uniqueId:decryptedEnqueuedMessage.uniqueId,ownerId:userInfo.id,message:decryptedEnqueuedMessage.content,metadata:decryptedEnqueuedMessage.metadata,systemMetadata:decryptedEnqueuedMessage.systemMetadata,replyInfo:decryptedEnqueuedMessage.replyInfo,forwardInfo:decryptedEnqueuedMessage.forwardInfo,participant:userInfo,time:time,timeNanos:time%1000*1000000});}failedQueueMessages=waitQueueMessages;}else{failedQueueMessages=[];}if(dynamicHistoryCount){var tempCount=count-(sendingQueueMessages.length+failedQueueMessages.length+uploadingQueueMessages.length);sendMessageParams.content.count=tempCount>0?tempCount:0;}else{sendMessageParams.content.count=count;}sendMessageParams.content.offset=offset;sendMessageParams.content.order=order;if(parseInt(params.messageId)>0){sendMessageParams.content.id=whereClause.id=params.messageId;}if(Array.isArray(params.uniqueIds)){sendMessageParams.content.uniqueIds=params.uniqueIds;}if(parseInt(params.fromTimeFull)>0&&params.fromTimeFull.toString().length==19){sendMessageParams.content.fromTime=whereClause.fromTime=parseInt(params.fromTimeFull.toString().substring(0,13));sendMessageParams.content.fromTimeNanos=whereClause.fromTimeNanos=parseInt(params.fromTimeFull.toString().substring(10,19));}else{if(parseInt(params.fromTime)>0&&parseInt(params.fromTime)<9999999999999){sendMessageParams.content.fromTime=whereClause.fromTime=parseInt(params.fromTime);}if(parseInt(params.fromTimeNanos)>0&&parseInt(params.fromTimeNanos)<999999999){sendMessageParams.content.fromTimeNanos=whereClause.fromTimeNanos=parseInt(params.fromTimeNanos);}}if(parseInt(params.toTimeFull)>0&&params.toTimeFull.toString().length==19){sendMessageParams.content.toTime=whereClause.toTime=parseInt(params.toTimeFull.toString().substring(0,13));sendMessageParams.content.toTimeNanos=whereClause.toTimeNanos=parseInt(params.toTimeFull.toString().substring(10,19));}else{if(parseInt(params.toTime)>0&&parseInt(params.toTime)<9999999999999){sendMessageParams.content.toTime=whereClause.toTime=parseInt(params.toTime);}if(parseInt(params.toTimeNanos)>0&&parseInt(params.toTimeNanos)<999999999){sendMessageParams.content.toTimeNanos=whereClause.toTimeNanos=parseInt(params.toTimeNanos);}}if(typeof params.query!='undefined'){sendMessageParams.content.query=whereClause.query=params.query;}if(params.allMentioned&&typeof params.allMentioned=='boolean'){sendMessageParams.content.allMentioned=whereClause.allMentioned=params.allMentioned;}if(params.unreadMentioned&&typeof params.unreadMentioned=='boolean'){sendMessageParams.content.unreadMentioned=whereClause.unreadMentioned=params.unreadMentioned;}if(params.messageType&&params.messageType.toUpperCase()!==undefined&&_constants.chatMessageTypes[params.messageType.toUpperCase()]>0){sendMessageParams.content.messageType=whereClause.messageType=_constants.chatMessageTypes[params.messageType.toUpperCase()];}if((0,_typeof2["default"])(params.metadataCriteria)=='object'&&params.metadataCriteria.hasOwnProperty('field')){sendMessageParams.content.metadataCriteria=whereClause.metadataCriteria=params.metadataCriteria;}if(typeof params.onlyNewMessages==="boolean"){sendMessageParams.content.newMessages=params.onlyNewMessages;}/**
+                     * Get Thread Messages from cache
+                     *
+                     * Because we are not applying metadataCriteria search
+                     * on cached data, if this attribute has been set, we
+                     * should not return any results from cache
+                     */ // TODO ASC order?!
 // if (functionLevelCache
 //     && canUseCache
 //     && cacheSecret.length > 0
@@ -1898,15 +2161,15 @@ nextOffset:offset+messageLength},threadData;for(var i=0;i<messageLength;i++){thr
 //     }
 // }
 /**
-                         * Get Thread Messages From Server
-                         */return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode},resultMessagesId=[];if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length;var history=reformatThreadHistory(params.threadId,messageContent);if(messageLength>0){/**
-                                         * Calculating First and Last Messages of result
-                                         */var lastMessage=history[messageContent.length-1],firstMessage=history[0];/**
-                                         * Sending Delivery for Last Message of Thread
-                                         */if(lastMessage.id>0&&!lastMessage.delivered){deliver({messageId:lastMessage.id,ownerId:lastMessage.participant.id});}}/**
-                                     * Add Thread Messages into cache database
-                                     * and remove deleted messages from cache database
-                                     */ // if (canUseCache && cacheSecret.length > 0) {
+                     * Get Thread Messages From Server
+                     */return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode},resultMessagesId=[];if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length;var history=reformatThreadHistory(params.threadId,messageContent);if(messageLength>0){/**
+                                     * Calculating First and Last Messages of result
+                                     */var lastMessage=history[messageContent.length-1],firstMessage=history[0];/**
+                                     * Sending Delivery for Last Message of Thread
+                                     */if(lastMessage.id>0&&!lastMessage.delivered){deliver({messageId:lastMessage.id,ownerId:lastMessage.participant.id});}}/**
+                                 * Add Thread Messages into cache database
+                                 * and remove deleted messages from cache database
+                                 */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //
 //         /**
@@ -2496,8 +2759,8 @@ nextOffset:offset+messageLength},threadData;for(var i=0;i<messageLength;i++){thr
 // }
 var resultData={history:history,contentCount:result.contentCount,hasNext:result.result&&!(result.result.length<sendMessageParams.content.count),//(sendMessageParams.content.offset + sendMessageParams.content.count < result.contentCount &&messageLength > 0),
 nextOffset:sendMessageParams.content.offset+messageLength};returnData.result=resultData;if(sendingQueue){returnData.result.sending=sendingQueueMessages;}if(uploadingQueue){returnData.result.uploading=uploadingQueueMessages;}if(failedQueue){returnData.result.failed=failedQueueMessages;}/**
-                                     * Check Differences between Cache and Server response
-                                     */ // if (returnCache && cacheReady) {
+                                 * Check Differences between Cache and Server response
+                                 */ // if (returnCache && cacheReady) {
 //     /**
 //      * If there are some messages in cache but they
 //      * are not in server's response, we can assume
@@ -2595,63 +2858,63 @@ nextOffset:sendMessageParams.content.offset+messageLength};returnData.result=res
 // } else {
 callback&&callback(returnData);callback=undefined;// }
 }}});});}else{_events.chatEvents.fireEvent('error',{code:999,message:'Thread ID is required for Getting history!'});return;}},/**
-             * Update Thread Info
-             *
-             * This functions updates metadata of thread
-             *
-             * @access private
-             *
-             * @param {int}       threadId      Id of thread
-             * @param {string}    image         URL og thread image to be set
-             * @param {string}    description   Description for thread
-             * @param {string}    title         New Title for thread
-             * @param {object}    metadata      New Metadata to be set on thread
-             * @param {function}  callback      The callback function to call after
-             *
-             * @return {object} Instant sendMessage result
-             */updateThreadInfo=function updateThreadInfo(params,callback){var updateThreadInfoData={chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,content:{},pushMsgType:3,token:token},threadInfoContent={},fileUploadParams={},metadata={},threadId,fileUniqueId=_utility["default"].generateUUID();if(params){if(parseInt(params.threadId)>0){threadId=parseInt(params.threadId);updateThreadInfoData.subjectId=threadId;}else{_events.chatEvents.fireEvent('error',{code:999,message:'Thread ID is required for Updating thread info!'});}if(typeof params.description=='string'){threadInfoContent.description=params.description;}if(typeof params.title=='string'){threadInfoContent.name=params.title;}if((0,_typeof2["default"])(params.metadata)=='object'){threadInfoContent.metadata=params.metadata;}else if(typeof params.metadata=='string'){try{threadInfoContent.metadata=JSON.parse(params.metadata);}catch(e){threadInfoContent.metadata={};}}else{threadInfoContent.metadata={};}updateThreadInfoData.content=threadInfoContent;if((0,_typeof2["default"])(params.image)=='object'&&params.image.size>0){return chatUploadHandler({threadId:threadId,file:params.image,fileUniqueId:fileUniqueId},function(uploadHandlerResult,uploadHandlerMetadata,fileType,fileExtension){fileUploadParams=Object.assign(fileUploadParams,uploadHandlerResult);threadInfoContent.metadata=JSON.stringify(Object.assign(threadInfoContent.metadata,uploadHandlerMetadata));putInChatUploadQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,subjectId:threadId,content:threadInfoContent,metadata:threadInfoContent.metadata,uniqueId:fileUniqueId,pushMsgType:3,token:token},callbacks:callback},function(){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){uploadImageToPodspace(fileUploadParams,function(result){if(!result.hasError){metadata['fileHash']=result.result.hashCode;transferFromUploadQToSendQ(parseInt(params.threadId),fileUniqueId,JSON.stringify(metadata),function(){chatSendQueueHandler();});}else{deleteFromChatUploadQueue({message:{uniqueId:fileUniqueId}});}});}else{_events.chatEvents.fireEvent('error',{code:999,message:'Thread picture can be a image type only!'});}});});}else if(typeof params.image=='string'&&params.image.length>5){threadInfoContent.metadata=JSON.stringify(Object.assign(threadInfoContent.metadata,{fileHash:params.image}));getImageDownloadLinkFromPodspace({hashCode:params.image},function(result){if(!result.hasError){threadInfoContent.image=result.downloadUrl;}});return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,subjectId:threadId,content:threadInfoContent,metadata:threadInfoContent.metadata,uniqueId:fileUniqueId,pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});}else{if(Object.keys(threadInfoContent.metadata).length==0){delete threadInfoContent.metadata;}return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,subjectId:threadId,content:threadInfoContent,metadata:threadInfoContent.metadata,uniqueId:fileUniqueId,pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});}}},/**
-             * Update Thread Info
-             *
-             * This functions updates metadata of thread
-             *
-             * @access private
-             *
-             * @param {int}       threadId      Id of thread
-             * @param {string}    image         URL og thread image to be set
-             * @param {string}    description   Description for thread
-             * @param {string}    title         New Title for thread
-             * @param {object}    metadata      New Metadata to be set on thread
-             * @param {function}  callback      The callback function to call after
-             *
-             * @return {object} Instant sendMessage result
-             */updateChatProfile=function updateChatProfile(params,callback){var updateChatProfileData={chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_CHAT_PROFILE,content:{},pushMsgType:3,token:token};if(params){if(typeof params.bio=='string'){updateChatProfileData.content.bio=params.bio;}if((0,_typeof2["default"])(params.metadata)=='object'){updateChatProfileData.content.metadata=JSON.stringify(params.metadata);}else if(typeof params.metadata=='string'){updateChatProfileData.content.metadata=params.metadata;}}return sendMessage(updateChatProfileData,{onResult:function onResult(result){callback&&callback(result);}});},/**
-             * Get Participant Roles
-             *
-             * This functions retrieves roles of an user if they are
-             * part of the thread
-             *
-             * @access private
-             *
-             * @param {int}       threadId      Id of thread
-             * @param {function}  callback      The callback function to call after
-             *
-             * @return {object} Instant sendMessage result
-             */getCurrentUserRoles=function getCurrentUserRoles(params,callback){var updateChatProfileData={chatMessageVOType:_constants.chatMessageVOTypes.GET_PARTICIPANT_ROLES,pushMsgType:3,subjectId:params.threadId,token:token};return sendMessage(updateChatProfileData,{onResult:function onResult(result){callback&&callback(result);}});},/**
-             * Get Thread Participants
-             *
-             * Gets participants list of given thread
-             *
-             * @access pubic
-             *
-             * @param {int}     threadId        Id of thread which you want to get participants of
-             * @param {int}     count           Count of objects to get
-             * @param {int}     offset          Offset of select Query
-             * @param {string}  name            Search in Participants list (LIKE in name, contactName, email)
-             *
-             * @return {object} Instant Response
-             */getThreadParticipants=function getThreadParticipants(params,callback){var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.THREAD_PARTICIPANTS,typeCode:params.typeCode,content:{},subjectId:params.threadId},whereClause={},returnCache=false;var offset=parseInt(params.offset)>0?parseInt(params.offset):0,count=parseInt(params.count)>0?parseInt(params.count):config.getHistoryCount;sendMessageParams.content.count=count;sendMessageParams.content.offset=offset;if(typeof params.name==='string'){sendMessageParams.content.name=whereClause.name=params.name;}if(typeof params.username==='string'){sendMessageParams.content.username=whereClause.username=params.username;}if(typeof params.cellphoneNumber==='string'){sendMessageParams.content.cellphoneNumber=whereClause.cellphoneNumber=params.cellphoneNumber;}if(typeof params.admin==='boolean'){sendMessageParams.content.admin=params.admin;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;/**
-                 * Retrieve thread participants from cache
-                 */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+         * Update Thread Info
+         *
+         * This functions updates metadata of thread
+         *
+         * @access private
+         *
+         * @param {int}       threadId      Id of thread
+         * @param {string}    image         URL og thread image to be set
+         * @param {string}    description   Description for thread
+         * @param {string}    title         New Title for thread
+         * @param {object}    metadata      New Metadata to be set on thread
+         * @param {function}  callback      The callback function to call after
+         *
+         * @return {object} Instant sendMessage result
+         */updateThreadInfo=function updateThreadInfo(params,callback){var updateThreadInfoData={chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,content:{},pushMsgType:3,token:token},threadInfoContent={},fileUploadParams={},metadata={},threadId,fileUniqueId=_utility["default"].generateUUID();if(params){if(parseInt(params.threadId)>0){threadId=parseInt(params.threadId);updateThreadInfoData.subjectId=threadId;}else{_events.chatEvents.fireEvent('error',{code:999,message:'Thread ID is required for Updating thread info!'});}if(typeof params.description=='string'){threadInfoContent.description=params.description;}if(typeof params.title=='string'){threadInfoContent.name=params.title;}if((0,_typeof2["default"])(params.metadata)=='object'){threadInfoContent.metadata=params.metadata;}else if(typeof params.metadata=='string'){try{threadInfoContent.metadata=JSON.parse(params.metadata);}catch(e){threadInfoContent.metadata={};}}else{threadInfoContent.metadata={};}updateThreadInfoData.content=threadInfoContent;if((0,_typeof2["default"])(params.image)=='object'&&params.image.size>0){return chatUploadHandler({threadId:threadId,file:params.image,fileUniqueId:fileUniqueId},function(uploadHandlerResult,uploadHandlerMetadata,fileType,fileExtension){fileUploadParams=Object.assign(fileUploadParams,uploadHandlerResult);threadInfoContent.metadata=JSON.stringify(Object.assign(threadInfoContent.metadata,uploadHandlerMetadata));putInChatUploadQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,subjectId:threadId,content:threadInfoContent,metadata:threadInfoContent.metadata,uniqueId:fileUniqueId,pushMsgType:3,token:token},callbacks:callback},function(){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){uploadImageToPodspace(fileUploadParams,function(result){if(!result.hasError){metadata['fileHash']=result.result.hashCode;transferFromUploadQToSendQ(parseInt(params.threadId),fileUniqueId,JSON.stringify(metadata),function(){chatSendQueueHandler();});}else{deleteFromChatUploadQueue({message:{uniqueId:fileUniqueId}});}});}else{_events.chatEvents.fireEvent('error',{code:999,message:'Thread picture can be a image type only!'});}});});}else if(typeof params.image=='string'&&params.image.length>5){threadInfoContent.metadata=JSON.stringify(Object.assign(threadInfoContent.metadata,{fileHash:params.image}));getImageDownloadLinkFromPodspace({hashCode:params.image},function(result){if(!result.hasError){threadInfoContent.image=result.downloadUrl;}});return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,subjectId:threadId,content:threadInfoContent,metadata:threadInfoContent.metadata,uniqueId:fileUniqueId,pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});}else{if(Object.keys(threadInfoContent.metadata).length==0){delete threadInfoContent.metadata;}return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_THREAD_INFO,typeCode:params.typeCode,subjectId:threadId,content:threadInfoContent,metadata:threadInfoContent.metadata,uniqueId:fileUniqueId,pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});}}},/**
+         * Update Thread Info
+         *
+         * This functions updates metadata of thread
+         *
+         * @access private
+         *
+         * @param {int}       threadId      Id of thread
+         * @param {string}    image         URL og thread image to be set
+         * @param {string}    description   Description for thread
+         * @param {string}    title         New Title for thread
+         * @param {object}    metadata      New Metadata to be set on thread
+         * @param {function}  callback      The callback function to call after
+         *
+         * @return {object} Instant sendMessage result
+         */updateChatProfile=function updateChatProfile(params,callback){var updateChatProfileData={chatMessageVOType:_constants.chatMessageVOTypes.UPDATE_CHAT_PROFILE,content:{},pushMsgType:3,token:token};if(params){if(typeof params.bio=='string'){updateChatProfileData.content.bio=params.bio;}if((0,_typeof2["default"])(params.metadata)=='object'){updateChatProfileData.content.metadata=JSON.stringify(params.metadata);}else if(typeof params.metadata=='string'){updateChatProfileData.content.metadata=params.metadata;}}return sendMessage(updateChatProfileData,{onResult:function onResult(result){callback&&callback(result);}});},/**
+         * Get Participant Roles
+         *
+         * This functions retrieves roles of an user if they are
+         * part of the thread
+         *
+         * @access private
+         *
+         * @param {int}       threadId      Id of thread
+         * @param {function}  callback      The callback function to call after
+         *
+         * @return {object} Instant sendMessage result
+         */getCurrentUserRoles=function getCurrentUserRoles(params,callback){var updateChatProfileData={chatMessageVOType:_constants.chatMessageVOTypes.GET_PARTICIPANT_ROLES,pushMsgType:3,subjectId:params.threadId,token:token};return sendMessage(updateChatProfileData,{onResult:function onResult(result){callback&&callback(result);}});},/**
+         * Get Thread Participants
+         *
+         * Gets participants list of given thread
+         *
+         * @access pubic
+         *
+         * @param {int}     threadId        Id of thread which you want to get participants of
+         * @param {int}     count           Count of objects to get
+         * @param {int}     offset          Offset of select Query
+         * @param {string}  name            Search in Participants list (LIKE in name, contactName, email)
+         *
+         * @return {object} Instant Response
+         */getThreadParticipants=function getThreadParticipants(params,callback){var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.THREAD_PARTICIPANTS,typeCode:params.typeCode,content:{},subjectId:params.threadId},whereClause={},returnCache=false;var offset=parseInt(params.offset)>0?parseInt(params.offset):0,count=parseInt(params.count)>0?parseInt(params.count):config.getHistoryCount;sendMessageParams.content.count=count;sendMessageParams.content.offset=offset;if(typeof params.name==='string'){sendMessageParams.content.name=whereClause.name=params.name;}if(typeof params.username==='string'){sendMessageParams.content.username=whereClause.username=params.username;}if(typeof params.cellphoneNumber==='string'){sendMessageParams.content.cellphoneNumber=whereClause.cellphoneNumber=params.cellphoneNumber;}if(typeof params.admin==='boolean'){sendMessageParams.content.admin=params.admin;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;/**
+             * Retrieve thread participants from cache
+             */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         db.participants.where('expireTime')
 //             .below(new Date().getTime())
@@ -2757,8 +3020,8 @@ callback&&callback(returnData);callback=undefined;// }
 //     }
 // }
 return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={participants:reformatThreadParticipants(messageContent,params.threadId),contentCount:result.contentCount,hasNext:sendMessageParams.content.offset+sendMessageParams.content.count<result.contentCount&&messageLength>0,nextOffset:sendMessageParams.content.offset+messageLength};returnData.result=resultData;/**
-                             * Add thread participants into cache database #cache
-                             */ // if (canUseCache && cacheSecret.length > 0) {
+                         * Add thread participants into cache database #cache
+                         */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //
 //         var cacheData = [];
@@ -2808,9 +3071,9 @@ return sendMessage(sendMessageParams,{onResult:function onResult(result){var ret
 //     }
 // }
 }callback&&callback(returnData);/**
-                         * Delete callback so if server pushes response before
-                         * cache, cache won't send data again
-                         */callback=undefined;// if (!returnData.hasError && returnCache) {
+                     * Delete callback so if server pushes response before
+                     * cache, cache won't send data again
+                     */callback=undefined;// if (!returnData.hasError && returnCache) {
 //     fireEvent('threadEvents', {
 //         type: 'THREAD_PARTICIPANTS_LIST_CHANGE',
 //         threadId: params.threadId,
@@ -2818,218 +3081,218 @@ return sendMessage(sendMessageParams,{onResult:function onResult(result){var ret
 //     });
 // }
 }});},/**
-             * Deliver
-             *
-             * This functions sends delivery messages for a message
-             *
-             * @access private
-             *
-             * @param {int}    ownerId    Id of Message owner
-             * @param {long}   messageId  Id of Message
-             *
-             * @return {object} Instant sendMessage result
-             */deliver=function deliver(params){if(userInfo&&params.ownerId!==userInfo.id){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.DELIVERY,typeCode:params.typeCode,content:params.messageId,pushMsgType:3});}},/**
-             * Get Image.
-             *
-             * This functions gets an uploaded image from File Server.
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {long}    imageId         ID of image
-             * @param {int}     width           Required width to get
-             * @param {int}     height          Required height to get
-             * @param {boolean} actual          Required height to get
-             * @param {boolean} downloadable    TRUE to be downloadable / FALSE to not
-             * @param {string}  hashCode        HashCode of uploaded file
-             *
-             * @return {object} Image Object
-             */getImage=function getImage(params,callback){var getImageData={};if(params){if(parseInt(params.imageId)>0){getImageData.imageId=params.imageId;}if(typeof params.hashCode=='string'){getImageData.hashCode=params.hashCode;}if(parseInt(params.width)>0){getImageData.width=params.width;}if(parseInt(params.height)>0){getImageData.height=params.height;}if(parseInt(params.actual)>0){getImageData.actual=params.actual;}if(parseInt(params.downloadable)>0){getImageData.downloadable=params.downloadable;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_IMAGE,method:'GET',data:getImageData},function(result){if(!result.hasError){var queryString='?';for(var i in params){queryString+=i+'='+params[i]+'&';}queryString=queryString.slice(0,-1);var image=SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_IMAGE+queryString;callback({hasError:result.hasError,result:image});}else{callback({hasError:true});}});},/**
-             * Get File.
-             *
-             * This functions gets an uploaded file from File Server.
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {long}    fileId          ID of file
-             * @param {boolean} downloadable    TRUE to be downloadable / False to not
-             * @param {string}  hashCode        HashCode of uploaded file
-             *
-             * @return {object} File Object
-             */getFile=function getFile(params,callback){var getFileData={};if(params){if(typeof params.fileId!='undefined'){getFileData.fileId=params.fileId;}if(typeof params.hashCode=='string'){getFileData.hashCode=params.hashCode;}if(typeof params.downloadable=='boolean'){getFileData.downloadable=params.downloadable;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_FILE,method:'GET',data:getFileData},function(result){if(!result.hasError){var queryString='?';for(var i in params){queryString+=i+'='+params[i]+'&';}queryString=queryString.slice(0,-1);var file=SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_FILE+queryString;callback({hasError:result.hasError,result:file});}else{callback({hasError:true});}});},/**
-             * Get File From PodSpace
-             *
-             * This functions gets an uploaded file from Pod Space File Server.
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  hashCode        HashCode of uploaded file
-             *
-             * @return {object} File Object
-             */getFileFromPodspace=function getFileFromPodspace(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getFileData={};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getFileData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE,method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'_token_':token,'_token_issuer_':1// 'Range': 'bytes=100-200'
+         * Deliver
+         *
+         * This functions sends delivery messages for a message
+         *
+         * @access private
+         *
+         * @param {int}    ownerId    Id of Message owner
+         * @param {long}   messageId  Id of Message
+         *
+         * @return {object} Instant sendMessage result
+         */deliver=function deliver(params){if(userInfo&&params.ownerId!==userInfo.id){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.DELIVERY,typeCode:params.typeCode,content:params.messageId,pushMsgType:3});}},/**
+         * Get Image.
+         *
+         * This functions gets an uploaded image from File Server.
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {long}    imageId         ID of image
+         * @param {int}     width           Required width to get
+         * @param {int}     height          Required height to get
+         * @param {boolean} actual          Required height to get
+         * @param {boolean} downloadable    TRUE to be downloadable / FALSE to not
+         * @param {string}  hashCode        HashCode of uploaded file
+         *
+         * @return {object} Image Object
+         */getImage=function getImage(params,callback){var getImageData={};if(params){if(parseInt(params.imageId)>0){getImageData.imageId=params.imageId;}if(typeof params.hashCode=='string'){getImageData.hashCode=params.hashCode;}if(parseInt(params.width)>0){getImageData.width=params.width;}if(parseInt(params.height)>0){getImageData.height=params.height;}if(parseInt(params.actual)>0){getImageData.actual=params.actual;}if(parseInt(params.downloadable)>0){getImageData.downloadable=params.downloadable;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_IMAGE,method:'GET',data:getImageData},function(result){if(!result.hasError){var queryString='?';for(var i in params){queryString+=i+'='+params[i]+'&';}queryString=queryString.slice(0,-1);var image=SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_IMAGE+queryString;callback({hasError:result.hasError,result:image});}else{callback({hasError:true});}});},/**
+         * Get File.
+         *
+         * This functions gets an uploaded file from File Server.
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {long}    fileId          ID of file
+         * @param {boolean} downloadable    TRUE to be downloadable / False to not
+         * @param {string}  hashCode        HashCode of uploaded file
+         *
+         * @return {object} File Object
+         */getFile=function getFile(params,callback){var getFileData={};if(params){if(typeof params.fileId!='undefined'){getFileData.fileId=params.fileId;}if(typeof params.hashCode=='string'){getFileData.hashCode=params.hashCode;}if(typeof params.downloadable=='boolean'){getFileData.downloadable=params.downloadable;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_FILE,method:'GET',data:getFileData},function(result){if(!result.hasError){var queryString='?';for(var i in params){queryString+=i+'='+params[i]+'&';}queryString=queryString.slice(0,-1);var file=SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.GET_FILE+queryString;callback({hasError:result.hasError,result:file});}else{callback({hasError:true});}});},/**
+         * Get File From PodSpace
+         *
+         * This functions gets an uploaded file from Pod Space File Server.
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  hashCode        HashCode of uploaded file
+         *
+         * @return {object} File Object
+         */getFileFromPodspace=function getFileFromPodspace(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getFileData={};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getFileData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE,method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'_token_':token,'_token_issuer_':1// 'Range': 'bytes=100-200'
 },data:getFileData},function(result){if(!result.hasError){callback({hasError:result.hasError,result:result.result.response});}else{callback({hasError:true});}});return{uniqueId:downloadUniqueId,cancel:function cancel(){cancelFileDownload({uniqueId:downloadUniqueId},function(){console.log("\u274C \"".concat(downloadUniqueId,"\" - File download has been canceled!"));});}};},/**
-             * Get Image From PodSpace
-             *
-             * This functions gets an uploaded image from Pod Space File Server.
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  hashCode        HashCode of uploaded file
-             * @param {string}  size            (1: 100×75, 2: 200×150, 3: 400×300)
-             * @param {string}  quality         Image quality betwenn 0.0 anf 1.0
-             * @param {bolean}  crop            Crop image based on uploaded xC, yC, hC and wC parameters
-             *
-             * @return {object} File Object
-             */getImageFromPodspace=function getImageFromPodspace(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getImageData={size:params.size,quality:params.quality,crop:params.crop};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getImageData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE,method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'_token_':token,'_token_issuer_':1},data:getImageData},function(result){if(!result.hasError){callback({hasError:result.hasError,result:result.result.response});}else{callback({hasError:true});}});return{uniqueId:downloadUniqueId,cancel:function cancel(){cancelFileDownload({uniqueId:downloadUniqueId},function(){console.log("\u274C \"".concat(downloadUniqueId,"\" - Image download has been canceled!"));});}};}},getFileFromPodspaceNew=function getFileFromPodspaceNew(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getFileData={};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getFileData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}if(params.checkUserGroupAccess){getFileData.checkUserGroupAccess=true;}}if(params.responseType==='link'){var returnLink=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true";callback({hasError:false,type:'link',result:returnLink});}else{httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true",method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'Authorization':'Bearer '+token},enableDownloadProgressEvents:params.enableDownloadProgressEvents,hashCode:params.hashCode//data: getFileData
+         * Get Image From PodSpace
+         *
+         * This functions gets an uploaded image from Pod Space File Server.
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  hashCode        HashCode of uploaded file
+         * @param {string}  size            (1: 100×75, 2: 200×150, 3: 400×300)
+         * @param {string}  quality         Image quality betwenn 0.0 anf 1.0
+         * @param {bolean}  crop            Crop image based on uploaded xC, yC, hC and wC parameters
+         *
+         * @return {object} File Object
+         */getImageFromPodspace=function getImageFromPodspace(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getImageData={size:params.size,quality:params.quality,crop:params.crop};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getImageData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE,method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'_token_':token,'_token_issuer_':1},data:getImageData},function(result){if(!result.hasError){callback({hasError:result.hasError,result:result.result.response});}else{callback({hasError:true});}});return{uniqueId:downloadUniqueId,cancel:function cancel(){cancelFileDownload({uniqueId:downloadUniqueId},function(){console.log("\u274C \"".concat(downloadUniqueId,"\" - Image download has been canceled!"));});}};}},getFileFromPodspaceNew=function getFileFromPodspaceNew(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getFileData={};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getFileData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}if(params.checkUserGroupAccess){getFileData.checkUserGroupAccess=true;}}if(params.responseType==='link'){var returnLink=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true";callback({hasError:false,type:'link',result:returnLink});}else{httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true",method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'Authorization':'Bearer '+token},enableDownloadProgressEvents:params.enableDownloadProgressEvents,hashCode:params.hashCode//data: getFileData
 },function(result){if(!result.hasError){callback({hasError:result.hasError,result:result,type:'blob'});}else{callback({hasError:true});}});return{uniqueId:downloadUniqueId,cancel:function cancel(){cancelFileDownload({uniqueId:downloadUniqueId},function(){consoleLogging&&console.log("\"".concat(downloadUniqueId,"\" - File download has been canceled!"));});}};}},getImageFromPodspaceNew=function getImageFromPodspaceNew(params,callback){var downloadUniqueId=_utility["default"].generateUUID(),getImageData={size:params.size,quality:params.quality,crop:params.crop};if(params){if(params.hashCode&&typeof params.hashCode=='string'){getImageData.hash=params.hashCode;}else{callback({hasError:true,error:'Enter a file hash to get'});return;}if(params.responseType==='link'){var returnLink=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true&size=".concat(params.size,"&quality=").concat(params.quality,"&crop=").concat(params.crop);//+ SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE + `?hash=${params.hashCode}&_token_=${token}&_token_issuer_=1&size=${params.size}&quality=${params.quality}&crop=${params.crop}`;
 callback({hasError:false,type:'link',result:returnLink});}else if(params.responseType==='base64'){httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true&size=".concat(params.size,"&quality=").concat(params.quality,"&crop=").concat(params.crop),method:'GET',uniqueId:downloadUniqueId,responseType:'blob',headers:{'Authorization':'Bearer '+token},enableDownloadProgressEvents:params.enableDownloadProgressEvents,hashCode:params.hashCode//data: getImageData
 },function(result){if(!result.hasError){var fr=new FileReader();fr.onloadend=function(){callback({hasError:result.hasError,type:'base64',result:fr.result});};fr.readAsDataURL(result);}else{callback({hasError:true});}});return{uniqueId:downloadUniqueId,cancel:function cancel(){cancelFileDownload({uniqueId:downloadUniqueId},function(){consoleLogging&&console.log("\"".concat(downloadUniqueId,"\" - Image download has been canceled!"));});}};}else{httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE_NEW.replace('{fileHash}',params.hashCode)+"?checkUserGroupAccess=true&size=".concat(params.size,"&quality=").concat(params.quality,"&crop=").concat(params.crop),method:'GET',responseType:'blob',uniqueId:downloadUniqueId,headers:{'Authorization':'Bearer '+token},enableDownloadProgressEvents:params.enableDownloadProgressEvents,hashCode:params.hashCode//data: getImageData
 },function(result){if(!result.hasError){callback({hasError:result.hasError,type:'blob',result:result});}else{callback({hasError:true});}});return{uniqueId:downloadUniqueId,cancel:function cancel(){cancelFileDownload({uniqueId:downloadUniqueId},function(){consoleLogging&&console.log("\"".concat(downloadUniqueId,"\" - Image download has been canceled!"));});}};}}},/**
-             * Get Image Download Link From PodSpace
-             *
-             * This functions gets an uploaded image download link from Pod Space File Server.
-             *
-             * @since 9.1.3
-             * @access private
-             *
-             * @param {string}  hashCode        HashCode of uploaded file
-             *
-             * @return {string} Image Link
-             */getImageDownloadLinkFromPodspace=function getImageDownloadLinkFromPodspace(params,callback){if(params){if(params.hashCode&&typeof params.hashCode=='string'){var downloadUrl=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE+'?hash='+params.hashCode;callback&&callback({hasError:false,downloadUrl:downloadUrl});return downloadUrl;}else{callback&&callback({hasError:true,error:'Enter a image hash to get download link!'});return;}}},/**
-             * Get File Download Link From PodSpace
-             *
-             * This functions gets an uploaded file download link from Pod Space File Server.
-             *
-             * @since 9.1.3
-             * @access private
-             *
-             * @param {string}  hashCode        HashCode of uploaded file
-             *
-             * @return {string} File Link
-             */getFileDownloadLinkFromPodspace=function getFileDownloadLinkFromPodspace(params,callback){if(params){if(params.hashCode&&typeof params.hashCode=='string'){var downloadUrl=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE+'?hash='+params.hashCode;callback&&callback({hasError:false,downloadUrl:downloadUrl});return downloadUrl;}else{callback&&callback({hasError:true,error:'Enter a file hash to get download link!'});return;}}},/**
-             * Upload File
-             *
-             * Upload files to File Server
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  fileName        A name for the file
-             * @param {file}    file            FILE: the file
-             *
-             * @link http://docs.pod.land/v1.0.8.0/Developer/CustomPost/605/File
-             *
-             * @return {object} Uploaded File Object
-             */uploadFile=function uploadFile(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId;if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}var uploadFileData={};if(params){if(typeof params.file!=='undefined'){uploadFileData.file=params.file;}if(params.randomFileName){uploadFileData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadFileData.fileName=fileName;}uploadFileData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadFileData.threadId=params.threadId;}else{uploadThreadId=0;uploadFileData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadFileData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadFileData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadFileData.originalFileName=params.originalFileName;}else{uploadFileData.originalFileName=fileName;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.UPLOAD_FILE,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result'});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},/**
-             * Upload File To Pod Space
-             *
-             * Upload files to Pod Space Server
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  fileName        A name for the file
-             * @param {file}    file            FILE: the file
-             * @param {string}  userGroupHash   Unique identifier of threads on podspace
-             * @param {string}  token           User Token
-             * @param {string}  _token_issuer_  Token Issuer
-             *
-             * @link
-                *
-                * @return {object} Uploaded File Object
-             */uploadFileToPodspace=function uploadFileToPodspace(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId,userGroupHash;if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}var uploadFileData={};if(params){if(typeof params.file!=='undefined'){uploadFileData.file=params.file;}if(params.randomFileName){uploadFileData.filename=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadFileData.filename=fileName;}uploadFileData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadFileData.threadId=params.threadId;}else{uploadThreadId=0;uploadFileData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadFileData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadFileData.uniqueId=uploadUniqueId;}if(typeof params.userGroupHash=='string'){userGroupHash=params.userGroupHash;uploadFileData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(typeof params.originalFileName=='string'){uploadFileData.originalFileName=params.originalFileName;}else{uploadFileData.originalFileName=fileName;}}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_FILE_TO_USERGROUP,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result'});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},/**
-             * Upload File
-             *
-             * Upload files to File Server
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  fileName        A name for the file
-             * @param {file}    file            FILE: the file
-             *
-             * @link http://docs.pod.land/v1.0.8.0/Developer/CustomPost/605/File
-             *
-             * @return {object} Uploaded File Object
-             */uploadFileFromUrl=function uploadFileFromUrl(params,callback){var uploadUniqueId,uploadThreadId;var uploadFileData={},fileExtension;if(params){if(typeof params.fileUrl!=='undefined'){uploadFileData.url=params.fileUrl;}if(typeof params.fileExtension!=='undefined'){fileExtension=params.fileExtension;}else{fileExtension='png';}if(typeof params.fileName=='string'){uploadFileData.filename=params.fileName;}else{uploadFileData.filename=_utility["default"].generateUUID()+'.'+fileExtension;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();}if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;}else{uploadThreadId=0;}uploadFileData.isPublic=true;}httpRequest({url:SERVICE_ADDRESSES.POD_DRIVE_ADDRESS+_constants.SERVICES_PATH.DRIVE_UPLOAD_FILE_FROM_URL,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result',error:e});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{file:{uniqueId:uploadUniqueId,fileUrl:params.fileUrl}}};},/**
-             * Upload Image
-             *
-             * Upload images to Image Server
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  fileName        A name for the file
-             * @param {file}    image           FILE: the image file  (if its an image file)
-             * @param {float}   xC              Crop Start point x    (if its an image file)
-             * @param {float}   yC              Crop Start point Y    (if its an image file)
-             * @param {float}   hC              Crop size Height      (if its an image file)
-             * @param {float}   wC              Crop size Weight      (if its an image file)
-             *
-             * @link http://docs.pod.land/v1.0.8.0/Developer/CustomPost/215/UploadImage
-             *
-             * @return {object} Uploaded Image Object
-             */uploadImage=function uploadImage(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId;if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();}if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){var uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.image=params.image;uploadImageData.file=params.image;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.fileName=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}if(parseInt(params.xC)>0){uploadImageData.xC=params.xC;}if(parseInt(params.yC)>0){uploadImageData.yC=params.yC;}if(parseInt(params.hC)>0){uploadImageData.hC=params.hC;}if(parseInt(params.wC)>0){uploadImageData.wC=params.wC;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.UPLOAD_IMAGE,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(typeof response.hasError!=='undefined'&&!response.hasError){callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}},/**
-             * Upload Image To Pod Space Publically
-             *
-             * Upload images to Pod Space Image Server
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  fileName        A name for the file
-             * @param {file}    image           FILE: the image file  (if its an image file)
-             * @param {float}   xC              Crop Start point x    (if its an image file)
-             * @param {float}   yC              Crop Start point Y    (if its an image file)
-             * @param {float}   hC              Crop size Height      (if its an image file)
-             * @param {float}   wC              Crop size Weight      (if its an image file)
-             * @param {string}  token           User Token
-             * @param {string}  _token_issuer_  Token Issuer
-             *
-             * @link https://podspace.pod.ir/apidocs/?srv=/nzh/drive/uploadImage
-             *
-             * @return {object} Uploaded Image Object
-             */uploadImageToPodspace=function uploadImageToPodspace(params,callback){var fileName,fileType,fileSize,fileWidth=0,fileHeight=0,fileExtension,uploadUniqueId,uploadThreadId;if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();var reader=new FileReader();reader.onload=function(e){var image=new Image();image.onload=function(){fileWidth=this.width;fileHeight=this.height;continueImageUpload(params);};image.src=e.target.result;};reader.readAsDataURL(params.image);}var continueImageUpload=function continueImageUpload(params){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){var uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.file=params.image;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to send a image file!'});return;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.filename=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}uploadImageData.xC=parseInt(params.xC)||0;uploadImageData.yC=parseInt(params.yC)||0;uploadImageData.hC=parseInt(params.hC)||fileHeight;uploadImageData.wC=parseInt(params.wC)||fileWidth;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_IMAGE,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(typeof response.hasError!=='undefined'&&!response.hasError){callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){console.log(e);callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}};},/**
-             * Upload Image To Pod Space
-             *
-             * Upload images to Pod Space Image Server
-             *
-             * @since 3.9.9
-             * @access private
-             *
-             * @param {string}  fileName        A name for the file
-             * @param {file}    image           FILE: the image file  (if its an image file)
-             * @param {float}   xC              Crop Start point x    (if its an image file)
-             * @param {float}   yC              Crop Start point Y    (if its an image file)
-             * @param {float}   hC              Crop size Height      (if its an image file)
-             * @param {float}   wC              Crop size Weight      (if its an image file)
-             * @param {string}  userGroupHash   Unique identifier of threads on podspace
-             * @param {string}  token           User Token
-             * @param {string}  _token_issuer_  Token Issuer
-             *
-             * @link https://podspace.pod.ir/apidocs/?srv=/userGroup/uploadImage/
-             *
-             * @return {object} Uploaded Image Object
-             */uploadImageToPodspaceUserGroup=function uploadImageToPodspaceUserGroup(params,callback){var fileName,fileType,fileSize,fileWidth=0,fileHeight=0,fileExtension,uploadUniqueId,uploadThreadId;var continueImageUpload=function continueImageUpload(params){var uploadImageData,userGroupHash;if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.file=params.image;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to send a image file!'});return;}if(typeof params.userGroupHash=='string'){userGroupHash=params.userGroupHash;uploadImageData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.filename=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}uploadImageData.xC=parseInt(params.xC)||0;uploadImageData.yC=parseInt(params.yC)||0;uploadImageData.hC=parseInt(params.hC)||fileHeight;uploadImageData.wC=parseInt(params.wC)||fileWidth;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_IMAGE_TO_USERGROUP,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(typeof response.hasError!=='undefined'&&!response.hasError){response.result.actualHeight=fileHeight;response.result.actualWidth=fileWidth;callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){console.log(e);callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}};if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();var dimensions=(0,_imageSize["default"])(params.image);fileWidth=dimensions.width;fileHeight=dimensions.height;continueImageUpload(params);}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();var reader=new FileReader();reader.onload=function(e){var image=new Image();image.onload=function(){fileWidth=this.width;fileHeight=this.height;continueImageUpload(params);};image.src=e.target.result;};reader.readAsDataURL(params.image);}},uploadImageToPodspaceUserGroupNew=function uploadImageToPodspaceUserGroupNew(params,callback){var fileName,fileType,fileSize,fileWidth=0,fileHeight=0,fileExtension,uploadUniqueId,uploadThreadId;var continueImageUpload=function continueImageUpload(params){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){var uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.file=params.image;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to send a image file!'});return;}if(typeof params.userGroupHash=='string'){uploadImageData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.filename=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}uploadImageData.x=parseInt(params.xC)||0;uploadImageData.y=parseInt(params.yC)||0;uploadImageData.height=parseInt(params.hC)||fileHeight;uploadImageData.weight=parseInt(params.wC)||fileWidth;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_IMAGE_TO_USERGROUP_NEW.replace('{userGroupHash}',uploadImageData.userGroupHash),method:'POST',headers:{'Authorization':'Bearer '+token},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(response.status<400){response.result.actualHeight=fileHeight;response.result.actualWidth=fileWidth;callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){consoleLogging&&console.log(e);callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}};if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();var dimensions=(0,_imageSize["default"])(params.image);fileWidth=dimensions.width;fileHeight=dimensions.height;continueImageUpload(params);}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();var reader=new FileReader();reader.onload=function(e){var image=new Image();image.onload=function(){fileWidth=this.width;fileHeight=this.height;continueImageUpload(params);};image.src=e.target.result;};reader.readAsDataURL(params.image);}},uploadFileToPodspaceUserGroupNew=function uploadFileToPodspaceUserGroupNew(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId;console.log(params);if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}// fileName = params.file.name;
+         * Get Image Download Link From PodSpace
+         *
+         * This functions gets an uploaded image download link from Pod Space File Server.
+         *
+         * @since 9.1.3
+         * @access private
+         *
+         * @param {string}  hashCode        HashCode of uploaded file
+         *
+         * @return {string} Image Link
+         */getImageDownloadLinkFromPodspace=function getImageDownloadLinkFromPodspace(params,callback){if(params){if(params.hashCode&&typeof params.hashCode=='string'){var downloadUrl=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_IMAGE+'?hash='+params.hashCode;callback&&callback({hasError:false,downloadUrl:downloadUrl});return downloadUrl;}else{callback&&callback({hasError:true,error:'Enter a image hash to get download link!'});return;}}},/**
+         * Get File Download Link From PodSpace
+         *
+         * This functions gets an uploaded file download link from Pod Space File Server.
+         *
+         * @since 9.1.3
+         * @access private
+         *
+         * @param {string}  hashCode        HashCode of uploaded file
+         *
+         * @return {string} File Link
+         */getFileDownloadLinkFromPodspace=function getFileDownloadLinkFromPodspace(params,callback){if(params){if(params.hashCode&&typeof params.hashCode=='string'){var downloadUrl=SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_DOWNLOAD_FILE+'?hash='+params.hashCode;callback&&callback({hasError:false,downloadUrl:downloadUrl});return downloadUrl;}else{callback&&callback({hasError:true,error:'Enter a file hash to get download link!'});return;}}},/**
+         * Upload File
+         *
+         * Upload files to File Server
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  fileName        A name for the file
+         * @param {file}    file            FILE: the file
+         *
+         * @link http://docs.pod.land/v1.0.8.0/Developer/CustomPost/605/File
+         *
+         * @return {object} Uploaded File Object
+         */uploadFile=function uploadFile(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId;if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}var uploadFileData={};if(params){if(typeof params.file!=='undefined'){uploadFileData.file=params.file;}if(params.randomFileName){uploadFileData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadFileData.fileName=fileName;}uploadFileData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadFileData.threadId=params.threadId;}else{uploadThreadId=0;uploadFileData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadFileData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadFileData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadFileData.originalFileName=params.originalFileName;}else{uploadFileData.originalFileName=fileName;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.UPLOAD_FILE,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result'});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},/**
+         * Upload File To Pod Space
+         *
+         * Upload files to Pod Space Server
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  fileName        A name for the file
+         * @param {file}    file            FILE: the file
+         * @param {string}  userGroupHash   Unique identifier of threads on podspace
+         * @param {string}  token           User Token
+         * @param {string}  _token_issuer_  Token Issuer
+         *
+         * @link
+            *
+            * @return {object} Uploaded File Object
+         */uploadFileToPodspace=function uploadFileToPodspace(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId,userGroupHash;if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}var uploadFileData={};if(params){if(typeof params.file!=='undefined'){uploadFileData.file=params.file;}if(params.randomFileName){uploadFileData.filename=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadFileData.filename=fileName;}uploadFileData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadFileData.threadId=params.threadId;}else{uploadThreadId=0;uploadFileData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadFileData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadFileData.uniqueId=uploadUniqueId;}if(typeof params.userGroupHash=='string'){userGroupHash=params.userGroupHash;uploadFileData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(typeof params.originalFileName=='string'){uploadFileData.originalFileName=params.originalFileName;}else{uploadFileData.originalFileName=fileName;}}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_FILE_TO_USERGROUP,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result'});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},/**
+         * Upload File
+         *
+         * Upload files to File Server
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  fileName        A name for the file
+         * @param {file}    file            FILE: the file
+         *
+         * @link http://docs.pod.land/v1.0.8.0/Developer/CustomPost/605/File
+         *
+         * @return {object} Uploaded File Object
+         */uploadFileFromUrl=function uploadFileFromUrl(params,callback){var uploadUniqueId,uploadThreadId;var uploadFileData={},fileExtension;if(params){if(typeof params.fileUrl!=='undefined'){uploadFileData.url=params.fileUrl;}if(typeof params.fileExtension!=='undefined'){fileExtension=params.fileExtension;}else{fileExtension='png';}if(typeof params.fileName=='string'){uploadFileData.filename=params.fileName;}else{uploadFileData.filename=_utility["default"].generateUUID()+'.'+fileExtension;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();}if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;}else{uploadThreadId=0;}uploadFileData.isPublic=true;}httpRequest({url:SERVICE_ADDRESSES.POD_DRIVE_ADDRESS+_constants.SERVICES_PATH.DRIVE_UPLOAD_FILE_FROM_URL,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result',error:e});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{file:{uniqueId:uploadUniqueId,fileUrl:params.fileUrl}}};},/**
+         * Upload Image
+         *
+         * Upload images to Image Server
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  fileName        A name for the file
+         * @param {file}    image           FILE: the image file  (if its an image file)
+         * @param {float}   xC              Crop Start point x    (if its an image file)
+         * @param {float}   yC              Crop Start point Y    (if its an image file)
+         * @param {float}   hC              Crop size Height      (if its an image file)
+         * @param {float}   wC              Crop size Weight      (if its an image file)
+         *
+         * @link http://docs.pod.land/v1.0.8.0/Developer/CustomPost/215/UploadImage
+         *
+         * @return {object} Uploaded Image Object
+         */uploadImage=function uploadImage(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId;if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();}if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){var uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.image=params.image;uploadImageData.file=params.image;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.fileName=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}if(parseInt(params.xC)>0){uploadImageData.xC=params.xC;}if(parseInt(params.yC)>0){uploadImageData.yC=params.yC;}if(parseInt(params.hC)>0){uploadImageData.hC=params.hC;}if(parseInt(params.wC)>0){uploadImageData.wC=params.wC;}}httpRequest({url:SERVICE_ADDRESSES.FILESERVER_ADDRESS+_constants.SERVICES_PATH.UPLOAD_IMAGE,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(typeof response.hasError!=='undefined'&&!response.hasError){callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}},/**
+         * Upload Image To Pod Space Publically
+         *
+         * Upload images to Pod Space Image Server
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  fileName        A name for the file
+         * @param {file}    image           FILE: the image file  (if its an image file)
+         * @param {float}   xC              Crop Start point x    (if its an image file)
+         * @param {float}   yC              Crop Start point Y    (if its an image file)
+         * @param {float}   hC              Crop size Height      (if its an image file)
+         * @param {float}   wC              Crop size Weight      (if its an image file)
+         * @param {string}  token           User Token
+         * @param {string}  _token_issuer_  Token Issuer
+         *
+         * @link https://podspace.pod.ir/apidocs/?srv=/nzh/drive/uploadImage
+         *
+         * @return {object} Uploaded Image Object
+         */uploadImageToPodspace=function uploadImageToPodspace(params,callback){var fileName,fileType,fileSize,fileWidth=0,fileHeight=0,fileExtension,uploadUniqueId,uploadThreadId;if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();var reader=new FileReader();reader.onload=function(e){var image=new Image();image.onload=function(){fileWidth=this.width;fileHeight=this.height;continueImageUpload(params);};image.src=e.target.result;};reader.readAsDataURL(params.image);}var continueImageUpload=function continueImageUpload(params){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){var uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.file=params.image;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to send a image file!'});return;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.filename=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}uploadImageData.xC=parseInt(params.xC)||0;uploadImageData.yC=parseInt(params.yC)||0;uploadImageData.hC=parseInt(params.hC)||fileHeight;uploadImageData.wC=parseInt(params.wC)||fileWidth;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_IMAGE,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(typeof response.hasError!=='undefined'&&!response.hasError){callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){console.log(e);callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}};},/**
+         * Upload Image To Pod Space
+         *
+         * Upload images to Pod Space Image Server
+         *
+         * @since 3.9.9
+         * @access private
+         *
+         * @param {string}  fileName        A name for the file
+         * @param {file}    image           FILE: the image file  (if its an image file)
+         * @param {float}   xC              Crop Start point x    (if its an image file)
+         * @param {float}   yC              Crop Start point Y    (if its an image file)
+         * @param {float}   hC              Crop size Height      (if its an image file)
+         * @param {float}   wC              Crop size Weight      (if its an image file)
+         * @param {string}  userGroupHash   Unique identifier of threads on podspace
+         * @param {string}  token           User Token
+         * @param {string}  _token_issuer_  Token Issuer
+         *
+         * @link https://podspace.pod.ir/apidocs/?srv=/userGroup/uploadImage/
+         *
+         * @return {object} Uploaded Image Object
+         */uploadImageToPodspaceUserGroup=function uploadImageToPodspaceUserGroup(params,callback){var fileName,fileType,fileSize,fileWidth=0,fileHeight=0,fileExtension,uploadUniqueId,uploadThreadId;var continueImageUpload=function continueImageUpload(params){var uploadImageData,userGroupHash;if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.file=params.image;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to send a image file!'});return;}if(typeof params.userGroupHash=='string'){userGroupHash=params.userGroupHash;uploadImageData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.filename=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}uploadImageData.xC=parseInt(params.xC)||0;uploadImageData.yC=parseInt(params.yC)||0;uploadImageData.hC=parseInt(params.hC)||fileHeight;uploadImageData.wC=parseInt(params.wC)||fileWidth;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_IMAGE_TO_USERGROUP,method:'POST',headers:{'_token_':token,'_token_issuer_':1},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(typeof response.hasError!=='undefined'&&!response.hasError){response.result.actualHeight=fileHeight;response.result.actualWidth=fileWidth;callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){console.log(e);callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}};if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();var dimensions=(0,_imageSize["default"])(params.image);fileWidth=dimensions.width;fileHeight=dimensions.height;continueImageUpload(params);}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();var reader=new FileReader();reader.onload=function(e){var image=new Image();image.onload=function(){fileWidth=this.width;fileHeight=this.height;continueImageUpload(params);};image.src=e.target.result;};reader.readAsDataURL(params.image);}},uploadImageToPodspaceUserGroupNew=function uploadImageToPodspaceUserGroupNew(params,callback){var fileName,fileType,fileSize,fileWidth=0,fileHeight=0,fileExtension,uploadUniqueId,uploadThreadId;var continueImageUpload=function continueImageUpload(params){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){var uploadImageData={};if(params){if(typeof params.image!=='undefined'){uploadImageData.file=params.image;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to send a image file!'});return;}if(typeof params.userGroupHash=='string'){uploadImageData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(params.randomFileName){uploadImageData.fileName=_utility["default"].generateUUID()+'.'+fileExtension;}else{uploadImageData.filename=fileName;}uploadImageData.fileSize=fileSize;if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadImageData.threadId=params.threadId;}else{uploadThreadId=0;uploadImageData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadImageData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadImageData.uniqueId=uploadUniqueId;}if(typeof params.originalFileName=='string'){uploadImageData.originalFileName=params.originalFileName;}else{uploadImageData.originalFileName=fileName;}uploadImageData.x=parseInt(params.xC)||0;uploadImageData.y=parseInt(params.yC)||0;uploadImageData.height=parseInt(params.hC)||fileHeight;uploadImageData.weight=parseInt(params.wC)||fileWidth;}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_IMAGE_TO_USERGROUP_NEW.replace('{userGroupHash}',uploadImageData.userGroupHash),method:'POST',headers:{'Authorization':'Bearer '+token},data:uploadImageData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;if(response.status<400){response.result.actualHeight=fileHeight;response.result.actualWidth=fileWidth;callback({hasError:response.hasError,result:response.result});}else{callback({hasError:true,errorCode:response.errorCode,errorMessage:response.message});}}catch(e){consoleLogging&&console.log(e);callback({hasError:true,errorCode:6300,errorMessage:_constants.CHAT_ERRORS[6300]});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};}else{callback({hasError:true,errorCode:6301,errorMessage:_constants.CHAT_ERRORS[6301]});}};if(isNode){fileName=params.image.split('/').pop();fileType=_mime["default"].getType(params.image);fileSize=_fs["default"].statSync(params.image).size;fileExtension=params.image.split('.').pop();var dimensions=(0,_imageSize["default"])(params.image);fileWidth=dimensions.width;fileHeight=dimensions.height;continueImageUpload(params);}else{fileName=params.image.name;fileType=params.image.type;fileSize=params.image.size;fileExtension=params.image.name.split('.').pop();var reader=new FileReader();reader.onload=function(e){var image=new Image();image.onload=function(){fileWidth=this.width;fileHeight=this.height;continueImageUpload(params);};image.src=e.target.result;};reader.readAsDataURL(params.image);}},uploadFileToPodspaceUserGroupNew=function uploadFileToPodspaceUserGroupNew(params,callback){var fileName,fileType,fileSize,fileExtension,uploadUniqueId,uploadThreadId;console.log(params);if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}// fileName = params.file.name;
 //fileType = params.file.type;
 // fileSize = params.file.size;
 //fileExtension = params.file.name.split('.').pop();
 var uploadFileData={};if(params){if(typeof params.file!=='undefined'){uploadFileData.file=params.file;}if(parseInt(params.threadId)>0){uploadThreadId=params.threadId;uploadFileData.threadId=params.threadId;}else{uploadThreadId=0;uploadFileData.threadId=0;}if(typeof params.uniqueId=='string'){uploadUniqueId=params.uniqueId;uploadFileData.uniqueId=params.uniqueId;}else{uploadUniqueId=_utility["default"].generateUUID();uploadFileData.uniqueId=uploadUniqueId;}if(typeof params.userGroupHash=='string'){uploadFileData.userGroupHash=params.userGroupHash;}else{callback({hasError:true,errorCode:999,errorMessage:'You need to enter a userGroupHash to be able to upload on PodSpace!'});return;}if(typeof params.originalFileName=='string'){uploadFileData.originalFileName=params.originalFileName;}else{uploadFileData.originalFileName=fileName;}}httpRequest({url:SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS+_constants.SERVICES_PATH.PODSPACE_UPLOAD_FILE_TO_USERGROUP_NEW.replace('{userGroupHash}',uploadFileData.userGroupHash),method:'POST',headers:{'Authorization':'Bearer '+token},data:uploadFileData,uniqueId:uploadUniqueId},function(result){if(!result.hasError){try{var response=typeof result.result.responseText=='string'?JSON.parse(result.result.responseText):result.result.responseText;callback({hasError:response.hasError,result:response.result});}catch(e){callback({hasError:true,errorCode:999,errorMessage:'Problem in Parsing result'});}}else{callback({hasError:true,errorCode:result.errorCode,errorMessage:result.errorMessage});}});return{uniqueId:uploadUniqueId,threadId:uploadThreadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:uploadUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},sendFileMessage=function sendFileMessage(params,callbacks){var metadata={file:{}},fileUploadParams={},fileUniqueId=typeof params.fileUniqueId=='string'&&params.fileUniqueId.length>0?params.fileUniqueId:_utility["default"].generateUUID();if(params){if(!params.userGroupHash||params.userGroupHash.length==0||typeof params.userGroupHash!='string'){_events.chatEvents.fireEvent('error',{code:6304,message:_constants.CHAT_ERRORS[6304]});return;}else{fileUploadParams.userGroupHash=params.userGroupHash;}var msgType=params.messageType&&typeof params.messageType.toUpperCase()!=='undefined'&&_constants.chatMessageTypes[params.messageType.toUpperCase()]>0?_constants.chatMessageTypes[params.messageType.toUpperCase()]:1;return chatUploadHandler({threadId:params.threadId,file:params.file,fileUniqueId:fileUniqueId},function(uploadHandlerResult,uploadHandlerMetadata,fileType,fileExtension){fileUploadParams=Object.assign(fileUploadParams,uploadHandlerResult);putInChatUploadQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.MESSAGE,typeCode:params.typeCode,messageType:msgType,subjectId:params.threadId,repliedTo:params.repliedTo,content:params.content,metadata:JSON.stringify(objectDeepMerger(uploadHandlerMetadata,params.metadata)),systemMetadata:JSON.stringify(params.systemMetadata),uniqueId:fileUniqueId,pushMsgType:3},callbacks:callbacks},function(){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){uploadImageToPodspaceUserGroupNew(fileUploadParams,function(result){if(!result.hasError){// Send onFileUpload callback result
 if((0,_typeof2["default"])(callbacks)==='object'&&callbacks.hasOwnProperty('onFileUpload')){callbacks.onFileUpload&&callbacks.onFileUpload({name:result.result.name,hashCode:result.result.hash,parentHash:result.result.parentHash,size:result.result.size,actualHeight:result.result.actualHeight,actualWidth:result.result.actualWidth,link:"".concat(SERVICE_ADDRESSES.PODSPACE_FILESERVER_ADDRESS,"/api/images/").concat(result.result.hash,"?checkUserGroupAccess=true")});}metadata['name']=result.result.name;metadata['fileHash']=result.result.hash;metadata['file']['name']=result.result.name;metadata['file']['fileHash']=result.result.hash;metadata['file']['hashCode']=result.result.hash;metadata['file']['parentHash']=result.result.parentHash;metadata['file']['size']=result.result.size;metadata['file']['actualHeight']=result.result.actualHeight;metadata['file']['actualWidth']=result.result.actualWidth;metadata['file']['link']="https://podspace.pod.ir/nzh/drive/downloadImage?hash=".concat(result.result.hashCode);transferFromUploadQToSendQ(parseInt(params.threadId),fileUniqueId,JSON.stringify(metadata),function(){chatSendQueueHandler();});}else{deleteFromChatUploadQueue({message:{uniqueId:fileUniqueId}});}});}else{uploadFileToPodspaceUserGroupNew(fileUploadParams,function(result){console.log('result.result.hashCode ::',result.result.hash);if(!result.hasError){metadata['fileHash']=result.result.hash;metadata['name']=result.result.name;metadata['file']['name']=result.result.name;metadata['file']['fileHash']=result.result.hash;metadata['file']['hashCode']=result.result.hash;metadata['file']['parentHash']=result.result.parentHash;metadata['file']['size']=result.result.size;transferFromUploadQToSendQ(parseInt(params.threadId),fileUniqueId,JSON.stringify(metadata),function(){chatSendQueueHandler();});}else{deleteFromChatUploadQueue({message:{uniqueId:fileUniqueId}});}});}});});}},/**
-             * Fire Event
-             *
-             * Fires given Event with given parameters
-             *
-             * @access private
-             *
-             * @param {string}  eventName       name of event to be fired
-             * @param {object}  param           params to be sent to the event function
-             *
-             * @return {undefined}
-             */ // fireEvent = function (eventName, param) {
+         * Fire Event
+         *
+         * Fires given Event with given parameters
+         *
+         * @access private
+         *
+         * @param {string}  eventName       name of event to be fired
+         * @param {object}  param           params to be sent to the event function
+         *
+         * @return {undefined}
+         */ // fireEvent = function (eventName, param) {
 //     if (eventName == "chatReady") {
 //         if (typeof navigator == "undefined") {
 //             console.log("\x1b[90m    ☰ \x1b[0m\x1b[90m%s\x1b[0m", "Chat is Ready 😉");
@@ -3043,15 +3306,15 @@ if((0,_typeof2["default"])(callbacks)==='object'&&callbacks.hasOwnProperty('onFi
 //     }
 // },
 /**
-             * Delete Cache Database
-             *
-             * This function truncates all tables of cache Database
-             * and drops whole tables
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */ // deleteCacheDatabases = function () {
+         * Delete Cache Database
+         *
+         * This function truncates all tables of cache Database
+         * and drops whole tables
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */ // deleteCacheDatabases = function () {
 //     if (db) {
 //         db.close();
 //     }
@@ -3084,15 +3347,15 @@ if((0,_typeof2["default"])(callbacks)==='object'&&callbacks.hasOwnProperty('onFi
 //     // }
 // },
 /**
-             * Clear Cache Database of Some User
-             *
-             * This function removes everything in cache
-             * for one specific user
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */ // clearCacheDatabasesOfUser = function (callback) {
+         * Clear Cache Database of Some User
+         *
+         * This function removes everything in cache
+         * for one specific user
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */ // clearCacheDatabasesOfUser = function (callback) {
 //     if (db && !cacheDeletingInProgress) {
 //         cacheDeletingInProgress = true;
 //         db.threads
@@ -3200,27 +3463,27 @@ if((0,_typeof2["default"])(callbacks)==='object'&&callbacks.hasOwnProperty('onFi
 //     }
 // },
 /**
-             * Get Chat Send Queue
-             *
-             * This function returns chat send queue
-             *
-             * @access private
-             *
-             * @return {array}  An array of messages on sendQueue
-             */getChatSendQueue=function getChatSendQueue(threadId,callback){if(threadId){var tempSendQueue=[];for(var i=0;i<chatSendQueue.length;i++){if(chatSendQueue[i].threadId==threadId){tempSendQueue.push(chatSendQueue[i]);}}callback&&callback(tempSendQueue);}else{callback&&callback(chatSendQueue);}},/**
-             * Get Chat Wait Queue
-             *
-             * This function checks if cache is enbled on client's
-             * machine, and if it is, retrieves WaitQueue from
-             * cache. Otherwise returns WaitQueue from RAM
-             * After getting failed messages from cache or RAM
-             * we should check them with server to be sure if
-             * they have been sent already or not?
-             *
-             * @access private
-             *
-             * @return {array}  An array of messages on sendQueue
-             */getChatWaitQueue=function getChatWaitQueue(threadId,active,callback){if(active&&threadId>0){// if (hasCache && typeof queueDb == 'object') {
+         * Get Chat Send Queue
+         *
+         * This function returns chat send queue
+         *
+         * @access private
+         *
+         * @return {array}  An array of messages on sendQueue
+         */getChatSendQueue=function getChatSendQueue(threadId,callback){if(threadId){var tempSendQueue=[];for(var i=0;i<chatSendQueue.length;i++){if(chatSendQueue[i].threadId==threadId){tempSendQueue.push(chatSendQueue[i]);}}callback&&callback(tempSendQueue);}else{callback&&callback(chatSendQueue);}},/**
+         * Get Chat Wait Queue
+         *
+         * This function checks if cache is enbled on client's
+         * machine, and if it is, retrieves WaitQueue from
+         * cache. Otherwise returns WaitQueue from RAM
+         * After getting failed messages from cache or RAM
+         * we should check them with server to be sure if
+         * they have been sent already or not?
+         *
+         * @access private
+         *
+         * @return {array}  An array of messages on sendQueue
+         */getChatWaitQueue=function getChatWaitQueue(threadId,active,callback){if(active&&threadId>0){// if (hasCache && typeof queueDb == 'object') {
 //     queueDb.waitQ.where('threadId')
 //         .equals(threadId)
 //         .and(function (item) {
@@ -3296,35 +3559,35 @@ if((0,_typeof2["default"])(callbacks)==='object'&&callbacks.hasOwnProperty('onFi
 // } else {
 var uniqueIds=[];for(var i=0;i<chatWaitQueue.length;i++){uniqueIds.push(chatWaitQueue[i].uniqueId);}if(uniqueIds.length){sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.GET_HISTORY,content:{uniqueIds:uniqueIds},subjectId:threadId},{onResult:function onResult(result){if(!result.hasError){var messageContent=result.result;for(var i=0;i<messageContent.length;i++){for(var j=0;j<uniqueIds.length;j++){if(uniqueIds[j]==messageContent[i].uniqueId){uniqueIds.splice(j,1);chatWaitQueue.splice(j,1);}}}callback&&callback(chatWaitQueue);}}});}else{callback&&callback([]);}// }
 }else{callback&&callback([]);}},/**
-             * Get Chat Upload Queue
-             *
-             * This function checks if cache is enabled on client's
-             * machine, and if it is, retrieves uploadQueue from
-             * cache. Otherwise returns uploadQueue from RAM
-             *
-             * @access private
-             *
-             * @return {array}  An array of messages on uploadQueue
-             */getChatUploadQueue=function getChatUploadQueue(threadId,callback){var uploadQ=[];for(var i=0;i<chatUploadQueue.length;i++){if(parseInt(chatUploadQueue[i].message.subjectId)==threadId){uploadQ.push(chatUploadQueue[i]);}}callback&&callback(uploadQ);},/**
-             * Delete an Item from Chat Send Queue
-             *
-             * This function gets an item and deletes it
-             * from Chat Send Queue
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */deleteFromChatSentQueue=function deleteFromChatSentQueue(item,callback){for(var i=0;i<chatSendQueue.length;i++){if(chatSendQueue[i].message.uniqueId==item.message.uniqueId){chatSendQueue.splice(i,1);}}callback&&callback();},/**
-             * Delete an Item from Chat Wait Queue
-             *
-             * This function gets an item and deletes it
-             * from Chat Wait Queue, from either cached
-             * queue or the queue on RAM memory
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */deleteFromChatWaitQueue=function deleteFromChatWaitQueue(item,callback){// if (hasCache && typeof queueDb == 'object') {
+         * Get Chat Upload Queue
+         *
+         * This function checks if cache is enabled on client's
+         * machine, and if it is, retrieves uploadQueue from
+         * cache. Otherwise returns uploadQueue from RAM
+         *
+         * @access private
+         *
+         * @return {array}  An array of messages on uploadQueue
+         */getChatUploadQueue=function getChatUploadQueue(threadId,callback){var uploadQ=[];for(var i=0;i<chatUploadQueue.length;i++){if(parseInt(chatUploadQueue[i].message.subjectId)==threadId){uploadQ.push(chatUploadQueue[i]);}}callback&&callback(uploadQ);},/**
+         * Delete an Item from Chat Send Queue
+         *
+         * This function gets an item and deletes it
+         * from Chat Send Queue
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */deleteFromChatSentQueue=function deleteFromChatSentQueue(item,callback){for(var i=0;i<chatSendQueue.length;i++){if(chatSendQueue[i].message.uniqueId==item.message.uniqueId){chatSendQueue.splice(i,1);}}callback&&callback();},/**
+         * Delete an Item from Chat Wait Queue
+         *
+         * This function gets an item and deletes it
+         * from Chat Wait Queue, from either cached
+         * queue or the queue on RAM memory
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */deleteFromChatWaitQueue=function deleteFromChatWaitQueue(item,callback){// if (hasCache && typeof queueDb == 'object') {
 //     queueDb.waitQ.where('uniqueId')
 //         .equals(item.uniqueId)
 //         .and(function (item) {
@@ -3344,36 +3607,36 @@ var uniqueIds=[];for(var i=0;i<chatWaitQueue.length;i++){uniqueIds.push(chatWait
 // } else {
 for(var i=0;i<chatWaitQueue.length;i++){if(chatWaitQueue[i].uniqueId==item.uniqueId){chatWaitQueue.splice(i,1);}}callback&&callback();// }
 },/**
-             * Delete an Item from Chat Upload Queue
-             *
-             * This function gets an item and deletes it
-             * from Chat Upload Queue
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */deleteFromChatUploadQueue=function deleteFromChatUploadQueue(item,callback){for(var i=0;i<chatUploadQueue.length;i++){if(chatUploadQueue[i].message.uniqueId==item.message.uniqueId){chatUploadQueue.splice(i,1);}}callback&&callback();},/**
-             * Push Message Into Send Queue
-             *
-             * This functions takes a message and puts it
-             * into chat's send queue
-             *
-             * @access private
-             *
-             * @param {object}    params    The Message and its callbacks to be enqueued
-             *
-             * @return {undefined}
-             */putInChatSendQueue=function putInChatSendQueue(params,callback){chatSendQueue.push(params);putInChatWaitQueue(params.message,function(){callback&&callback();});},/**
-             * Put an Item inside Chat Wait Queue
-             *
-             * This function takes an item and puts it
-             * inside Chat Wait Queue, either on cached
-             * wait queue or the wait queue on RAM memory
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */putInChatWaitQueue=function putInChatWaitQueue(item,callback){if(item.uniqueId!=''){var waitQueueUniqueId=typeof item.uniqueId=='string'?item.uniqueId:Array.isArray(item.uniqueId)?item.uniqueId[0]:null;if(waitQueueUniqueId!=null){// if (hasCache && typeof queueDb == 'object') {
+         * Delete an Item from Chat Upload Queue
+         *
+         * This function gets an item and deletes it
+         * from Chat Upload Queue
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */deleteFromChatUploadQueue=function deleteFromChatUploadQueue(item,callback){for(var i=0;i<chatUploadQueue.length;i++){if(chatUploadQueue[i].message.uniqueId==item.message.uniqueId){chatUploadQueue.splice(i,1);}}callback&&callback();},/**
+         * Push Message Into Send Queue
+         *
+         * This functions takes a message and puts it
+         * into chat's send queue
+         *
+         * @access private
+         *
+         * @param {object}    params    The Message and its callbacks to be enqueued
+         *
+         * @return {undefined}
+         */putInChatSendQueue=function putInChatSendQueue(params,callback){chatSendQueue.push(params);putInChatWaitQueue(params.message,function(){callback&&callback();});},/**
+         * Put an Item inside Chat Wait Queue
+         *
+         * This function takes an item and puts it
+         * inside Chat Wait Queue, either on cached
+         * wait queue or the wait queue on RAM memory
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */putInChatWaitQueue=function putInChatWaitQueue(item,callback){if(item.uniqueId!=''){var waitQueueUniqueId=typeof item.uniqueId=='string'?item.uniqueId:Array.isArray(item.uniqueId)?item.uniqueId[0]:null;if(waitQueueUniqueId!=null){// if (hasCache && typeof queueDb == 'object') {
 //     queueDb.waitQ
 //         .put({
 //             threadId: parseInt(item.subjectId),
@@ -3394,48 +3657,48 @@ for(var i=0;i<chatWaitQueue.length;i++){if(chatWaitQueue[i].uniqueId==item.uniqu
 // } else {
 item.uniqueId=waitQueueUniqueId;chatWaitQueue.push(item);callback&&callback();// }
 }}},/**
-             * Put an Item inside Chat Upload Queue
-             *
-             * This function takes an item and puts it
-             * inside Chat upload Queue
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */putInChatUploadQueue=function putInChatUploadQueue(params,callback){chatUploadQueue.push(params);callback&&callback();},/**
-             * Transfer an Item from uploadQueue to sendQueue
-             *
-             * This function takes an uniqueId, finds that item
-             * inside uploadQ. takes it's uploaded metadata and
-             * attaches them to the message. Finally removes item
-             * from uploadQueue and pushes it inside sendQueue
-             *
-             * @access private
-             *
-             * @return {undefined}
-             */transferFromUploadQToSendQ=function transferFromUploadQToSendQ(threadId,uniqueId,metadata,callback){getChatUploadQueue(threadId,function(uploadQueue){for(var i=0;i<uploadQueue.length;i++){if(uploadQueue[i].message.uniqueId==uniqueId){try{var message=uploadQueue[i].message,callbacks=uploadQueue[i].callbacks;var oldMetadata=JSON.parse(message.metadata),newMetadata=JSON.parse(metadata);var finalMetaData=objectDeepMerger(newMetadata,oldMetadata);if(message&&(0,_typeof2["default"])(message.content)==='object'&&typeof message.content.message!=='undefined'){message.content.message['metadata']=JSON.stringify(finalMetaData);}if(message&&(0,_typeof2["default"])(message.content)==='object'&&typeof message.content.metadata!=='undefined'){message.content['metadata']=JSON.stringify(finalMetaData);}if(message.chatMessageVOType==21){getImageDownloadLinkFromPodspace({hashCode:finalMetaData.fileHash},function(result){if(!result.hasError){message.content.image=result.downloadUrl;}});}message.metadata=JSON.stringify(finalMetaData);}catch(e){console.log(e);}deleteFromChatUploadQueue(uploadQueue[i],function(){putInChatSendQueue({message:message,callbacks:callbacks},function(){callback&&callback();});});break;}}});},/**
-             * Decrypt Encrypted strings using secret key and salt
-             *
-             * @param string    String to get decrypted
-             * @param secret    Cache Secret
-             * @param salt      Salt used while string was getting encrypted
-             *
-             * @return  string  Decrypted string
-             */chatDecrypt=function chatDecrypt(string,secret,salt){var decryptedString=_utility["default"].decrypt(string,secret,salt);if(!decryptedString.hasError){return decryptedString.result;}else{/**
-                     * If there is a problem with decrypting cache
-                     * Some body is trying to decrypt cache with wrong key
-                     * or cacheSecret has been expired, so we should truncate
-                     * cache databases to avoid attacks.
-                     *
-                     * But before deleting cache database we should make
-                     * sure that cacheSecret has been retrieved from server
-                     * and is ready. If so, and cache is still not decryptable,
-                     * there is definitely something wrong with the key; so we are
-                     * good to go and delete cache databases.
-                     */if(secret!='undefined'&&secret!=''){if(db){db.threads.where('owner').equals(parseInt(userInfo.id)).count().then(function(threadsCount){if(threadsCount>0){clearCacheDatabasesOfUser(function(){console.log('All cache databases have been cleared.');});}})["catch"](function(e){console.log(e);});}}return'{}';}},objectDeepMerger=function objectDeepMerger(){var target={};var merger=function merger(obj){for(var prop in obj){if(obj.hasOwnProperty(prop)){if(Object.prototype.toString.call(obj[prop])==='[object Object]'){target[prop]=objectDeepMerger(target[prop],obj[prop]);}else{target[prop]=obj[prop];}}}};for(var i=0;i<arguments.length;i++){merger(i<0||arguments.length<=i?undefined:arguments[i]);}return target;},setRoleToUser=function setRoleToUser(params,callback){var setRoleData={chatMessageVOType:_constants.chatMessageVOTypes.SET_ROLE_TO_USER,typeCode:params.typeCode,content:[],pushMsgType:3,token:token};if(params){if(parseInt(params.threadId)>0){setRoleData.subjectId=params.threadId;}if(params.admins&&Array.isArray(params.admins)){for(var i=0;i<params.admins.length;i++){var temp={};if(parseInt(params.admins[i].userId)>0){temp.userId=params.admins[i].userId;}if(Array.isArray(params.admins[i].roles)){temp.roles=params.admins[i].roles;}setRoleData.content.push(temp);}setRoleData.content=JSON.stringify(setRoleData.content);}}return sendMessage(setRoleData,{onResult:function onResult(result){callback&&callback(result);}});},removeRoleFromUser=function removeRoleFromUser(params,callback){var setAdminData={chatMessageVOType:_constants.chatMessageVOTypes.REMOVE_ROLE_FROM_USER,typeCode:params.typeCode,content:[],pushMsgType:3,token:token};if(params){if(parseInt(params.threadId)>0){setAdminData.subjectId=params.threadId;}if(params.admins&&Array.isArray(params.admins)){for(var i=0;i<params.admins.length;i++){var temp={};if(parseInt(params.admins[i].userId)>0){temp.userId=params.admins[i].userId;}if(Array.isArray(params.admins[i].roles)){temp.roles=params.admins[i].roles;}setAdminData.content.push(temp);}setAdminData.content=JSON.stringify(setAdminData.content);}}return sendMessage(setAdminData,{onResult:function onResult(result){callback&&callback(result);}});},unPinMessage=function unPinMessage(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UNPIN_MESSAGE,typeCode:params.typeCode,subjectId:params.messageId,content:JSON.stringify({'notifyAll':typeof params.notifyAll==='boolean'?params.notifyAll:false}),pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});},chatUploadHandler=function chatUploadHandler(params,callbacks){if(typeof params.file!='undefined'){var fileName,fileType,fileSize,fileExtension,chatUploadHandlerResult={},metadata={file:{}},fileUniqueId=params.fileUniqueId;if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}_events.chatEvents.fireEvent('fileUploadEvents',{threadId:params.threadId,uniqueId:fileUniqueId,state:'NOT_STARTED',progress:0,fileInfo:{fileName:fileName,fileSize:fileSize},fileObject:params.file});/**
-                     * File is a valid Image
-                     * Should upload to image server
-                     */if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){chatUploadHandlerResult.image=params.file;if(params.xC>=0){fileUploadParams.xC=params.xC;}if(params.yC>=0){fileUploadParams.yC=params.yC;}if(params.hC>0){fileUploadParams.hC=params.hC;}if(params.wC>0){fileUploadParams.wC=params.wC;}}else{chatUploadHandlerResult.file=params.file;}metadata['file']['originalName']=fileName;metadata['file']['mimeType']=fileType;metadata['file']['size']=fileSize;chatUploadHandlerResult.threadId=params.threadId;chatUploadHandlerResult.uniqueId=fileUniqueId;chatUploadHandlerResult.fileObject=params.file;chatUploadHandlerResult.originalFileName=fileName;callbacks&&callbacks(chatUploadHandlerResult,metadata,fileType,fileExtension);}else{_events.chatEvents.fireEvent('error',{code:6302,message:_constants.CHAT_ERRORS[6302]});}return{uniqueId:fileUniqueId,threadId:params.threadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:fileUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},cancelFileDownload=function cancelFileDownload(params,callback){if(params){if(typeof params.uniqueId=='string'){var uniqueId=params.uniqueId;httpRequestObject[eval('uniqueId')]&&httpRequestObject[eval('uniqueId')].abort();httpRequestObject[eval('uniqueId')]&&delete httpRequestObject[eval('uniqueId')];callback&&callback(uniqueId);}}return;},//TODO Change Node Version
+         * Put an Item inside Chat Upload Queue
+         *
+         * This function takes an item and puts it
+         * inside Chat upload Queue
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */putInChatUploadQueue=function putInChatUploadQueue(params,callback){chatUploadQueue.push(params);callback&&callback();},/**
+         * Transfer an Item from uploadQueue to sendQueue
+         *
+         * This function takes an uniqueId, finds that item
+         * inside uploadQ. takes it's uploaded metadata and
+         * attaches them to the message. Finally removes item
+         * from uploadQueue and pushes it inside sendQueue
+         *
+         * @access private
+         *
+         * @return {undefined}
+         */transferFromUploadQToSendQ=function transferFromUploadQToSendQ(threadId,uniqueId,metadata,callback){getChatUploadQueue(threadId,function(uploadQueue){for(var i=0;i<uploadQueue.length;i++){if(uploadQueue[i].message.uniqueId==uniqueId){try{var message=uploadQueue[i].message,callbacks=uploadQueue[i].callbacks;var oldMetadata=JSON.parse(message.metadata),newMetadata=JSON.parse(metadata);var finalMetaData=objectDeepMerger(newMetadata,oldMetadata);if(message&&(0,_typeof2["default"])(message.content)==='object'&&typeof message.content.message!=='undefined'){message.content.message['metadata']=JSON.stringify(finalMetaData);}if(message&&(0,_typeof2["default"])(message.content)==='object'&&typeof message.content.metadata!=='undefined'){message.content['metadata']=JSON.stringify(finalMetaData);}if(message.chatMessageVOType==21){getImageDownloadLinkFromPodspace({hashCode:finalMetaData.fileHash},function(result){if(!result.hasError){message.content.image=result.downloadUrl;}});}message.metadata=JSON.stringify(finalMetaData);}catch(e){console.log(e);}deleteFromChatUploadQueue(uploadQueue[i],function(){putInChatSendQueue({message:message,callbacks:callbacks},function(){callback&&callback();});});break;}}});},/**
+         * Decrypt Encrypted strings using secret key and salt
+         *
+         * @param string    String to get decrypted
+         * @param secret    Cache Secret
+         * @param salt      Salt used while string was getting encrypted
+         *
+         * @return  string  Decrypted string
+         */chatDecrypt=function chatDecrypt(string,secret,salt){var decryptedString=_utility["default"].decrypt(string,secret,salt);if(!decryptedString.hasError){return decryptedString.result;}else{/**
+                 * If there is a problem with decrypting cache
+                 * Some body is trying to decrypt cache with wrong key
+                 * or cacheSecret has been expired, so we should truncate
+                 * cache databases to avoid attacks.
+                 *
+                 * But before deleting cache database we should make
+                 * sure that cacheSecret has been retrieved from server
+                 * and is ready. If so, and cache is still not decryptable,
+                 * there is definitely something wrong with the key; so we are
+                 * good to go and delete cache databases.
+                 */if(secret!='undefined'&&secret!=''){if(db){db.threads.where('owner').equals(parseInt(userInfo.id)).count().then(function(threadsCount){if(threadsCount>0){clearCacheDatabasesOfUser(function(){console.log('All cache databases have been cleared.');});}})["catch"](function(e){console.log(e);});}}return'{}';}},objectDeepMerger=function objectDeepMerger(){var target={};var merger=function merger(obj){for(var prop in obj){if(obj.hasOwnProperty(prop)){if(Object.prototype.toString.call(obj[prop])==='[object Object]'){target[prop]=objectDeepMerger(target[prop],obj[prop]);}else{target[prop]=obj[prop];}}}};for(var i=0;i<arguments.length;i++){merger(i<0||arguments.length<=i?undefined:arguments[i]);}return target;},setRoleToUser=function setRoleToUser(params,callback){var setRoleData={chatMessageVOType:_constants.chatMessageVOTypes.SET_ROLE_TO_USER,typeCode:params.typeCode,content:[],pushMsgType:3,token:token};if(params){if(parseInt(params.threadId)>0){setRoleData.subjectId=params.threadId;}if(params.admins&&Array.isArray(params.admins)){for(var i=0;i<params.admins.length;i++){var temp={};if(parseInt(params.admins[i].userId)>0){temp.userId=params.admins[i].userId;}if(Array.isArray(params.admins[i].roles)){temp.roles=params.admins[i].roles;}setRoleData.content.push(temp);}setRoleData.content=JSON.stringify(setRoleData.content);}}return sendMessage(setRoleData,{onResult:function onResult(result){callback&&callback(result);}});},removeRoleFromUser=function removeRoleFromUser(params,callback){var setAdminData={chatMessageVOType:_constants.chatMessageVOTypes.REMOVE_ROLE_FROM_USER,typeCode:params.typeCode,content:[],pushMsgType:3,token:token};if(params){if(parseInt(params.threadId)>0){setAdminData.subjectId=params.threadId;}if(params.admins&&Array.isArray(params.admins)){for(var i=0;i<params.admins.length;i++){var temp={};if(parseInt(params.admins[i].userId)>0){temp.userId=params.admins[i].userId;}if(Array.isArray(params.admins[i].roles)){temp.roles=params.admins[i].roles;}setAdminData.content.push(temp);}setAdminData.content=JSON.stringify(setAdminData.content);}}return sendMessage(setAdminData,{onResult:function onResult(result){callback&&callback(result);}});},unPinMessage=function unPinMessage(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UNPIN_MESSAGE,typeCode:params.typeCode,subjectId:params.messageId,content:JSON.stringify({'notifyAll':typeof params.notifyAll==='boolean'?params.notifyAll:false}),pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});},chatUploadHandler=function chatUploadHandler(params,callbacks){if(typeof params.file!='undefined'){var fileName,fileType,fileSize,fileExtension,chatUploadHandlerResult={},metadata={file:{}},fileUniqueId=params.fileUniqueId;if(isNode){fileName=params.file.split('/').pop();fileType=_mime["default"].getType(params.file);fileSize=_fs["default"].statSync(params.file).size;fileExtension=params.file.split('.').pop();}else{fileName=params.file.name;fileType=params.file.type;fileSize=params.file.size;fileExtension=params.file.name.split('.').pop();}_events.chatEvents.fireEvent('fileUploadEvents',{threadId:params.threadId,uniqueId:fileUniqueId,state:'NOT_STARTED',progress:0,fileInfo:{fileName:fileName,fileSize:fileSize},fileObject:params.file});/**
+                 * File is a valid Image
+                 * Should upload to image server
+                 */if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){chatUploadHandlerResult.image=params.file;if(params.xC>=0){fileUploadParams.xC=params.xC;}if(params.yC>=0){fileUploadParams.yC=params.yC;}if(params.hC>0){fileUploadParams.hC=params.hC;}if(params.wC>0){fileUploadParams.wC=params.wC;}}else{chatUploadHandlerResult.file=params.file;}metadata['file']['originalName']=fileName;metadata['file']['mimeType']=fileType;metadata['file']['size']=fileSize;chatUploadHandlerResult.threadId=params.threadId;chatUploadHandlerResult.uniqueId=fileUniqueId;chatUploadHandlerResult.fileObject=params.file;chatUploadHandlerResult.originalFileName=fileName;callbacks&&callbacks(chatUploadHandlerResult,metadata,fileType,fileExtension);}else{_events.chatEvents.fireEvent('error',{code:6302,message:_constants.CHAT_ERRORS[6302]});}return{uniqueId:fileUniqueId,threadId:params.threadId,participant:userInfo,content:{caption:params.content,file:{uniqueId:fileUniqueId,fileName:fileName,fileSize:fileSize,fileObject:params.file}}};},cancelFileDownload=function cancelFileDownload(params,callback){if(params){if(typeof params.uniqueId=='string'){var uniqueId=params.uniqueId;httpRequestObject[eval('uniqueId')]&&httpRequestObject[eval('uniqueId')].abort();httpRequestObject[eval('uniqueId')]&&delete httpRequestObject[eval('uniqueId')];callback&&callback(uniqueId);}}return;},//TODO Change Node Version
 getImageFormUrl=function getImageFormUrl(url,callback){var img=new Image();img.setAttribute('crossOrigin','anonymous');img.onload=function(a){var canvas=document.createElement("canvas");canvas.width=this.width;canvas.height=this.height;var ctx=canvas.getContext("2d");ctx.drawImage(this,0,0);var dataURI=canvas.toDataURL("image/jpg");// convert base64/URLEncoded data component to raw binary data held in a string
 var byteString;if(dataURI.split(',')[0].indexOf('base64')>=0)byteString=atob(dataURI.split(',')[1]);else byteString=unescape(dataURI.split(',')[1]);// separate out the mime component
 var mimeString=dataURI.split(',')[0].split(':')[1].split(';')[0];// write the bytes of the string to a typed array
@@ -3448,38 +3711,38 @@ return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params 
 //     message: 'Invalid call id!'
 // });
 return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to End the call!'});return;}callStop();return sendMessage(endCallData,{onResult:function onResult(result){callback&&callback(result);}});},callStop=function callStop(){if(callStopQueue.callStarted){callStopQueue.callStarted=false;}callRequestController.callEstablishedInMySide=false;callRequestController.callRequestReceived=false;currentCallParams={};currentCallId=null;},/**
-             * Reformat Call Participants
-             *
-             * This functions reformats given Array of call Participants
-             * into proper call participant
-             *
-             * @access private
-             *
-             * @param {object}  participantsContent   Array of Call Participant Objects
-             * @param {int}    threadId              Id of call
-             *
-             * @return {object} Formatted Call Participant Array
-             */reformatCallParticipants=function reformatCallParticipants(participantsContent){var returnData=[];for(var i=0;i<participantsContent.length;i++){returnData.push(formatDataToMakeCallParticipant(participantsContent[i]));}return returnData;},formatDataToMakeCallParticipant=function formatDataToMakeCallParticipant(messageContent){/**
-                 * + CallParticipantVO                   {object}
-                 *    - id                           {int}
-                 *    - joinTime                     {int}
-                 *    - leaveTime                    {int}
-                 *    - threadParticipant            {object}
-                 *    - sendTopic                    {string}
-                 *    - receiveTopic                 {string}
-                 *    - brokerAddress                {string}
-                 *    - active                       {boolean}
-                 *    - callSession                  {object}
-                 *    - callStatus                   {int}
-                 *    - createTime                   {int}
-                 *    - sendKey                      {string}
-                 *    - mute                         {boolean}
-                 */var participant={id:messageContent.id,joinTime:messageContent.joinTime,leaveTime:messageContent.leaveTime,sendTopic:messageContent.sendTopic,receiveTopic:messageContent.receiveTopic,brokerAddress:messageContent.brokerAddress,active:messageContent.active,callSession:messageContent.callSession,callStatus:messageContent.callStatus,createTime:messageContent.createTime,sendKey:messageContent.sendKey,mute:messageContent.mute};// Add Chat Participant if exist
+         * Reformat Call Participants
+         *
+         * This functions reformats given Array of call Participants
+         * into proper call participant
+         *
+         * @access private
+         *
+         * @param {object}  participantsContent   Array of Call Participant Objects
+         * @param {int}    threadId              Id of call
+         *
+         * @return {object} Formatted Call Participant Array
+         */reformatCallParticipants=function reformatCallParticipants(participantsContent){var returnData=[];for(var i=0;i<participantsContent.length;i++){returnData.push(formatDataToMakeCallParticipant(participantsContent[i]));}return returnData;},formatDataToMakeCallParticipant=function formatDataToMakeCallParticipant(messageContent){/**
+             * + CallParticipantVO                   {object}
+             *    - id                           {int}
+             *    - joinTime                     {int}
+             *    - leaveTime                    {int}
+             *    - threadParticipant            {object}
+             *    - sendTopic                    {string}
+             *    - receiveTopic                 {string}
+             *    - brokerAddress                {string}
+             *    - active                       {boolean}
+             *    - callSession                  {object}
+             *    - callStatus                   {int}
+             *    - createTime                   {int}
+             *    - sendKey                      {string}
+             *    - mute                         {boolean}
+             */var participant={id:messageContent.id,joinTime:messageContent.joinTime,leaveTime:messageContent.leaveTime,sendTopic:messageContent.sendTopic,receiveTopic:messageContent.receiveTopic,brokerAddress:messageContent.brokerAddress,active:messageContent.active,callSession:messageContent.callSession,callStatus:messageContent.callStatus,createTime:messageContent.createTime,sendKey:messageContent.sendKey,mute:messageContent.mute};// Add Chat Participant if exist
 if(messageContent.participantVO){participant.participantVO=messageContent.participantVO;}// Add Call Session if exist
 if(messageContent.callSession){participant.callSession=messageContent.callSession;}// return participant;
 return JSON.parse(JSON.stringify(participant));};/******************************************************
-         *             P U B L I C   M E T H O D S            *
-         ******************************************************/ // this.on = function (eventName, callback) {
+     *             P U B L I C   M E T H O D S            *
+     ******************************************************/ // this.on = function (eventName, callback) {
 //     if (eventCallbacks[eventName]) {
 //         var id = Utility.generateUUID();
 //         eventCallbacks[eventName][id] = callback;
@@ -3487,20 +3750,20 @@ return JSON.parse(JSON.stringify(participant));};/******************************
 //     }
 // };
 this.on=_events.chatEvents.on;this.off=_events.chatEvents.off;this.getPeerId=function(){return peerId;};this.getCurrentUser=function(){return userInfo;};this.getUserInfo=getUserInfo;this.getThreads=getThreads;this.getAllThreads=getAllThreads;this.getHistory=getHistory;this.getAllMentionedMessages=function(params,callback){return getHistory({threadId:params.threadId,allMentioned:true,typeCode:params.typeCode,count:params.count||50,offset:params.offset||0,cache:false,queues:{sending:false,uploading:false}},callback);};this.getUnreadMentionedMessages=function(params,callback){return getHistory({threadId:params.threadId,unreadMentioned:true,typeCode:params.typeCode,count:params.count||50,offset:params.offset||0,cache:false,queues:{sending:false,uploading:false}},callback);};this.getAllUnreadMessagesCount=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.ALL_UNREAD_MESSAGE_COUNT,typeCode:params.typeCode,content:JSON.stringify({'mute':typeof params.countMuteThreads==='boolean'?params.countMuteThreads:false}),pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});};/**
-         * Get Contacts
-         *
-         * Gets contacts list from chat server
-         *
-         * @access pubic
-         *
-         * @param {int}     count           Count of objects to get
-         * @param {int}     offset          Offset of select Query
-         * @param {string}  query           Search in contacts list to get (search LIKE firstName, lastName, email)
-         *
-         * @return {object} Instant Response
-         */this.getContacts=function(params,callback){var count=50,offset=0,content={},whereClause={},returnCache=false;if(params){if(parseInt(params.count)>0){count=parseInt(params.count);}if(parseInt(params.offset)>0){offset=parseInt(params.offset);}if(typeof params.query==='string'){content.query=whereClause.query=params.query;}if(typeof params.email==='string'){content.email=whereClause.email=params.email;}if(typeof params.cellphoneNumber==='string'){content.cellphoneNumber=whereClause.cellphoneNumber=params.cellphoneNumber;}if(typeof params.contactId==='string'){content.id=whereClause.id=params.contactId;}if(typeof params.uniqueId==='string'){content.uniqueId=whereClause.uniqueId=params.uniqueId;}if(typeof params.username==='string'){content.username=params.username;}if(typeof params.coreUserId!=="undefined"){content.coreUserId=params.coreUserId;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;}content.size=count;content.offset=offset;var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_CONTACTS,typeCode:params.typeCode,content:content};/**
-             * Retrieve contacts from cache #cache
-             */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+     * Get Contacts
+     *
+     * Gets contacts list from chat server
+     *
+     * @access pubic
+     *
+     * @param {int}     count           Count of objects to get
+     * @param {int}     offset          Offset of select Query
+     * @param {string}  query           Search in contacts list to get (search LIKE firstName, lastName, email)
+     *
+     * @return {object} Instant Response
+     */this.getContacts=function(params,callback){var count=50,offset=0,content={},whereClause={},returnCache=false;if(params){if(parseInt(params.count)>0){count=parseInt(params.count);}if(parseInt(params.offset)>0){offset=parseInt(params.offset);}if(typeof params.query==='string'){content.query=whereClause.query=params.query;}if(typeof params.email==='string'){content.email=whereClause.email=params.email;}if(typeof params.cellphoneNumber==='string'){content.cellphoneNumber=whereClause.cellphoneNumber=params.cellphoneNumber;}if(typeof params.contactId==='string'){content.id=whereClause.id=params.contactId;}if(typeof params.uniqueId==='string'){content.uniqueId=whereClause.uniqueId=params.uniqueId;}if(typeof params.username==='string'){content.username=params.username;}if(typeof params.coreUserId!=="undefined"){content.coreUserId=params.coreUserId;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;}content.size=count;content.offset=offset;var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.GET_CONTACTS,typeCode:params.typeCode,content:content};/**
+         * Retrieve contacts from cache #cache
+         */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //
 //         /**
@@ -3605,10 +3868,10 @@ this.on=_events.chatEvents.on;this.off=_events.chatEvents.off;this.getPeerId=fun
 //     }
 // }
 /**
-             * Retrieve Contacts from server
-             */return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={contacts:[],contentCount:result.contentCount,hasNext:offset+count<result.contentCount&&messageLength>0,nextOffset:offset+messageLength},contactData;for(var i=0;i<messageLength;i++){contactData=formatDataToMakeContact(messageContent[i]);if(contactData){resultData.contacts.push(contactData);}}returnData.result=resultData;/**
-                         * Add Contacts into cache database #cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+         * Retrieve Contacts from server
+         */return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={contacts:[],contentCount:result.contentCount,hasNext:offset+count<result.contentCount&&messageLength>0,nextOffset:offset+messageLength},contactData;for(var i=0;i<messageLength;i++){contactData=formatDataToMakeContact(messageContent[i]);if(contactData){resultData.contacts.push(contactData);}}returnData.result=resultData;/**
+                     * Add Contacts into cache database #cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var cacheData = [];
 //
@@ -3655,80 +3918,80 @@ this.on=_events.chatEvents.on;this.off=_events.chatEvents.off;this.getPeerId=fun
 //     }
 // }
 }callback&&callback(returnData);/**
-                     * Delete callback so if server pushes response before
-                     * cache, cache won't send data again
-                     */callback=undefined;// if (!returnData.hasError && returnCache) {
+                 * Delete callback so if server pushes response before
+                 * cache, cache won't send data again
+                 */callback=undefined;// if (!returnData.hasError && returnCache) {
 //     fireEvent('contactEvents', {
 //         type: 'CONTACTS_LIST_CHANGE',
 //         result: returnData.result
 //     });
 // }
 }});};this.getThreadParticipants=getThreadParticipants;/**
-         * Get Thread Admins
-         *
-         * Gets admins list of given thread
-         *
-         * @access pubic
-         *
-         * @param {int}     threadId        Id of thread which you want to get admins of
-         *
-         * @return {object} Instant Response
-         */this.getThreadAdmins=function(params,callback){getThreadParticipants({threadId:params.threadId,admin:true,cache:false},callback);};this.addParticipants=function(params,callback){/**
-             * + AddParticipantsRequest   {object}
-             *    - subjectId             {long}
-             *    + content               {list} List of CONTACT IDs or inviteeVO Objects
-             *    - uniqueId              {string}
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.ADD_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(parseInt(params.threadId)>0){sendMessageParams.subjectId=params.threadId;}if(Array.isArray(params.contactIds)){sendMessageParams.content=params.contactIds;}if(Array.isArray(params.usernames)){sendMessageParams.content=[];for(var i=0;i<params.usernames.length;i++){sendMessageParams.content.push({id:params.usernames[i],idType:_constants.inviteeVOidTypes.TO_BE_USER_USERNAME});}}if(Array.isArray(params.coreUserids)){sendMessageParams.content=[];for(var i=0;i<params.coreUserids.length;i++){sendMessageParams.content.push({id:params.coreUserids[i],idType:_constants.inviteeVOidTypes.TO_BE_USER_ID});}}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.removeParticipants=function(params,callback){/**
-             * + RemoveParticipantsRequest    {object}
-             *    - subjectId                 {long}
-             *    + content                   {list} List of PARTICIPANT IDs from Thread's Participants object
-             *       -id                      {long}
-             *    - uniqueId                  {string}
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.REMOVE_PARTICIPANT,typeCode:params.typeCodes};if(params){if(parseInt(params.threadId)>0){sendMessageParams.subjectId=params.threadId;}if(Array.isArray(params.participantIds)){sendMessageParams.content=params.participantIds;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.getCurrentUserRoles=getCurrentUserRoles;this.leaveThread=function(params,callback){/**
-             * + LeaveThreadRequest    {object}
-             *    - subjectId          {long}
-             *    - uniqueId           {string}
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.LEAVE_THREAD,typeCode:params.typeCode};if(params){if(parseInt(params.threadId)>0){sendMessageParams.subjectId=params.threadId;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.createThread=function(params,callback){/**
-             * + CreateThreadRequest      {object}
-             *    + invitees              {object}
-             *       -id                  {string}
-             *       -idType              {int} ** inviteeVOidTypes
-             *    - title                 {string}
-             *    - type                  {int} ** createThreadTypes
-             *    - image                 {string}
-             *    - description           {string}
-             *    - metadata              {string}
-             *    - uniqueName            {string}
-             *    + message               {object}
-             *       -text                {string}
-             *       -type                {int}
-             *       -repliedTo           {long}
-             *       -uniqueId            {string}
-             *       -metadata            {string}
-             *       -systemMetadata      {string}
-             *       -forwardedMessageIds {string}
-             *       -forwardedUniqueIds  {string}
-             */var content={};if(params){if(typeof params.title==='string'){content.title=params.title;}if(typeof params.type==='string'){var threadType=params.type;content.type=_constants.createThreadTypes[threadType];}if(typeof params.uniqueName==='string'){content.uniqueName=params.uniqueName;}if(Array.isArray(params.invitees)){var tempInvitee;content.invitees=[];for(var i=0;i<params.invitees.length;i++){var tempInvitee=formatDataToMakeInvitee(params.invitees[i]);if(tempInvitee){content.invitees.push(tempInvitee);}}}if(typeof params.image==='string'){content.image=params.image;}if(typeof params.description==='string'){content.description=params.description;}if(typeof params.metadata==='string'){content.metadata=params.metadata;}else if((0,_typeof2["default"])(params.metadata)==='object'){try{content.metadata=JSON.stringify(params.metadata);}catch(e){console.log(e);}}if((0,_typeof2["default"])(params.message)=='object'){content.message={};if(typeof params.message.text==='string'){content.message.text=params.message.text;}if(typeof params.message.uniqueId==='string'){content.message.uniqueId=params.message.uniqueId;}if(params.message.type>0){content.message.messageType=params.message.type;}if(params.message.repliedTo>0){content.message.repliedTo=params.message.repliedTo;}if(typeof params.message.metadata==='string'){content.message.metadata=params.message.metadata;}else if((0,_typeof2["default"])(params.message.metadata)==='object'){content.message.metadata=JSON.stringify(params.message.metadata);}if(typeof params.message.systemMetadata==='string'){content.message.systemMetadata=params.message.systemMetadata;}else if((0,_typeof2["default"])(params.message.systemMetadata)==='object'){content.message.systemMetadata=JSON.stringify(params.message.systemMetadata);}if(Array.isArray(params.message.forwardedMessageIds)){content.message.forwardedMessageIds=params.message.forwardedMessageIds;content.message.forwardedUniqueIds=[];for(var i=0;i<params.message.forwardedMessageIds.length;i++){content.message.forwardedUniqueIds.push(_utility["default"].generateUUID());}}}}var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_THREAD,typeCode:params.typeCode,content:content};return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.sendTextMessage=function(params,callbacks){var metadata={},uniqueId;if(typeof params.uniqueId!='undefined'){uniqueId=params.uniqueId;}else{uniqueId=_utility["default"].generateUUID();}putInChatSendQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.MESSAGE,typeCode:params.typeCode,messageType:params.messageType&&params.messageType.toUpperCase()!==undefined&&_constants.chatMessageTypes[params.messageType.toUpperCase()]>0?_constants.chatMessageTypes[params.messageType.toUpperCase()]:_constants.chatMessageTypes.TEXT,subjectId:params.threadId,repliedTo:params.repliedTo,content:params.textMessage,uniqueId:uniqueId,systemMetadata:JSON.stringify(params.systemMetadata),metadata:JSON.stringify(metadata),pushMsgType:3},callbacks:callbacks},function(){chatSendQueueHandler();});return{uniqueId:uniqueId,threadId:params.threadId,participant:userInfo,content:params.content};};this.sendBotMessage=function(params,callbacks){var metadata={};return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.BOT_MESSAGE,typeCode:params.typeCode,subjectId:params.messageId,content:params.content,uniqueId:params.uniqueId,pushMsgType:3},callbacks);};this.sendFileMessage=sendFileMessage;this.createThreadWithFileMessage=function(params,createThreadCallback,sendFileMessageCallback){/**
-             * + CreateThreadRequest      {object}
-             *    + invitees              {object}
-             *       -id                  {string}
-             *       -idType              {int} ** inviteeVOidTypes
-             *    - title                 {string}
-             *    - type                  {int} ** createThreadTypes
-             *    - image                 {string}
-             *    - description           {string}
-             *    - metadata              {string}
-             *    - uniqueName            {string}
-             *    + message               {object}
-             *       -text                {string}
-             *       -type                {int}
-             *       -repliedTo           {long}
-             *       -uniqueId            {string}
-             *       -metadata            {string}
-             *       -systemMetadata      {string}
-             *       -forwardedMessageIds {string}
-             *       -forwardedUniqueIds  {string}
-             */var content={};if(params){if(typeof params.title==='string'){content.title=params.title;}if(typeof params.type==='string'){var threadType=params.type;content.type=_constants.createThreadTypes[threadType];}if(Array.isArray(params.invitees)){var tempInvitee;content.invitees=[];for(var i=0;i<params.invitees.length;i++){var tempInvitee=formatDataToMakeInvitee(params.invitees[i]);if(tempInvitee){content.invitees.push(tempInvitee);}}}if(typeof params.description==='string'){content.description=params.description;}if(typeof params.content==='string'){content.content=params.content;}if(typeof params.metadata==='string'){content.metadata=params.metadata;}else if((0,_typeof2["default"])(params.metadata)==='object'){try{content.metadata=JSON.stringify(params.metadata);}catch(e){console.log(e);}}}var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_THREAD,typeCode:params.typeCode,content:content};return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}createThreadCallback&&createThreadCallback(returnData);sendFileMessage({threadId:returnData.result.thread.id,file:params.file,content:params.caption,messageType:params.messageType,userGroupHash:returnData.result.thread.userGroupHash},sendFileMessageCallback);}});};this.sendLocationMessage=function(params,callbacks){var data={},url=SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.STATIC_IMAGE,hasError=false,fileUniqueId=_utility["default"].generateUUID();if(params){if(typeof params.mapType==='string'){data.type=params.mapType;}else{data.type='standard-night';}if(parseInt(params.mapZoom)>0){data.zoom=params.mapZoom;}else{data.zoom=15;}if(parseInt(params.mapWidth)>0){data.width=params.mapWidth;}else{data.width=800;}if(parseInt(params.mapHeight)>0){data.height=params.mapHeight;}else{data.height=600;}if((0,_typeof2["default"])(params.mapCenter)==='object'){if(parseFloat(params.mapCenter.lat)>0&&parseFloat(params.mapCenter.lng)){data.center=params.mapCenter.lat+','+parseFloat(params.mapCenter.lng);}else{hasError=true;_events.chatEvents.fireEvent('error',{code:6700,message:_constants.CHAT_ERRORS[6700],error:undefined});}}else{hasError=true;_events.chatEvents.fireEvent('error',{code:6700,message:_constants.CHAT_ERRORS[6700],error:undefined});}data.key=mapApiKey;data.marker='red';}var keys=Object.keys(data);if(keys.length>0){url+='?';for(var i=0;i<keys.length;i++){var key=keys[i];url+=key+'='+data[key];if(i<keys.length-1){url+='&';}}}if(!hasError){getImageFormUrl(url,function(blobImage){sendFileMessage({threadId:params.threadId,fileUniqueId:fileUniqueId,file:new File([blobImage],"location.png",{type:"image/png",lastModified:new Date()}),content:params.caption,messageType:'POD_SPACE_PICTURE',userGroupHash:params.userGroupHash,metadata:{mapLink:"https://maps.neshan.org/@".concat(data.center,",").concat(data.zoom,"z")}});});}return{uniqueId:fileUniqueId,threadId:params.threadId,participant:userInfo,content:params.caption};};this.resendMessage=function(uniqueId,callbacks){// if (hasCache && typeof queueDb == 'object') {
+     * Get Thread Admins
+     *
+     * Gets admins list of given thread
+     *
+     * @access pubic
+     *
+     * @param {int}     threadId        Id of thread which you want to get admins of
+     *
+     * @return {object} Instant Response
+     */this.getThreadAdmins=function(params,callback){getThreadParticipants({threadId:params.threadId,admin:true,cache:false},callback);};this.addParticipants=function(params,callback){/**
+         * + AddParticipantsRequest   {object}
+         *    - subjectId             {long}
+         *    + content               {list} List of CONTACT IDs or inviteeVO Objects
+         *    - uniqueId              {string}
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.ADD_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(parseInt(params.threadId)>0){sendMessageParams.subjectId=params.threadId;}if(Array.isArray(params.contactIds)){sendMessageParams.content=params.contactIds;}if(Array.isArray(params.usernames)){sendMessageParams.content=[];for(var i=0;i<params.usernames.length;i++){sendMessageParams.content.push({id:params.usernames[i],idType:_constants.inviteeVOidTypes.TO_BE_USER_USERNAME});}}if(Array.isArray(params.coreUserids)){sendMessageParams.content=[];for(var i=0;i<params.coreUserids.length;i++){sendMessageParams.content.push({id:params.coreUserids[i],idType:_constants.inviteeVOidTypes.TO_BE_USER_ID});}}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.removeParticipants=function(params,callback){/**
+         * + RemoveParticipantsRequest    {object}
+         *    - subjectId                 {long}
+         *    + content                   {list} List of PARTICIPANT IDs from Thread's Participants object
+         *       -id                      {long}
+         *    - uniqueId                  {string}
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.REMOVE_PARTICIPANT,typeCode:params.typeCodes};if(params){if(parseInt(params.threadId)>0){sendMessageParams.subjectId=params.threadId;}if(Array.isArray(params.participantIds)){sendMessageParams.content=params.participantIds;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.getCurrentUserRoles=getCurrentUserRoles;this.leaveThread=function(params,callback){/**
+         * + LeaveThreadRequest    {object}
+         *    - subjectId          {long}
+         *    - uniqueId           {string}
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.LEAVE_THREAD,typeCode:params.typeCode};if(params){if(parseInt(params.threadId)>0){sendMessageParams.subjectId=params.threadId;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.createThread=function(params,callback){/**
+         * + CreateThreadRequest      {object}
+         *    + invitees              {object}
+         *       -id                  {string}
+         *       -idType              {int} ** inviteeVOidTypes
+         *    - title                 {string}
+         *    - type                  {int} ** createThreadTypes
+         *    - image                 {string}
+         *    - description           {string}
+         *    - metadata              {string}
+         *    - uniqueName            {string}
+         *    + message               {object}
+         *       -text                {string}
+         *       -type                {int}
+         *       -repliedTo           {long}
+         *       -uniqueId            {string}
+         *       -metadata            {string}
+         *       -systemMetadata      {string}
+         *       -forwardedMessageIds {string}
+         *       -forwardedUniqueIds  {string}
+         */var content={};if(params){if(typeof params.title==='string'){content.title=params.title;}if(typeof params.type==='string'){var threadType=params.type;content.type=_constants.createThreadTypes[threadType];}if(typeof params.uniqueName==='string'){content.uniqueName=params.uniqueName;}if(Array.isArray(params.invitees)){var tempInvitee;content.invitees=[];for(var i=0;i<params.invitees.length;i++){var tempInvitee=formatDataToMakeInvitee(params.invitees[i]);if(tempInvitee){content.invitees.push(tempInvitee);}}}if(typeof params.image==='string'){content.image=params.image;}if(typeof params.description==='string'){content.description=params.description;}if(typeof params.metadata==='string'){content.metadata=params.metadata;}else if((0,_typeof2["default"])(params.metadata)==='object'){try{content.metadata=JSON.stringify(params.metadata);}catch(e){console.log(e);}}if((0,_typeof2["default"])(params.message)=='object'){content.message={};if(typeof params.message.text==='string'){content.message.text=params.message.text;}if(typeof params.message.uniqueId==='string'){content.message.uniqueId=params.message.uniqueId;}if(params.message.type>0){content.message.messageType=params.message.type;}if(params.message.repliedTo>0){content.message.repliedTo=params.message.repliedTo;}if(typeof params.message.metadata==='string'){content.message.metadata=params.message.metadata;}else if((0,_typeof2["default"])(params.message.metadata)==='object'){content.message.metadata=JSON.stringify(params.message.metadata);}if(typeof params.message.systemMetadata==='string'){content.message.systemMetadata=params.message.systemMetadata;}else if((0,_typeof2["default"])(params.message.systemMetadata)==='object'){content.message.systemMetadata=JSON.stringify(params.message.systemMetadata);}if(Array.isArray(params.message.forwardedMessageIds)){content.message.forwardedMessageIds=params.message.forwardedMessageIds;content.message.forwardedUniqueIds=[];for(var i=0;i<params.message.forwardedMessageIds.length;i++){content.message.forwardedUniqueIds.push(_utility["default"].generateUUID());}}}}var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_THREAD,typeCode:params.typeCode,content:content};return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}callback&&callback(returnData);}});};this.sendTextMessage=function(params,callbacks){var metadata={},uniqueId;if(typeof params.uniqueId!='undefined'){uniqueId=params.uniqueId;}else{uniqueId=_utility["default"].generateUUID();}putInChatSendQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.MESSAGE,typeCode:params.typeCode,messageType:params.messageType&&params.messageType.toUpperCase()!==undefined&&_constants.chatMessageTypes[params.messageType.toUpperCase()]>0?_constants.chatMessageTypes[params.messageType.toUpperCase()]:_constants.chatMessageTypes.TEXT,subjectId:params.threadId,repliedTo:params.repliedTo,content:params.textMessage,uniqueId:uniqueId,systemMetadata:JSON.stringify(params.systemMetadata),metadata:JSON.stringify(metadata),pushMsgType:3},callbacks:callbacks},function(){chatSendQueueHandler();});return{uniqueId:uniqueId,threadId:params.threadId,participant:userInfo,content:params.content};};this.sendBotMessage=function(params,callbacks){var metadata={};return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.BOT_MESSAGE,typeCode:params.typeCode,subjectId:params.messageId,content:params.content,uniqueId:params.uniqueId,pushMsgType:3},callbacks);};this.sendFileMessage=sendFileMessage;this.createThreadWithFileMessage=function(params,createThreadCallback,sendFileMessageCallback){/**
+         * + CreateThreadRequest      {object}
+         *    + invitees              {object}
+         *       -id                  {string}
+         *       -idType              {int} ** inviteeVOidTypes
+         *    - title                 {string}
+         *    - type                  {int} ** createThreadTypes
+         *    - image                 {string}
+         *    - description           {string}
+         *    - metadata              {string}
+         *    - uniqueName            {string}
+         *    + message               {object}
+         *       -text                {string}
+         *       -type                {int}
+         *       -repliedTo           {long}
+         *       -uniqueId            {string}
+         *       -metadata            {string}
+         *       -systemMetadata      {string}
+         *       -forwardedMessageIds {string}
+         *       -forwardedUniqueIds  {string}
+         */var content={};if(params){if(typeof params.title==='string'){content.title=params.title;}if(typeof params.type==='string'){var threadType=params.type;content.type=_constants.createThreadTypes[threadType];}if(Array.isArray(params.invitees)){var tempInvitee;content.invitees=[];for(var i=0;i<params.invitees.length;i++){var tempInvitee=formatDataToMakeInvitee(params.invitees[i]);if(tempInvitee){content.invitees.push(tempInvitee);}}}if(typeof params.description==='string'){content.description=params.description;}if(typeof params.content==='string'){content.content=params.content;}if(typeof params.metadata==='string'){content.metadata=params.metadata;}else if((0,_typeof2["default"])(params.metadata)==='object'){try{content.metadata=JSON.stringify(params.metadata);}catch(e){console.log(e);}}}var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_THREAD,typeCode:params.typeCode,content:content};return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={thread:createThread(messageContent)};returnData.result=resultData;}createThreadCallback&&createThreadCallback(returnData);sendFileMessage({threadId:returnData.result.thread.id,file:params.file,content:params.caption,messageType:params.messageType,userGroupHash:returnData.result.thread.userGroupHash},sendFileMessageCallback);}});};this.sendLocationMessage=function(params,callbacks){var data={},url=SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.STATIC_IMAGE,hasError=false,fileUniqueId=_utility["default"].generateUUID();if(params){if(typeof params.mapType==='string'){data.type=params.mapType;}else{data.type='standard-night';}if(parseInt(params.mapZoom)>0){data.zoom=params.mapZoom;}else{data.zoom=15;}if(parseInt(params.mapWidth)>0){data.width=params.mapWidth;}else{data.width=800;}if(parseInt(params.mapHeight)>0){data.height=params.mapHeight;}else{data.height=600;}if((0,_typeof2["default"])(params.mapCenter)==='object'){if(parseFloat(params.mapCenter.lat)>0&&parseFloat(params.mapCenter.lng)){data.center=params.mapCenter.lat+','+parseFloat(params.mapCenter.lng);}else{hasError=true;_events.chatEvents.fireEvent('error',{code:6700,message:_constants.CHAT_ERRORS[6700],error:undefined});}}else{hasError=true;_events.chatEvents.fireEvent('error',{code:6700,message:_constants.CHAT_ERRORS[6700],error:undefined});}data.key=mapApiKey;data.marker='red';}var keys=Object.keys(data);if(keys.length>0){url+='?';for(var i=0;i<keys.length;i++){var key=keys[i];url+=key+'='+data[key];if(i<keys.length-1){url+='&';}}}if(!hasError){getImageFormUrl(url,function(blobImage){sendFileMessage({threadId:params.threadId,fileUniqueId:fileUniqueId,file:new File([blobImage],"location.png",{type:"image/png",lastModified:new Date()}),content:params.caption,messageType:'POD_SPACE_PICTURE',userGroupHash:params.userGroupHash,metadata:{mapLink:"https://maps.neshan.org/@".concat(data.center,",").concat(data.zoom,"z")}});});}return{uniqueId:fileUniqueId,threadId:params.threadId,participant:userInfo,content:params.caption};};this.resendMessage=function(uniqueId,callbacks){// if (hasCache && typeof queueDb == 'object') {
 //     queueDb.waitQ.where('uniqueId')
 //         .equals(uniqueId)
 //         .and(function (item) {
@@ -3755,11 +4018,11 @@ this.on=_events.chatEvents.on;this.off=_events.chatEvents.off;this.getPeerId=fun
 // } else {
 for(var i=0;i<chatWaitQueue.length;i++){if(chatWaitQueue[i].message.uniqueId==uniqueId){putInChatSendQueue({message:chatWaitQueue[i].message,callbacks:callbacks},function(){chatSendQueueHandler();});break;}}// }
 };this.cancelMessage=function(uniqueId,callback){deleteFromChatSentQueue({message:{uniqueId:uniqueId}},function(){deleteFromChatWaitQueue({uniqueId:uniqueId},callback);});};this.clearHistory=function(params,callback){/**
-             * + Clear History Request Object    {object}
-             *    - subjectId                    {long}
-             */var clearHistoryParams={chatMessageVOType:_constants.chatMessageVOTypes.CLEAR_HISTORY,typeCode:params.typeCode};if(params){if(parseInt(params.threadId)>0){clearHistoryParams.subjectId=params.threadId;}}return sendMessage(clearHistoryParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var resultData={thread:result.result};returnData.result=resultData;/**
-                         * Delete all messages of this thread from cache
-                         */ // if (canUseCache) {
+         * + Clear History Request Object    {object}
+         *    - subjectId                    {long}
+         */var clearHistoryParams={chatMessageVOType:_constants.chatMessageVOTypes.CLEAR_HISTORY,typeCode:params.typeCode};if(params){if(parseInt(params.threadId)>0){clearHistoryParams.subjectId=params.threadId;}}return sendMessage(clearHistoryParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var resultData={thread:result.result};returnData.result=resultData;/**
+                     * Delete all messages of this thread from cache
+                     */ // if (canUseCache) {
 //     if (db) {
 //         db.messages.where('threadId')
 //             .equals(parseInt(result.result))
@@ -3798,8 +4061,8 @@ str+="\u0645\u062A\u0646 \u067E\u06CC\u0627\u0645"+',';//matne payam
 str+='\r\n';var line='',radif=1;for(var i=0;i<resultArray.length;i++){line='';if(resultArray[i].messageType!==1){continue;}var sender='';if(resultArray[i].participant.contactName){sender=resultArray[i].participant.contactName+',';}else{if(resultArray[i].participant.firstName){sender=resultArray[i].participant.firstName+' ';}if(resultArray[i].participant.lastName){sender+=resultArray[i].participant.lastName;}sender+=',';}line+=new Date(resultArray[i].time).toLocaleDateString('fa-IR')+',';line+=new Date(resultArray[i].time).toLocaleTimeString('fa-IR')+',';line+=sender;line+=resultArray[i].participant.username+',';line+='"'+resultArray[i].message.replace(/,/g,"،").replace(/"/g,'”')+'",';// line += result[i].message.replaceAll(",", ".").replace(/(\r\n|\n|\r)/gm, " ") + ',';
 str+=line+'\r\n';radif++;}_fs["default"].writeFile(params.exportPath,universalBOM+str,{encoding:'utf8'},function(err){if(err){_events.chatEvents.fireEvent('ERROR',{code:null,message:err});callback&&callback({hasError:true,code:null,message:err});}callback&&callback({hasError:false,result:resultArray,exportPath:params.exportPath});_events.chatEvents.fireEvent('threadEvents',{type:'EXPORT_CHAT',subType:'EXPORTED_TO_DIRECTORY',threadId:sendData.subjectId,exportPath:params.exportPath,result:resultArray});});callback=undefined;});};this.getImage=getImage;this.getFile=getFile;this.getFileFromPodspace=getFileFromPodspaceNew;//getFileFromPodspace;
 this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;this.uploadImage=uploadImage;this.cancelFileUpload=function(params,callback){if(params){if(typeof params.uniqueId=='string'){var uniqueId=params.uniqueId;httpRequestObject[eval('uniqueId')]&&httpRequestObject[eval('uniqueId')].abort();httpRequestObject[eval('uniqueId')]&&delete httpRequestObject[eval('uniqueId')];deleteFromChatUploadQueue({message:{uniqueId:uniqueId}},callback);}}return;};this.cancelFileDownload=cancelFileDownload;this.editMessage=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.EDIT_MESSAGE,typeCode:params.typeCode,messageType:params.messageType,subjectId:params.messageId,repliedTo:params.repliedTo,content:params.content,uniqueId:params.uniqueId,metadata:params.metadata,systemMetadata:params.systemMetadata,pushMsgType:3},{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={editedMessage:formatDataToMakeMessage(undefined,messageContent)};returnData.result=resultData;/**
-                         * Update Message on cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+                     * Update Message on cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         try {
 //             var tempData = {},
@@ -3839,8 +4102,8 @@ this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;thi
 //     }
 // }
 }callback&&callback(returnData);}});};this.deleteMessage=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.DELETE_MESSAGE,typeCode:params.typeCode,subjectId:params.messageId,uniqueId:params.uniqueId,content:JSON.stringify({'deleteForAll':typeof params.deleteForAll==='boolean'?params.deleteForAll:false}),pushMsgType:3},{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={deletedMessage:{id:result.result.id,pinned:result.result.pinned,mentioned:result.result.mentioned,messageType:result.result.messageType,edited:result.result.edited,editable:result.result.editable,deletable:result.result.deletable}};returnData.result=resultData;/**
-                         * Remove Message from cache
-                         */ // if (canUseCache) {
+                     * Remove Message from cache
+                     */ // if (canUseCache) {
 //     if (db) {
 //         db.messages.where('id')
 //             .equals(parseInt(result.result))
@@ -3861,8 +4124,8 @@ this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;thi
 //     }
 // }
 }callback&&callback(returnData);}});};this.deleteMultipleMessages=function(params,callback){var messageIdsList=params.messageIds,uniqueIdsList=[];for(var i in messageIdsList){var messageId=messageIdsList[i];var uniqueId=_utility["default"].generateUUID();uniqueIdsList.push(uniqueId);messagesCallbacks[uniqueId]=function(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,resultData={deletedMessage:{id:result.result.id,pinned:result.result.pinned,mentioned:result.result.mentioned,messageType:result.result.messageType,edited:result.result.edited,editable:result.result.editable,deletable:result.result.deletable}};returnData.result=resultData;/**
-                         * Remove Message from cache
-                         */ // if (canUseCache) {
+                     * Remove Message from cache
+                     */ // if (canUseCache) {
 //     if (db) {
 //         db.messages.where('id')
 //             .equals(parseInt(result.result))
@@ -3883,8 +4146,8 @@ this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;thi
 //     }
 // }
 }callback&&callback(returnData);};}return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.DELETE_MESSAGE,typeCode:params.typeCode,content:{uniqueIds:uniqueIdsList,ids:messageIdsList,deleteForAll:typeof params.deleteForAll==='boolean'?params.deleteForAll:false},pushMsgType:3});};this.replyTextMessage=function(params,callbacks){var uniqueId;if(typeof params.uniqueId!='undefined'){uniqueId=params.uniqueId;}else{uniqueId=_utility["default"].generateUUID();}putInChatSendQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.MESSAGE,typeCode:params.typeCode,messageType:1,subjectId:params.threadId,repliedTo:params.repliedTo,content:params.textMessage,uniqueId:uniqueId,systemMetadata:JSON.stringify(params.systemMetadata),metadata:JSON.stringify(params.metadata),pushMsgType:3},callbacks:callbacks},function(){chatSendQueueHandler();});return{uniqueId:uniqueId,threadId:params.threadId,participant:userInfo,content:params.content};};this.replyFileMessage=function(params,callbacks){var metadata={file:{}},fileUploadParams={},fileUniqueId=_utility["default"].generateUUID();if(!params.userGroupHash||params.userGroupHash.length==0||typeof params.userGroupHash!='string'){_events.chatEvents.fireEvent('error',{code:6304,message:_constants.CHAT_ERRORS[6304]});return;}else{fileUploadParams.userGroupHash=params.userGroupHash;}return chatUploadHandler({threadId:params.threadId,file:params.file,fileUniqueId:fileUniqueId},function(uploadHandlerResult,uploadHandlerMetadata,fileType,fileExtension){fileUploadParams=Object.assign(fileUploadParams,uploadHandlerResult);putInChatUploadQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.MESSAGE,typeCode:params.typeCode,messageType:params.messageType&&params.messageType.toUpperCase()!==undefined&&_constants.chatMessageTypes[params.messageType.toUpperCase()]>0?_constants.chatMessageTypes[params.messageType.toUpperCase()]:1,subjectId:params.threadId,repliedTo:params.repliedTo,content:params.content,metadata:JSON.stringify(uploadHandlerMetadata),systemMetadata:JSON.stringify(params.systemMetadata),uniqueId:fileUniqueId,pushMsgType:3},callbacks:callbacks},function(){if(_constants.imageMimeTypes.indexOf(fileType)>=0||_constants.imageExtentions.indexOf(fileExtension)>=0){uploadImageToPodspaceUserGroup(fileUploadParams,function(result){if(!result.hasError){metadata['name']=result.result.name;metadata['fileHash']=result.result.hashCode;metadata['file']['name']=result.result.name;metadata['file']['fileHash']=result.result.hashCode;metadata['file']['hashCode']=result.result.hashCode;metadata['file']['actualHeight']=result.result.actualHeight;metadata['file']['actualWidth']=result.result.actualWidth;metadata['file']['parentHash']=result.result.parentHash;metadata['file']['size']=result.result.size;metadata['file']['link']="https://podspace.pod.ir/nzh/drive/downloadImage?hash=".concat(result.result.hashCode);transferFromUploadQToSendQ(parseInt(params.threadId),fileUniqueId,JSON.stringify(metadata),function(){chatSendQueueHandler();});}else{deleteFromChatUploadQueue({message:{uniqueId:fileUniqueId}});}});}else{uploadFileToPodspace(fileUploadParams,function(result){if(!result.hasError){metadata['fileHash']=result.result.hashCode;metadata['name']=result.result.name;metadata['file']['name']=result.result.name;metadata['file']['fileHash']=result.result.hashCode;metadata['file']['hashCode']=result.result.hashCode;metadata['file']['parentHash']=result.result.parentHash;metadata['file']['size']=result.result.size;transferFromUploadQToSendQ(parseInt(params.threadId),fileUniqueId,JSON.stringify(metadata),function(){chatSendQueueHandler();});}else{deleteFromChatUploadQueue({message:{uniqueId:fileUniqueId}});}});}});});};this.forwardMessage=function(params,callbacks){var threadId=params.threadId,messageIdsList=params.messageIds,uniqueIdsList=[];for(var i in messageIdsList){if(!threadCallbacks[threadId]){threadCallbacks[threadId]={};}var uniqueId=_utility["default"].generateUUID();uniqueIdsList.push(uniqueId);threadCallbacks[threadId][uniqueId]={};sendMessageCallbacks[uniqueId]={};if(callbacks.onSent){sendMessageCallbacks[uniqueId].onSent=callbacks.onSent;threadCallbacks[threadId][uniqueId].onSent=false;threadCallbacks[threadId][uniqueId].uniqueId=uniqueId;}if(callbacks.onSeen){sendMessageCallbacks[uniqueId].onSeen=callbacks.onSeen;threadCallbacks[threadId][uniqueId].onSeen=false;}if(callbacks.onDeliver){sendMessageCallbacks[uniqueId].onDeliver=callbacks.onDeliver;threadCallbacks[threadId][uniqueId].onDeliver=false;}}putInChatSendQueue({message:{chatMessageVOType:_constants.chatMessageVOTypes.FORWARD_MESSAGE,typeCode:params.typeCode,subjectId:params.threadId,repliedTo:params.repliedTo,content:messageIdsList,uniqueId:uniqueIdsList,metadata:JSON.stringify(params.metadata),pushMsgType:3},callbacks:callbacks},function(){chatSendQueueHandler();});};this.deliver=deliver(params);this.seen=function(params){if(userInfo&&params.ownerId!==userInfo.id){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.SEEN,typeCode:params.typeCode,content:params.messageId,pushMsgType:3});}};this.startTyping=function(params){var uniqueId=_utility["default"].generateUUID();if(parseInt(params.threadId)>0){var threadId=params.threadId;}isTypingInterval&&clearInterval(isTypingInterval);isTypingInterval=setInterval(function(){sendSystemMessage({content:JSON.stringify({type:_constants.systemMessageTypes.IS_TYPING}),threadId:threadId,uniqueId:uniqueId});},systemMessageIntervalPitch);};this.stopTyping=function(){isTypingInterval&&clearInterval(isTypingInterval);};this.getMessageDeliveredList=function(params,callback){var deliveryListData={chatMessageVOType:_constants.chatMessageVOTypes.GET_MESSAGE_DELEVERY_PARTICIPANTS,typeCode:params.typeCode,content:{},pushMsgType:3,token:token,timeout:params.timeout};if(params){if(parseInt(params.messageId)>0){deliveryListData.content.messageId=params.messageId;}}return sendMessage(deliveryListData,{onResult:function onResult(result){if((0,_typeof2["default"])(result.result)=='object'){for(var i=0;i<result.result.length;i++){result.result[i]=formatDataToMakeUser(result.result[i]);}}callback&&callback(result);}});};this.getMessageSeenList=function(params,callback){var seenListData={chatMessageVOType:_constants.chatMessageVOTypes.GET_MESSAGE_SEEN_PARTICIPANTS,typeCode:params.typeCode,content:{},pushMsgType:3,token:token,timeout:params.timeout};if(params){if(parseInt(params.messageId)>0){seenListData.content.messageId=params.messageId;}}return sendMessage(seenListData,{onResult:function onResult(result){if((0,_typeof2["default"])(result.result)=='object'){for(var i=0;i<result.result.length;i++){result.result[i]=formatDataToMakeUser(result.result[i]);}}callback&&callback(result);}});};this.updateThreadInfo=updateThreadInfo;this.updateChatProfile=updateChatProfile;this.muteThread=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.MUTE_THREAD,typeCode:params.typeCode,subjectId:params.threadId,content:{},pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});};this.unMuteThread=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UNMUTE_THREAD,typeCode:params.typeCode,subjectId:params.threadId,content:{},pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});};this.joinPublicThread=function(params,callback){var joinThreadData={chatMessageVOType:_constants.chatMessageVOTypes.JOIN_THREAD,typeCode:params.typeCode,content:'',pushMsgType:3,token:token};if(params){if(typeof params.uniqueName==='string'&&params.uniqueName.length>0){joinThreadData.content=params.uniqueName;}}return sendMessage(joinThreadData,{onResult:function onResult(result){callback&&callback(result);}});};this.isPublicThreadNameAvailable=function(params,callback){var isNameAvailableData={chatMessageVOType:_constants.chatMessageVOTypes.IS_NAME_AVAILABLE,typeCode:params.typeCode,content:'',pushMsgType:3,token:token};if(params){if(typeof params.uniqueName==='string'&&params.uniqueName.length>0){isNameAvailableData.content=params.uniqueName;}}return sendMessage(isNameAvailableData,{onResult:function onResult(result){callback&&callback(result);}});};this.pinThread=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.PIN_THREAD,typeCode:params.typeCode,subjectId:params.threadId,content:{},pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});};this.unPinThread=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.UNPIN_THREAD,typeCode:params.typeCode,subjectId:params.threadId,content:{},pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});};this.pinMessage=function(params,callback){return sendMessage({chatMessageVOType:_constants.chatMessageVOTypes.PIN_MESSAGE,typeCode:params.typeCode,subjectId:params.messageId,content:JSON.stringify({'notifyAll':typeof params.notifyAll==='boolean'?params.notifyAll:false}),pushMsgType:3,token:token},{onResult:function onResult(result){callback&&callback(result);}});};this.unPinMessage=unPinMessage;this.spamPrivateThread=function(params,callback){var spamData={chatMessageVOType:_constants.chatMessageVOTypes.SPAM_PV_THREAD,typeCode:params.typeCode,pushMsgType:3,token:token,timeout:params.timeout};if(params){if(parseInt(params.threadId)>0){spamData.subjectId=params.threadId;}}return sendMessage(spamData,{onResult:function onResult(result){callback&&callback(result);}});};this.block=function(params,callback){var blockData={chatMessageVOType:_constants.chatMessageVOTypes.BLOCK,typeCode:params.typeCode,content:{},pushMsgType:3,token:token,timeout:params.timeout};if(params){if(parseInt(params.contactId)>0){blockData.content.contactId=params.contactId;}if(parseInt(params.threadId)>0){blockData.content.threadId=params.threadId;}if(parseInt(params.userId)>0){blockData.content.userId=params.userId;}}return sendMessage(blockData,{onResult:function onResult(result){if((0,_typeof2["default"])(result.result)=='object'){result.result=formatDataToMakeBlockedUser(result.result);}callback&&callback(result);}});};this.unblock=function(params,callback){var unblockData={chatMessageVOType:_constants.chatMessageVOTypes.UNBLOCK,typeCode:params.typeCode,pushMsgType:3,token:token,content:{},timeout:params.timeout};if(params){if(parseInt(params.blockId)>0){unblockData.subjectId=params.blockId;}if(parseInt(params.contactId)>0){unblockData.content.contactId=params.contactId;}if(parseInt(params.threadId)>0){unblockData.content.threadId=params.threadId;}if(parseInt(params.userId)>0){unblockData.content.userId=params.userId;}}return sendMessage(unblockData,{onResult:function onResult(result){if((0,_typeof2["default"])(result.result)=='object'){result.result=formatDataToMakeBlockedUser(result.result);}callback&&callback(result);}});};this.getBlockedList=function(params,callback){var count=50,offset=0,content={};if(params){if(parseInt(params.count)>0){count=params.count;}if(parseInt(params.offset)>0){offset=params.offset;}}content.count=count;content.offset=offset;var getBlockedData={chatMessageVOType:_constants.chatMessageVOTypes.GET_BLOCKED,typeCode:params.typeCode,content:content,pushMsgType:3,token:token,timeout:params.timeout};return sendMessage(getBlockedData,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={blockedUsers:[],contentCount:result.contentCount,hasNext:offset+count<result.contentCount&&messageLength>0,nextOffset:offset+messageLength},blockedUser;for(var i=0;i<messageLength;i++){blockedUser=formatDataToMakeBlockedUser(messageContent[i]);if(blockedUser){resultData.blockedUsers.push(blockedUser);}}returnData.result=resultData;}callback&&callback(returnData);}});};this.getUserNotSeenDuration=function(params,callback){var content={};if(params){if(Array.isArray(params.userIds)){content.userIds=params.userIds;}}var getNotSeenDurationData={chatMessageVOType:_constants.chatMessageVOTypes.GET_NOT_SEEN_DURATION,typeCode:params.typeCode,content:content,pushMsgType:3,token:token,timeout:params.timeout};return sendMessage(getNotSeenDurationData,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){returnData.result=result.result;}callback&&callback(returnData);}});};this.addContacts=function(params,callback){var data={};if(params){if(typeof params.firstName==='string'){data.firstName=params.firstName;}else{data.firstName='';}if(typeof params.lastName==='string'){data.lastName=params.lastName;}else{data.lastName='';}if(typeof params.typeCode==='string'){data.typeCode=params.typeCode;}else if(generalTypeCode){data.typeCode=generalTypeCode;}if(typeof params.cellphoneNumber==='string'){data.cellphoneNumber=params.cellphoneNumber;}else{data.cellphoneNumber='';}if(typeof params.email==='string'){data.email=params.email;}else{data.email='';}if(typeof params.username==='string'){data.username=params.username;}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.PLATFORM_ADDRESS+_constants.SERVICES_PATH.ADD_CONTACTS,method:'POST',data:data,headers:{'_token_':token,'_token_issuer_':1}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:responseData.hasError,cache:false,errorMessage:responseData.message,errorCode:responseData.errorCode};if(!responseData.hasError){var messageContent=responseData.result,messageLength=responseData.result.length,resultData={contacts:[],contentCount:messageLength},contactData;for(var i=0;i<messageLength;i++){contactData=formatDataToMakeContact(messageContent[i]);if(contactData){resultData.contacts.push(contactData);}}returnData.result=resultData;/**
-                         * Add Contacts into cache database #cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+                     * Add Contacts into cache database #cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var cacheData = [];
 //
@@ -3931,8 +4194,8 @@ this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;thi
 //     }
 // }
 }callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.updateContacts=function(params,callback){var data={};if(params){if(parseInt(params.id)>0){data.id=parseInt(params.id);}else{_events.chatEvents.fireEvent('error',{code:999,message:'ID is required for Updating Contact!',error:undefined});}if(typeof params.firstName==='string'){data.firstName=params.firstName;}else{_events.chatEvents.fireEvent('error',{code:999,message:'firstName is required for Updating Contact!'});}if(typeof params.lastName==='string'){data.lastName=params.lastName;}else{_events.chatEvents.fireEvent('error',{code:999,message:'lastName is required for Updating Contact!'});}if(typeof params.cellphoneNumber==='string'){data.cellphoneNumber=params.cellphoneNumber;}else{_events.chatEvents.fireEvent('error',{code:999,message:'cellphoneNumber is required for Updating Contact!'});}if(typeof params.email==='string'){data.email=params.email;}else{_events.chatEvents.fireEvent('error',{code:999,message:'email is required for Updating Contact!'});}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.PLATFORM_ADDRESS+_constants.SERVICES_PATH.UPDATE_CONTACTS,method:'GET',data:data,headers:{'_token_':token,'_token_issuer_':1}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:responseData.hasError,cache:false,errorMessage:responseData.message,errorCode:responseData.errorCode};if(!responseData.hasError){var messageContent=responseData.result,messageLength=responseData.result.length,resultData={contacts:[],contentCount:messageLength},contactData;for(var i=0;i<messageLength;i++){contactData=formatDataToMakeContact(messageContent[i]);if(contactData){resultData.contacts.push(contactData);}}returnData.result=resultData;/**
-                         * Add Contacts into cache database #cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+                     * Add Contacts into cache database #cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var cacheData = [];
 //
@@ -3979,8 +4242,8 @@ this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;thi
 //     }
 // }
 }callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.removeContacts=function(params,callback){var data={};if(params){if(parseInt(params.id)>0){data.id=parseInt(params.id);}else{_events.chatEvents.fireEvent('error',{code:999,message:'ID is required for Deleting Contact!',error:undefined});}}var requestParams={url:SERVICE_ADDRESSES.PLATFORM_ADDRESS+_constants.SERVICES_PATH.REMOVE_CONTACTS,method:'POST',data:data,headers:{'_token_':token,'_token_issuer_':1}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:responseData.hasError,cache:false,errorMessage:responseData.message,errorCode:responseData.errorCode};if(!responseData.hasError){returnData.result=responseData.result;}/**
-                     * Remove the contact from cache
-                     */ // if (canUseCache) {
+                 * Remove the contact from cache
+                 */ // if (canUseCache) {
 //     if (db) {
 //         db.contacts.where('id')
 //             .equals(parseInt(params.id))
@@ -4001,8 +4264,8 @@ this.getImageFromPodspace=getImageFromPodspaceNew;this.uploadFile=uploadFile;thi
 //     }
 // }
 callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.searchContacts=function(params,callback){var data={size:50,offset:0},whereClause={},returnCache=false;if(params){if(typeof params.firstName==='string'){data.firstName=whereClause.firstName=params.firstName;}if(typeof params.lastName==='string'){data.lastName=whereClause.lastName=params.lastName;}if(parseInt(params.cellphoneNumber)>0){data.cellphoneNumber=whereClause.cellphoneNumber=params.cellphoneNumber;}if(typeof params.email==='string'){data.email=whereClause.email=params.email;}if(typeof params.query==='string'){data.q=whereClause.q=params.query;}if(typeof params.uniqueId==='string'){data.uniqueId=whereClause.uniqueId=params.uniqueId;}if(parseInt(params.id)>0){data.id=whereClause.id=params.id;}if(parseInt(params.typeCode)>0){data.typeCode=whereClause.typeCode=params.typeCode;}if(parseInt(params.size)>0){data.size=params.size;}if(parseInt(params.offset)>0){data.offset=params.offset;}var functionLevelCache=typeof params.cache=='boolean'?params.cache:true;}var requestParams={url:SERVICE_ADDRESSES.PLATFORM_ADDRESS+_constants.SERVICES_PATH.SEARCH_CONTACTS,method:'POST',data:data,headers:{'_token_':token,'_token_issuer_':1}};/**
-             * Search contacts in cache #cache
-             */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
+         * Search contacts in cache #cache
+         */ // if (functionLevelCache && canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //
 //         /**
@@ -4155,10 +4418,10 @@ callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:
 //     }
 // }
 /**
-             * Get Search Contacts Result From Server
-             */httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:responseData.hasError,cache:false,errorMessage:responseData.message,errorCode:responseData.errorCode};if(!responseData.hasError){var messageContent=responseData.result,messageLength=responseData.result.length,resultData={contacts:[],contentCount:messageLength},contactData;for(var i=0;i<messageLength;i++){contactData=formatDataToMakeContact(messageContent[i]);if(contactData){resultData.contacts.push(contactData);}}returnData.result=resultData;/**
-                         * Add Contacts into cache database #cache
-                         */ // if (canUseCache && cacheSecret.length > 0) {
+         * Get Search Contacts Result From Server
+         */httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:responseData.hasError,cache:false,errorMessage:responseData.message,errorCode:responseData.errorCode};if(!responseData.hasError){var messageContent=responseData.result,messageLength=responseData.result.length,resultData={contacts:[],contentCount:messageLength},contactData;for(var i=0;i<messageLength;i++){contactData=formatDataToMakeContact(messageContent[i]);if(contactData){resultData.contacts.push(contactData);}}returnData.result=resultData;/**
+                     * Add Contacts into cache database #cache
+                     */ // if (canUseCache && cacheSecret.length > 0) {
 //     if (db) {
 //         var cacheData = [];
 //
@@ -4206,9 +4469,9 @@ callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:
 //     }
 // }
 }callback&&callback(returnData);/**
-                     * Delete callback so if server pushes response before
-                     * cache, cache won't send data again
-                     */callback=undefined;if(!returnData.hasError&&returnCache){_events.chatEvents.fireEvent('contactEvents',{type:'CONTACTS_SEARCH_RESULT_CHANGE',result:returnData.result});}}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.createBot=function(params,callback){var createBotData={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_BOT,typeCode:params.typeCode,content:'',pushMsgType:3,token:token};if(params){if(typeof params.botName==='string'&&params.botName.length>0){if(params.botName.substr(-3)==="BOT"){createBotData.content=params.botName;}else{_events.chatEvents.fireEvent('error',{code:999,message:'Bot name should end in "BOT", ex. "testBOT"'});return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'Insert a bot name to create one!'});return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'Insert a bot name to create one!'});return;}return sendMessage(createBotData,{onResult:function onResult(result){callback&&callback(result);}});};this.defineBotCommand=function(params,callback){var defineBotCommandData={chatMessageVOType:_constants.chatMessageVOTypes.DEFINE_BOT_COMMAND,typeCode:params.typeCode,content:{},pushMsgType:3,token:token},commandList=[];if(params){if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}if(!Array.isArray(params.commandList)||!params.commandList.length){_events.chatEvents.fireEvent('error',{code:999,message:'Bot Commands List has to be an array of strings.'});return;}else{for(var i=0;i<params.commandList.length;i++){commandList.push('/'+params.commandList[i].trim());}}defineBotCommandData.content={botName:params.botName.trim(),commandList:commandList};}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to create bot commands'});return;}return sendMessage(defineBotCommandData,{onResult:function onResult(result){callback&&callback(result);}});};this.startBot=function(params,callback){var startBotData={chatMessageVOType:_constants.chatMessageVOTypes.START_BOT,typeCode:params.typeCode,content:{},pushMsgType:3,token:token};if(params){if(typeof+params.threadId!=='number'||params.threadId<0){_events.chatEvents.fireEvent('error',{code:999,message:'Enter a valid Thread Id for Bot to start in!'});return;}if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}startBotData.subjectId=+params.threadId;startBotData.content=JSON.stringify({botName:params.botName.trim()});}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to create bot commands'});return;}return sendMessage(startBotData,{onResult:function onResult(result){callback&&callback(result);}});};this.stopBot=function(params,callback){var stopBotData={chatMessageVOType:_constants.chatMessageVOTypes.STOP_BOT,typeCode:params.typeCode,content:{},pushMsgType:3,token:token},commandList=[];if(params){if(typeof+params.threadId!=='number'||params.threadId<0){_events.chatEvents.fireEvent('error',{code:999,message:'Enter a valid Thread Id for Bot to stop on!'});return;}if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}stopBotData.subjectId=+params.threadId;stopBotData.content=JSON.stringify({botName:params.botName.trim()});}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to create bot commands'});return;}return sendMessage(stopBotData,{onResult:function onResult(result){callback&&callback(result);}});};this.getBotCommandsList=function(params,callback){var getBotCommandsListData={chatMessageVOType:_constants.chatMessageVOTypes.BOT_COMMANDS,typeCode:params.typeCode,content:{},pushMsgType:3,token:token};if(params){if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}getBotCommandsListData.content=JSON.stringify({botName:params.botName.trim()});}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to get bot commands'});return;}return sendMessage(getBotCommandsListData,{onResult:function onResult(result){callback&&callback(result);}});};this.getThreadAllBots=function(params,callback){var getThreadBotsData={chatMessageVOType:_constants.chatMessageVOTypes.THREAD_ALL_BOTS,typeCode:params.typeCode,content:{},pushMsgType:3,token:token};if(params){if(typeof+params.threadId!=='number'||params.threadId<0){_events.chatEvents.fireEvent('error',{code:999,message:'Enter a valid Thread Id to get all Bots List!'});return;}getThreadBotsData.subjectId=+params.threadId;}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to get thread\' bots list!'});return;}return sendMessage(getThreadBotsData,{onResult:function onResult(result){callback&&callback(result);}});};this.mapReverse=function(params,callback){var data={};if(params){if(parseFloat(params.lat)>0){data.lat=params.lat;}if(parseFloat(params.lng)>0){data.lng=params.lng;}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.REVERSE,method:'GET',data:data,headers:{'Api-Key':mapApiKey}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:result.hasError,cache:result.cache,errorMessage:result.message,errorCode:result.errorCode,result:responseData};callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.mapSearch=function(params,callback){var data={};if(params){if(typeof params.term==='string'){data.term=params.term;}if(parseFloat(params.lat)>0){data.lat=params.lat;}if(parseFloat(params.lng)>0){data.lng=params.lng;}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.SEARCH,method:'GET',data:data,headers:{'Api-Key':mapApiKey}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:result.hasError,cache:result.cache,errorMessage:result.message,errorCode:result.errorCode,result:responseData};callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.mapRouting=function(params,callback){var data={};if(params){if(typeof params.alternative==='boolean'){data.alternative=params.alternative;}else{data.alternative=true;}if((0,_typeof2["default"])(params.origin)==='object'){if(parseFloat(params.origin.lat)>0&&parseFloat(params.origin.lng)){data.origin=params.origin.lat+','+parseFloat(params.origin.lng);}else{console.log('No origin has been selected!');}}if((0,_typeof2["default"])(params.destination)==='object'){if(parseFloat(params.destination.lat)>0&&parseFloat(params.destination.lng)){data.destination=params.destination.lat+','+parseFloat(params.destination.lng);}else{console.log('No destination has been selected!');}}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.ROUTING,method:'GET',data:data,headers:{'Api-Key':mapApiKey}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:result.hasError,cache:result.cache,errorMessage:result.message,errorCode:result.errorCode,result:responseData};callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.createSelfThread=function(params,callback){var content={type:_constants.createThreadTypes['SELF']};if(params){if(typeof params.description==='string'){content.description=params.description;}if(typeof params.metadata==='string'){content.metadata=params.metadata;}else if((0,_typeof2["default"])(params.metadata)==='object'){try{content.metadata=JSON.stringify(params.metadata);}catch(e){consoleLogging&&console.log(e);}}if((0,_typeof2["default"])(params.message)=='object'){content.message={};if(typeof params.message.text==='string'){content.message.text=params.message.text;}if(typeof params.message.uniqueId==='string'){content.message.uniqueId=params.message.uniqueId;}if(params.message.type>0){content.message.messageType=params.message.type;}if(params.message.repliedTo>0){content.message.repliedTo=params.message.repliedTo;}if(typeof params.message.metadata==='string'){content.message.metadata=params.message.metadata;}else if((0,_typeof2["default"])(params.message.metadata)==='object'){content.message.metadata=JSON.stringify(params.message.metadata);}if(typeof params.message.systemMetadata==='string'){content.message.systemMetadata=params.message.systemMetadata;}else if((0,_typeof2["default"])(params.message.systemMetadata)==='object'){content.message.systemMetadata=JSON.stringify(params.message.systemMetadata);}if(Array.isArray(params.message.forwardedMessageIds)){content.message.forwardedMessageIds=params.message.forwardedMessageIds;content.message.forwardedUniqueIds=[];for(var i=0;i<params.message.forwardedMessageIds.length;i++){content.message.forwardedUniqueIds.push(_utility["default"].generateUUID());}}}}var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_THREAD,typeCode:generalTypeCode,//params.typeCode,
+                 * Delete callback so if server pushes response before
+                 * cache, cache won't send data again
+                 */callback=undefined;if(!returnData.hasError&&returnCache){_events.chatEvents.fireEvent('contactEvents',{type:'CONTACTS_SEARCH_RESULT_CHANGE',result:returnData.result});}}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.createBot=function(params,callback){var createBotData={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_BOT,typeCode:params.typeCode,content:'',pushMsgType:3,token:token};if(params){if(typeof params.botName==='string'&&params.botName.length>0){if(params.botName.substr(-3)==="BOT"){createBotData.content=params.botName;}else{_events.chatEvents.fireEvent('error',{code:999,message:'Bot name should end in "BOT", ex. "testBOT"'});return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'Insert a bot name to create one!'});return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'Insert a bot name to create one!'});return;}return sendMessage(createBotData,{onResult:function onResult(result){callback&&callback(result);}});};this.defineBotCommand=function(params,callback){var defineBotCommandData={chatMessageVOType:_constants.chatMessageVOTypes.DEFINE_BOT_COMMAND,typeCode:params.typeCode,content:{},pushMsgType:3,token:token},commandList=[];if(params){if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}if(!Array.isArray(params.commandList)||!params.commandList.length){_events.chatEvents.fireEvent('error',{code:999,message:'Bot Commands List has to be an array of strings.'});return;}else{for(var i=0;i<params.commandList.length;i++){commandList.push('/'+params.commandList[i].trim());}}defineBotCommandData.content={botName:params.botName.trim(),commandList:commandList};}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to create bot commands'});return;}return sendMessage(defineBotCommandData,{onResult:function onResult(result){callback&&callback(result);}});};this.startBot=function(params,callback){var startBotData={chatMessageVOType:_constants.chatMessageVOTypes.START_BOT,typeCode:params.typeCode,content:{},pushMsgType:3,token:token};if(params){if(typeof+params.threadId!=='number'||params.threadId<0){_events.chatEvents.fireEvent('error',{code:999,message:'Enter a valid Thread Id for Bot to start in!'});return;}if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}startBotData.subjectId=+params.threadId;startBotData.content=JSON.stringify({botName:params.botName.trim()});}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to create bot commands'});return;}return sendMessage(startBotData,{onResult:function onResult(result){callback&&callback(result);}});};this.stopBot=function(params,callback){var stopBotData={chatMessageVOType:_constants.chatMessageVOTypes.STOP_BOT,typeCode:params.typeCode,content:{},pushMsgType:3,token:token},commandList=[];if(params){if(typeof+params.threadId!=='number'||params.threadId<0){_events.chatEvents.fireEvent('error',{code:999,message:'Enter a valid Thread Id for Bot to stop on!'});return;}if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}stopBotData.subjectId=+params.threadId;stopBotData.content=JSON.stringify({botName:params.botName.trim()});}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to create bot commands'});return;}return sendMessage(stopBotData,{onResult:function onResult(result){callback&&callback(result);}});};this.getBotCommandsList=function(params,callback){var getBotCommandsListData={chatMessageVOType:_constants.chatMessageVOTypes.BOT_COMMANDS,typeCode:params.typeCode,content:{},pushMsgType:3,token:token};if(params){if(typeof params.botName!=='string'||params.botName.length==0){_events.chatEvents.fireEvent('error',{code:999,message:'You need to insert a botName!'});return;}getBotCommandsListData.content=JSON.stringify({botName:params.botName.trim()});}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to get bot commands'});return;}return sendMessage(getBotCommandsListData,{onResult:function onResult(result){callback&&callback(result);}});};this.getThreadAllBots=function(params,callback){var getThreadBotsData={chatMessageVOType:_constants.chatMessageVOTypes.THREAD_ALL_BOTS,typeCode:params.typeCode,content:{},pushMsgType:3,token:token};if(params){if(typeof+params.threadId!=='number'||params.threadId<0){_events.chatEvents.fireEvent('error',{code:999,message:'Enter a valid Thread Id to get all Bots List!'});return;}getThreadBotsData.subjectId=+params.threadId;}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to get thread\' bots list!'});return;}return sendMessage(getThreadBotsData,{onResult:function onResult(result){callback&&callback(result);}});};this.mapReverse=function(params,callback){var data={};if(params){if(parseFloat(params.lat)>0){data.lat=params.lat;}if(parseFloat(params.lng)>0){data.lng=params.lng;}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.REVERSE,method:'GET',data:data,headers:{'Api-Key':mapApiKey}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:result.hasError,cache:result.cache,errorMessage:result.message,errorCode:result.errorCode,result:responseData};callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.mapSearch=function(params,callback){var data={};if(params){if(typeof params.term==='string'){data.term=params.term;}if(parseFloat(params.lat)>0){data.lat=params.lat;}if(parseFloat(params.lng)>0){data.lng=params.lng;}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.SEARCH,method:'GET',data:data,headers:{'Api-Key':mapApiKey}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:result.hasError,cache:result.cache,errorMessage:result.message,errorCode:result.errorCode,result:responseData};callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.mapRouting=function(params,callback){var data={};if(params){if(typeof params.alternative==='boolean'){data.alternative=params.alternative;}else{data.alternative=true;}if((0,_typeof2["default"])(params.origin)==='object'){if(parseFloat(params.origin.lat)>0&&parseFloat(params.origin.lng)){data.origin=params.origin.lat+','+parseFloat(params.origin.lng);}else{console.log('No origin has been selected!');}}if((0,_typeof2["default"])(params.destination)==='object'){if(parseFloat(params.destination.lat)>0&&parseFloat(params.destination.lng)){data.destination=params.destination.lat+','+parseFloat(params.destination.lng);}else{console.log('No destination has been selected!');}}data.uniqueId=_utility["default"].generateUUID();}var requestParams={url:SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.ROUTING,method:'GET',data:data,headers:{'Api-Key':mapApiKey}};httpRequest(requestParams,function(result){if(!result.hasError){var responseData=JSON.parse(result.result.responseText);var returnData={hasError:result.hasError,cache:result.cache,errorMessage:result.message,errorCode:result.errorCode,result:responseData};callback&&callback(returnData);}else{_events.chatEvents.fireEvent('error',{code:result.errorCode,message:result.errorMessage,error:result});}});};this.createSelfThread=function(params,callback){var content={type:_constants.createThreadTypes['SELF']};if(params){if(typeof params.description==='string'){content.description=params.description;}if(typeof params.metadata==='string'){content.metadata=params.metadata;}else if((0,_typeof2["default"])(params.metadata)==='object'){try{content.metadata=JSON.stringify(params.metadata);}catch(e){consoleLogging&&console.log(e);}}if((0,_typeof2["default"])(params.message)=='object'){content.message={};if(typeof params.message.text==='string'){content.message.text=params.message.text;}if(typeof params.message.uniqueId==='string'){content.message.uniqueId=params.message.uniqueId;}if(params.message.type>0){content.message.messageType=params.message.type;}if(params.message.repliedTo>0){content.message.repliedTo=params.message.repliedTo;}if(typeof params.message.metadata==='string'){content.message.metadata=params.message.metadata;}else if((0,_typeof2["default"])(params.message.metadata)==='object'){content.message.metadata=JSON.stringify(params.message.metadata);}if(typeof params.message.systemMetadata==='string'){content.message.systemMetadata=params.message.systemMetadata;}else if((0,_typeof2["default"])(params.message.systemMetadata)==='object'){content.message.systemMetadata=JSON.stringify(params.message.systemMetadata);}if(Array.isArray(params.message.forwardedMessageIds)){content.message.forwardedMessageIds=params.message.forwardedMessageIds;content.message.forwardedUniqueIds=[];for(var i=0;i<params.message.forwardedMessageIds.length;i++){content.message.forwardedUniqueIds.push(_utility["default"].generateUUID());}}}}var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.CREATE_THREAD,typeCode:generalTypeCode,//params.typeCode,
 content:content};return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result;returnData.result={thread:createThread(messageContent)};}callback&&callback(returnData);}});};this.mapStaticImage=function(params,callback){var data={},url=SERVICE_ADDRESSES.MAP_ADDRESS+_constants.SERVICES_PATH.STATIC_IMAGE,hasError=false;if(params){if(typeof params.type==='string'){data.type=params.type;}else{data.type='standard-night';}if(parseInt(params.zoom)>0){data.zoom=params.zoom;}else{data.zoom=15;}if(parseInt(params.width)>0){data.width=params.width;}else{data.width=800;}if(parseInt(params.height)>0){data.height=params.height;}else{data.height=600;}if((0,_typeof2["default"])(params.center)==='object'){if(parseFloat(params.center.lat)>0&&parseFloat(params.center.lng)){data.center=params.center.lat+','+parseFloat(params.center.lng);}else{hasError=true;_events.chatEvents.fireEvent('error',{code:6700,message:_constants.CHAT_ERRORS[6700],error:undefined});}}else{hasError=true;_events.chatEvents.fireEvent('error',{code:6700,message:_constants.CHAT_ERRORS[6700],error:undefined});}data.key=mapApiKey;}var keys=Object.keys(data);if(keys.length>0){url+='?';for(var i=0;i<keys.length;i++){var key=keys[i];url+=key+'='+data[key];if(i<keys.length-1){url+='&';}}}var returnData={hasError:hasError,cache:false,errorMessage:hasError?_constants.CHAT_ERRORS[6700]:'',errorCode:hasError?6700:undefined,result:{link:!hasError?url:''}};callback&&callback(returnData);};this.setAdmin=function(params,callback){setRoleToUser(params,callback);};this.removeAdmin=function(params,callback){removeRoleFromUser(params,callback);};this.setAuditor=function(params,callback){setRoleToUser(params,callback);};this.removeAuditor=function(params,callback){removeRoleFromUser(params,callback);};this.clearChatServerCaches=clearChatServerCaches;// this.deleteCacheDatabases = deleteCacheDatabases;
 // this.clearCacheDatabasesOfUser = clearCacheDatabasesOfUser;
 this.getChatState=function(){return chatFullStateObject;};this.reconnect=function(){asyncClient.reconnectSocket();};this.setToken=function(newToken){if(typeof newToken!='undefined'){token=newToken;_events.chatEvents.updateToken(token);if(!userInfo||!userInfo.id){getUserAndUpdateSDKState();}}};this.generateUUID=_utility["default"].generateUUID;/** Call public methods */this.startRecordingCall=function(params,callback){var recordCallData={chatMessageVOType:_constants.chatMessageVOTypes.RECORD_CALL,typeCode:params.typeCode,pushMsgType:3,token:token,content:{}};if(params){if(typeof+params.callId==='number'&&params.callId>0){recordCallData.subjectId=+params.callId;}else{// chatEvents.fireEvent('error', {
@@ -4264,29 +4527,29 @@ return;}}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params 
 //     message: 'Call Id should be a valid number!'
 // });
 return;}else{var callId=+params.callId;sendMessageParams.subjectId=callId;var offset=parseInt(params.offset)>0?parseInt(params.offset):0,count=parseInt(params.count)>0?parseInt(params.count):config.getHistoryCount;sendMessageParams.content.count=count;sendMessageParams.content.offset=offset;return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){var messageContent=result.result,messageLength=messageContent.length,resultData={participants:reformatCallParticipants(messageContent),contentCount:result.contentCount,hasNext:sendMessageParams.content.offset+sendMessageParams.content.count<result.contentCount&&messageLength>0,nextOffset:sendMessageParams.content.offset*1+messageLength*1};returnData.result=resultData;}callback&&callback(returnData);/**
-                             * Delete callback so if server pushes response before
-                             * cache, cache won't send data again
-                             */callback=undefined;if(!returnData.hasError){_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANTS_LIST_CHANGE',threadId:callId,result:returnData.result});}}});}}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to Get Call Participants!'});return;}};this.addCallParticipants=function(params,callback){/**
-             * + AddCallParticipantsRequest     {object}
-             *    - subjectId                   {int}
-             *    + content                     {list} List of CONTACT IDs or inviteeVO Objects
-             *    - uniqueId                    {string}
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.ADD_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.contactIds)){sendMessageParams.content=params.contactIds;}if(Array.isArray(params.usernames)){sendMessageParams.content=[];for(var i=0;i<params.usernames.length;i++){sendMessageParams.content.push({id:params.usernames[i],idType:_constants.inviteeVOidTypes.TO_BE_USER_USERNAME});}}if(Array.isArray(params.coreUserids)){sendMessageParams.content=[];for(var i=0;i<params.coreUserids.length;i++){sendMessageParams.content.push({id:params.coreUserids[i],idType:_constants.inviteeVOidTypes.TO_BE_CORE_USER_ID});}}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
+                         * Delete callback so if server pushes response before
+                         * cache, cache won't send data again
+                         */callback=undefined;if(!returnData.hasError){_events.chatEvents.fireEvent('callEvents',{type:'CALL_PARTICIPANTS_LIST_CHANGE',threadId:callId,result:returnData.result});}}});}}else{_events.chatEvents.fireEvent('error',{code:999,message:'No params have been sent to Get Call Participants!'});return;}};this.addCallParticipants=function(params,callback){/**
+         * + AddCallParticipantsRequest     {object}
+         *    - subjectId                   {int}
+         *    + content                     {list} List of CONTACT IDs or inviteeVO Objects
+         *    - uniqueId                    {string}
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.ADD_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.contactIds)){sendMessageParams.content=params.contactIds;}if(Array.isArray(params.usernames)){sendMessageParams.content=[];for(var i=0;i<params.usernames.length;i++){sendMessageParams.content.push({id:params.usernames[i],idType:_constants.inviteeVOidTypes.TO_BE_USER_USERNAME});}}if(Array.isArray(params.coreUserids)){sendMessageParams.content=[];for(var i=0;i<params.coreUserids.length;i++){sendMessageParams.content.push({id:params.coreUserids[i],idType:_constants.inviteeVOidTypes.TO_BE_CORE_USER_ID});}}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
 var messageContent=result.result;returnData.result=messageContent;}callback&&callback(returnData);}});};this.removeCallParticipants=function(params,callback){/**
-             * + removeCallParticipantsRequest     {object}
-             *    - subjectId                   {int}
-             *    + content                     {list} List of Participants UserIds
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.REMOVE_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.userIds)){sendMessageParams.content=params.userIds;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
+         * + removeCallParticipantsRequest     {object}
+         *    - subjectId                   {int}
+         *    + content                     {list} List of Participants UserIds
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.REMOVE_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.userIds)){sendMessageParams.content=params.userIds;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
 var messageContent=result.result;returnData.result=messageContent;}callback&&callback(returnData);}});};this.muteCallParticipants=function(params,callback){/**
-             * + muteCallParticipantsRequest     {object}
-             *    - subjectId                   {int}
-             *    + content                     {list} List of Participants UserIds
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.MUTE_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.userIds)){sendMessageParams.content=params.userIds;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
+         * + muteCallParticipantsRequest     {object}
+         *    - subjectId                   {int}
+         *    + content                     {list} List of Participants UserIds
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.MUTE_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.userIds)){sendMessageParams.content=params.userIds;}}return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
 var messageContent=result.result;returnData.result=messageContent;}callback&&callback(returnData);}});};this.unMuteCallParticipants=function(params,callback){/**
-             * + unMuteCallParticipantsRequest     {object}
-             *    - subjectId                   {int}
-             *    + content                     {list} List of Participants UserIds
-             */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.UNMUTE_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.userIds)){sendMessageParams.content=params.userIds;}}var myId=userInfo.id;return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
+         * + unMuteCallParticipantsRequest     {object}
+         *    - subjectId                   {int}
+         *    + content                     {list} List of Participants UserIds
+         */var sendMessageParams={chatMessageVOType:_constants.chatMessageVOTypes.UNMUTE_CALL_PARTICIPANT,typeCode:params.typeCode,content:[]};if(params){if(typeof params.callId==='number'&&params.callId>0){sendMessageParams.subjectId=params.callId;}if(Array.isArray(params.userIds)){sendMessageParams.content=params.userIds;}}var myId=userInfo.id;return sendMessage(sendMessageParams,{onResult:function onResult(result){var returnData={hasError:result.hasError,cache:false,errorMessage:result.errorMessage,errorCode:result.errorCode};if(!returnData.hasError){// TODO : What is the result?!
 var messageContent=result.result;returnData.result=messageContent;}callback&&callback(returnData);}});};this.turnOnVideoCall=function(params,callback){var turnOnVideoData={chatMessageVOType:_constants.chatMessageVOTypes.TURN_ON_VIDEO_CALL,typeCode:params.typeCode,pushMsgType:3,token:token};if(params){if(typeof+params.callId==='number'&&params.callId>0){turnOnVideoData.subjectId=+params.callId;}else{(0,_errorHandler.raiseError)(_errorHandler.errorList.INVALID_CALLID,callback,true,{});// chatEvents.fireEvent('error', {
 //     code: 999,
 //     message: 'Invalid call id!'
