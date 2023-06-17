@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented here.
 to see complete list of changelog please visit [ChangeLog](https://github.com/masoudmanson/pod-chat/blob/master/changelog.md)
+## [12.6.1] - 17-06-2023
+
+### Added
+- Support for chat server types 66, 67 (lastMessage edit, lastMessage delete)
+
+### Changed
+- Removed old cache functionality and removed usage of packages: sqlite, dexie
+- Refactor call errors
+- Functionality of pinging the chat server
+- Modified socket stateChange event callback
+- Enhanced functionality of establishing connection to async and raising chatReady event
+- Internal project structure improvement
+- Update package podasync
+
+### Fixed
+- Fix no response from chat server if field token not exists
+
 
 ## [12.5.3] - 14-11-2022
 ### Added
