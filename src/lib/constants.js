@@ -180,7 +180,9 @@ const CHAT_ERRORS = {
     // Map Errors
     6700: 'You should Enter a Center Location like {lat: " ", lng: " "}',
 
-    12003: 'Async socket connection failed'
+    6800: "RequestLimiter: Too fast api call, you should wait {time}ms after each call to current api.",
+    12003: 'Async socket connection failed',
+
 }
 
 const SERVICES_PATH = {

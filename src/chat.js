@@ -1697,6 +1697,11 @@ import Mime from 'mime';
                      * Type 6    Chat Ping
                      */
                     case chatMessageVOTypes.PING:
+                        if (messagesCallbacks[uniqueId]) {
+                            let result = Utility.createReturnData(false, '', 0, messageContent);
+                            result.uniqueId = uniqueId;
+                            messagesCallbacks[uniqueId](result);
+                        }
                         break;
 
                     /**
@@ -12954,20 +12959,27 @@ import Mime from 'mime';
                 lastTime: 0
             }
         };
+
         this.pingChatServer = function (callback) {
             if(requestLimiter.pingChatServer.lastTime < (new Date().getTime() - (requestLimiter.pingChatServer.limit))){
                 requestLimiter.pingChatServer.lastTime = new Date().getTime();
                 sendMessage({
                     chatMessageVOType: chatMessageVOTypes.PING,
-                    pushMsgType: 3
+                    pushMsgType: 3,
+                    uniqueId: Utility.generateUUID()
                 }, function (result) {
-                    console.log({result})
+                    messagesCallbacks[result.uniqueId] && delete messagesCallbacks[result.uniqueId]
                     callback && callback(result);
                 });
+            } else {
+                let result = {
+                    hasError: true,
+                    errorCode: null,
+                    errorMessage: CHAT_ERRORS[6800].replace("{time}", requestLimiter.pingChatServer.limit)
+                }
+                callback && callback(result)
             }
-
         };
-
 
         /** Call public methods */
         this.startRecordingCall = function (params, callback) {
