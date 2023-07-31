@@ -12948,6 +12948,26 @@ import Mime from 'mime';
 
         this.generateUUID = Utility.generateUUID;
 
+        let requestLimiter = {
+            pingChatServer: {
+                limit: 1000 * 60,
+                lastTime: 0
+            }
+        };
+        this.pingChatServer = function (callback) {
+            if(requestLimiter.pingChatServer.lastTime < (new Date().getTime() - (requestLimiter.pingChatServer.limit))){
+                requestLimiter.pingChatServer.lastTime = new Date().getTime();
+                sendMessage({
+                    chatMessageVOType: chatMessageVOTypes.PING,
+                    pushMsgType: 3
+                }, function (result) {
+                    console.log({result})
+                    callback && callback(result);
+                });
+            }
+
+        };
+
 
         /** Call public methods */
         this.startRecordingCall = function (params, callback) {
